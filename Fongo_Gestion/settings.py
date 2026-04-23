@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'theme',
     'fongo_user',
     'finance',
-    'formation'
 ]
 
 TAILWIND_APP_NAME = 'theme'
