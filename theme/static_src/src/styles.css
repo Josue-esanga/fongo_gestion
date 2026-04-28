@@ -9,3 +9,23 @@
   * the scope of this path.
   */
 @source "../../../**/*.{html,py,js}";
+label{
+  display: block;
+  margin-left: 10%;
+
+}
+
+input{
+  /* margin: auto; */
+  /* margin-top: 5px; */
+  background: #9bb8f7;
+  margin-left: 10%;
+  width: 80%;
+  border:none;
+  outline: 0;
+  border-radius: 10px;
+  padding: 10px 10px;
+}
+input:focus{
+  outline: green 2px;
+}

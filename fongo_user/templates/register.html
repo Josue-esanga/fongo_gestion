@@ -1,0 +1,23 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Django Tailwind</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    {% tailwind_css %}
+</head>
+
+<body class="bg-gray-50 w-full h-screen flex justify-center items-center text-black font-serif leading-normal tracking-normal">
+    <form method="post" class="shadow-2xl rounded-2xl w-[35%] min-h-[60%] flex flex-col gap-4">
+        <p class="text-center text-[36px] text-blue-800 font-bold mt-3">Inscription</p>
+    {% csrf_token %}
+    {{ form.as_p }}
+    
+   <div class="m-auto">
+       <button type="submit" class="text-2xl cursor-pointer font-bold px-6 py-3 rounded-2xl bg-blue-800 text-white mb-6 mt-2">S'inscrire</button>
+   </div>
+</form>
+</body>
+</html>

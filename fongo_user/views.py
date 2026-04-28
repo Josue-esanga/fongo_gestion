@@ -1,9 +1,10 @@
 # from django.shortcuts import render, redirect
-from .forms import UserRegistrationForm
+from .forms import UserForm
 from django.contrib.auth import login
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView
+from django.views.generic import TemplateView
 
 # def register(request):
 #     if request.method == "POST":
@@ -22,7 +23,7 @@ class RegisterView(CreateView):
     #Gère l'affichage du formulaire (GET) et la création de l'utilisateur (POST).
     #Le traitement de request.FILES est géré automatiquement par Django.
     template_name = 'register.html'
-    form_class = UserRegistrationForm
+    form_class = UserForm
     success_url = reverse_lazy('home') # Redirige vers la page d'accueil après l'inscription réussie
     
     def form_valid(self, form):
@@ -31,10 +32,17 @@ class RegisterView(CreateView):
         login(self.request, user) # Pour gérer la session
         return response
 
-class LoginView(LoginView):
+class LoginView1(LoginView):
     template_name = 'login.html'
     def get_success_url(self):
         return reverse_lazy('home') # Redirige vers la page d'accueil après la connexion réussie
 
+class Home(TemplateView):
+    template_name = 'base.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user'] = self.request.user
+        return context
 
 

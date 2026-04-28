@@ -1,13 +1,21 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.hashers import make_password, check_password
 
-class User(AbstractUser):
-# Avec cette logique django gère déjà tout ce qui concerne le password, le name,...
+
+class User(models.Model):
+    username = models.CharField(max_length=50)
+    email = models.EmailField(null=False, unique=True)
+    password = models.CharField(max_length=100)
+
+    def save(self, *args, **kwargs):
+        if self.password and not self.password.startswith(('pbkdf2_sha256$', 'bcrypt', 'argon2')):
+            self.password = make_password(self.password)
+        super().save(*args, **kwargs)
 
     Role_choice = [
         ('super_admin','Super Admin'), #le role sont stocké dans le tuple/ ("valeur stockée dans la BDD","valeur affichée")
         ('admin','Administrateur'), #le role sont stocké dans le tuple/ ("valeur stockée dans la BDD","valeur affichée")
-        ('stagiaire','Stagiaire') #le role sont stocké dans le tuple/ ("valeur stockée dans la BDD","valeur affichée")
+        ('stagiaire','Stagiaire'), #le role sont stocké dans le tuple/ ("valeur stockée dans la BDD","valeur affichée")
     ]
    
     role = models.CharField(

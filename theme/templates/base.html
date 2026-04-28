@@ -10,10 +10,53 @@
 </head>
 
 <body class="bg-gray-50 text-black font-serif leading-normal tracking-normal">
+    <nav class="w-full h-[10vh] shadow-2xl flex items-center justify-between pl-2">
+        <p class="text-2xl font-bold text-blue-500">FongoLab</p>
+        <div>
+            <img src="" alt="">
+            <p class="pr-6 font-bold">bienvenu cher coordo</p>
+        </div>
+        <p>Notifications</p>
+    </nav>
+    <main class="w-full h-[90vh] flex">
+        <aside class="w-[25%] h-[90vh] shadow-2xl bg-[whitesmoke]">
+            <div class="w-full h-[90vh] flex flex-col relative pt-4">
+                {% if user.is_authenticated %}
+                    {% if user.role == 'super_admin' or user.role == 'admin' %}
+                        <div class="font-bold ml-[10%] w-[90%]  h-[9vh] flex items-center pl-8 hover:bg-blue-100 hover:text-blue-800 cursor-pointer transition duration-700 rounded-bl-4xl rounded-tl-4xl">Membre</div>
+                    <div class="font-bold ml-[10%] w-[90%]  h-[9vh] flex items-center pl-8 hover:bg-blue-100 hover:text-blue-800 cursor-pointer transition duration-700 rounded-bl-4xl rounded-tl-4xl">Finance</div>
+                    <div class="font-bold ml-[10%] w-[90%]  h-[9vh] flex items-center pl-8 hover:bg-blue-100 hover:text-blue-800 cursor-pointer transition duration-700 rounded-bl-4xl rounded-tl-4xl">Gestion Ressource</div>
+                    <div class="font-bold ml-[10%] w-[90%]  h-[9vh] flex items-center pl-8 hover:bg-blue-100 hover:text-blue-800 cursor-pointer transition duration-700 rounded-bl-4xl rounded-tl-4xl">Gestion Pedagogique</div>
+                    <div class="font-bold ml-[10%] w-[90%]  h-[9vh] flex items-center pl-8 hover:bg-blue-100 hover:text-blue-800 cursor-pointer transition duration-700 rounded-bl-4xl rounded-tl-4xl">Planning</div>
+                    <div class="font-bold ml-[10%] w-[90%]  h-[9vh] flex items-center pl-8 hover:bg-blue-100 hover:text-blue-800 cursor-pointer transition duration-700 rounded-bl-4xl rounded-tl-4xl">Annonces</div>
 
-    {% block content %}
-    
-    {% endblock content %}
+                    {% elif user.role == 'stagiaire' %}
+                    <div class="font-bold ml-[10%] w-[90%]  h-[9vh] flex items-center pl-8 hover:bg-blue-100 hover:text-blue-800 cursor-pointer transition duration-700 rounded-bl-4xl rounded-tl-4xl">Consultation finance</div>
+                    <div class="font-bold ml-[10%] w-[90%]  h-[9vh] flex items-center pl-8 hover:bg-blue-100 hover:text-blue-800 cursor-pointer transition duration-700 rounded-bl-4xl rounded-tl-4xl">Devoir</div>
+                    <div class="font-bold ml-[10%] w-[90%]  h-[9vh] flex items-center pl-8 hover:bg-blue-100 hover:text-blue-800 cursor-pointer transition duration-700 rounded-bl-4xl rounded-tl-4xl">Annonces</div>
+                    {% endif %}
+                {% endif %}
+                <div class="w-full absolute bottom-4">
+                    <div class="font-bold  ml-[10%] w-[90%] h-[9vh] flex items-center pl-8 hover:bg-blue-100 hover:text-blue-800 cursor-pointer rounded-bl-4xl rounded-tl-4xl">Parametre</div>
+                    <div class="font-bold  ml-[10%] w-[90%] h-[9vh] flex items-center pl-8 hover:bg-blue-100 hover:text-blue-800 cursor-pointer rounded-bl-4xl rounded-tl-4xl">Deconnexion</div>
+                </div>
+                <p class="text-red-500">Rôle actuel : {{ user.role }}</p>
+               <p class="text-red-500">Authentifié : {{ user.is_authenticated }}</p>
+            </div>
+            {% comment %} <div class="w-[5%] border-l h-[90vh] border-gray-400 flex flex-col items-center justify-center gap-10">
+                <h1><<</h1>
+                <h1><<</h1>
+            </div>  {% endcomment %}
+
+        </aside>
+        <section class="w-[75%] h-[90vh] bg-blue-100">
+
+            {% block content %}
+            
+            {% endblock content %}
+        </section>
+    </main>
+
 
 </body>
 </html>
