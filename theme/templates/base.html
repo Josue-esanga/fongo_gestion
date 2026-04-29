@@ -14,7 +14,7 @@
         <p class="text-2xl font-bold text-blue-500">FongoLab</p>
         <div>
             <img src="" alt="">
-            <p class="pr-6 font-bold">bienvenu cher coordo</p>
+            <p class="pr-6 font-bold">bienvenu cher {{ user.role }}</p>
         </div>
         <p>Notifications</p>
     </nav>
@@ -40,8 +40,7 @@
                     <div class="font-bold  ml-[10%] w-[90%] h-[9vh] flex items-center pl-8 hover:bg-blue-100 hover:text-blue-800 cursor-pointer rounded-bl-4xl rounded-tl-4xl">Parametre</div>
                     <div class="font-bold  ml-[10%] w-[90%] h-[9vh] flex items-center pl-8 hover:bg-blue-100 hover:text-blue-800 cursor-pointer rounded-bl-4xl rounded-tl-4xl">Deconnexion</div>
                 </div>
-                <p class="text-red-500">Rôle actuel : {{ user.role }}</p>
-               <p class="text-red-500">Authentifié : {{ user.is_authenticated }}</p>
+                
             </div>
             {% comment %} <div class="w-[5%] border-l h-[90vh] border-gray-400 flex flex-col items-center justify-center gap-10">
                 <h1><<</h1>
