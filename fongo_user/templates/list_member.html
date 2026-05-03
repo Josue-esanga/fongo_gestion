@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+<div class="w-full flex justify-between mt-5 pr-30">
+    <div>
+      <a href="{% url "list_member" %} "class="btn btn-neutral">All</a>
+      <a href="{% url "list_stagiaire" %} "class="btn btn-primary">Stagiaire</a>
+      <a href="{% url "list_admin" %} " class="btn btn-info">Administrateur</a>
+    </div>
+    <a href="{% url "add_user" %}" class="btn btn-info text-white text-[20px]">Ajouter un nouveau utilisateur</a>
+</div>
+<div class="overflow-x-auto">
+  <table class="table w-[80%] m-auto border border-t-0 border-gray-400">
+    <!-- head -->
+    <thead>
+      <tr class="text-black text-center">
+        <th>Name</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- row 1 -->
+      {% for user in users %}
+      <tr class="text-black text-center">
+        <td>
+          <div class="flex items-center gap-3">
+            <div class="avatar">
+              <div class="mask mask-squircle h-12 w-12">
+                {% if user.pictures %}
+                  <img src="{{ user.pictures.url }}" alt=("Photo de profil de {{ user.username }}")>
+                {% else %}
+                  <p>Aucune photo disponible</p>
+                {% endif %}
+              </div>
+            </div>
+            <div>
+              <div class="font-bold">{{ user.username }}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span class="badge badge-ghost badge-sm">{{ user.role }}</span>
+        </td>
+        <td><div aria-label="status" class="status status-success"></div><span class="ml-2">{{ user.is_active }}</span>
+        </td>
+        <th class="flex justify-center">
+          <div class="flex gap-2"><a href="{% url "modify_user" user.id %}" class="btn btn-success">Modifier</a>
+          <a href="{% url "delete_user" user.id %}" class="btn btn-error">Supprimer</a></div>
+        </th>
+      </tr>
+      
+        {% endfor %}
+        
+    </tbody>
+  </table>
+</div>
+
+{% endblock content %}

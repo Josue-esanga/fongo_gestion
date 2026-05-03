@@ -126,3 +126,22 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'fongo_user.User'
+
+import os
+# Le chemin d'accès vers le dossier static (où les fichiers statiques seront stockés)
+MEDIA_URL = '/media/'
+# Le chemin d'accès vers le dossier media (où les fichiers téléchargés seront stockés)
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+# Force la suppression du cookie de session dès que le navigateur est fermé
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Supprime la session en base de données dès que l'utilisateur se déconnecte (par défaut à True)
+SESSION_SAVE_EVERY_REQUEST = True
+
+# Le nom (name) de l'URL de votre page de connexion
+LOGIN_URL = 'login' 
+
+# (Optionnel) Où aller après une connexion réussie
+LOGIN_REDIRECT_URL = 'home'

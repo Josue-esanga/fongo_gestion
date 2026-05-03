@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.hashers import make_password, check_password
 
 
 class User(AbstractUser):
@@ -10,11 +9,11 @@ class User(AbstractUser):
         ('admin','Administrateur'), #le role sont stocké dans le tuple/ ("valeur stockée dans la BDD","valeur affichée")
         ('stagiaire','Stagiaire'), #le role sont stocké dans le tuple/ ("valeur stockée dans la BDD","valeur affichée")
     ]
-   
+     
     role = models.CharField(
         max_length=20,
         choices= Role_choice,
-        default= 'stagiaire'
+        default= 'super_admin'
     )
     pictures = models.ImageField(
         upload_to="pictures/", # Le chemin d'accès vers nos photos theme/static/pictures
@@ -24,6 +23,15 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.username} - {self.role}"
+    
+class Annonce(models.Model):
+    object = models.CharField(max_length=100)
+    contenu = models.TextField()
+    poster_a = models.DateTimeField(auto_now_add= True)
+
+    def __str__(self):
+        return self.object
+    
 
     
 
