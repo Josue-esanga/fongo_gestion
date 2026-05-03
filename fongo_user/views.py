@@ -80,13 +80,7 @@ class ListAdmin(LoginRequiredMixin,ListView):
     context_object_name = 'users'
     def get_queryset(self):
         return User.objects.filter(role = 'admin')
-    
-
-class Annonce(LoginRequiredMixin, ListView):
-    model = Annonce 
-    template_name = 'annonce.html'
-    context_object_name = "annonces"
-
+ 
 
 # class ListMember(TemplateView):
 #     template_name = 'list_member.html'
@@ -114,12 +108,3 @@ def logout_user(request):
     return redirect('login')
 
 
-def add_annonce(request):
-    if request.method == "POST":
-        form = AnnonceForm(request.POST) # il y a request.FILES pour les images
-        if form.is_valid():
-            form.save()
-            return redirect("annonce")
-    else:
-        form = AnnonceForm()
-    return render(request, 'annonce_form.html', {'ann':form})

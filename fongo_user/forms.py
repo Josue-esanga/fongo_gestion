@@ -15,8 +15,3 @@ class UserForm(forms.ModelForm):
 
 
 
-class AnnonceForm(forms.ModelForm):
-    class Meta:
-        model = Annonce 
-        fields = ['object','contenu']
-        exclude = ['user'] 
