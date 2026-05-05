@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if user.role == 'super_admin' or user.role == 'admin' %}
+{% comment %} <a class="bg-blue-500 text-white px-4 py-3 rounded-2xl hover:bg-blue-600" href="{% url "add_annonce" %}">Ajouter une annonce</a> {% endcomment %}
+<a href="{% url "add_annonce" %}" class="btn btn-primary text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition duration-300 flex items-center gap-2 w-[22%]">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+            Ajouter une annonce
+</a>
+{% endif %}
+
+<ul class="list  rounded-box shadow-md mt-10 bg-black p-1" >
+  {% for annonce in annonces %}
+  
+  <li class="list-row bg-white mb-1 flex flex-col" >
+    <div class="flex gap-3">
+        <div>
+            <img class="size-10 rounded-box" src="https://img.daisyui.com/images/profile/demo/4@94.webp"/></div>
+            <div>
+                <div class="text-[18px]">{{annonce.object}}</div>
+                <div class="text-xs uppercase font-semibold opacity-60">{{annonce.poster_a}}</div>
+            </div>
+    </div>
+    <div>
+
+        <p class="list-col-wrap text-xs">
+            {{annonce.contenu}}
+        </p>
+    </div>
+    
+    <div class="flex justify-between ">
+        <p class="font-bold"> publié par: {{annonce.auteur.username}}</p>
+        {% if user.is_authenticated %}
+        <div>
+            {% if user.role == 'super_admin' or user.role == 'admin' %}
+
+            <a href="{% url "modifier_annonce" annonce.id %}">
+                <button class="btn btn-square btn-ghost">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M18 17h-7.5l2-2H18M6 17v-2.5l7.88-7.85c.19-.2.51-.2.71 0l1.76 1.76c.2.2.2.51 0 .71L8.47 17M19 3H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2"/></svg>
+            </button>
+            </a>
+            <a href="{% url "supprimer_annonce" annonce.id %}">
+                <button class="btn btn-square btn-ghost">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M7 4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2h4a1 1 0 1 1 0 2h-1.069l-.867 12.142A2 2 0 0 1 17.069 22H6.93a2 2 0 0 1-1.995-1.858L4.07 8H3a1 1 0 0 1 0-2h4zm2 2h6V4H9zM6.074 8l.857 12H17.07l.857-12zM10 10a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1"/></svg>
+                </button>
+            </a>
+            {% endif %}
+            <button class="btn btn-square btn-ghost">
+                <svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></g></svg>
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</li>
+{% empty %}
+<p>Aucune Annonce pour le moment</p>
+{% endfor %}
+
+  
+</ul>
+
+
+{% endblock content %} 

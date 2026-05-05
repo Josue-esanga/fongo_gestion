@@ -91,20 +91,27 @@ class ListAdmin(LoginRequiredMixin,ListView):
 class LoginView1(LoginView):
     template_name = 'login.html'
     def get_success_url(self):
-        return reverse_lazy('home') # Redirige vers la page d'accueil après la connexion réussie
+        return reverse_lazy('Dashboard') # Redirige vers la page d'accueil après la connexion réussie
 
 
 
 class Home(LoginRequiredMixin,TemplateView):
+    template_name = 'home.html'
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     context['user'] = self.request.user
+    #     return context
+
+class Dashboard(LoginRequiredMixin,TemplateView):
     template_name = 'base.html'
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['user'] = self.request.user
-        return context
 
 
 def logout_user(request):
     logout(request)
     return redirect('login')
+
+# class Acceuil(LoginRequiredMixin,TemplateView):
+#     template_name = "home.html"
+
 
 
