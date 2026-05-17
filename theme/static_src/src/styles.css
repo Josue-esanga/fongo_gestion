@@ -1,0 +1,56 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+/**
+  * A catch-all path to Django template files, JavaScript, and Python files
+  * that contain Tailwind CSS classes and will be scanned by Tailwind to generate the final CSS file.
+  *
+  * If your final CSS file is not being updated after code changes, you may want to broaden or narrow
+  * the scope of this path.
+  */
+@source "../../../**/*.{html,py,js}";
+label{
+  display: block;
+  margin-left: 10%;
+
+}
+
+form input{
+  border-bottom: 2px solid gray;
+  margin-left: 10%;
+  width: 80%;
+  height: 40px;
+  outline: 0;
+  padding: 10px 10px;
+  
+}
+input:focus{
+  outline: green 2px;
+}
+.user span{
+  display: none;
+}
+.user select{
+  margin-left: 10%;
+  width: 80%;
+  border-bottom:2px solid gray;
+  outline: 0;
+  padding: 10px 10px;
+}
+.user textarea{
+  border: 2px solid #9bb8f7;
+  outline: 0;
+  width: 90%;
+  margin-left: 30px;
+  height: 30vh;
+  overflow: scroll;
+
+  
+}
+.user{
+  display: flex;
+  flex-direction: column;
+}
+.user ul{
+  display: none;
+}
