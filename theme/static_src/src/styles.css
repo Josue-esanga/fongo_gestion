@@ -1,0 +1,112 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+/**
+  * A catch-all path to Django template files, JavaScript, and Python files
+  * that contain Tailwind CSS classes and will be scanned by Tailwind to generate the final CSS file.
+  *
+  * If your final CSS file is not being updated after code changes, you may want to broaden or narrow
+  * the scope of this path.
+  */
+@source "../../../**/*.{html,py,js}";
+
+label{
+  display: block;
+  color: #ffffff !important;
+  font-weight: bold;
+  margin-bottom: 8px;
+  display: block;
+  margin-left: 10px;
+}
+
+
+form{
+  padding: 30px;
+}
+.formulaire{
+  padding: 30px;
+}
+
+form input{
+  width: 100%;
+  padding: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.548);
+  border-radius: 25px;
+  outline: none;
+  background: transparent;
+  /* border: rgba(255, 255, 255, 0.2); */
+  color: #fff;
+  padding-right: 40px;
+  box-shadow: 0 0 12px rgba(0, 196, 255, 0.6) !important;
+}
+
+
+form input:focus {
+    background-color: rgba(255, 255, 255, 0.15) !important; /* Fond un peu plus clair */
+    color: #ffffff !important;
+    border-color: #00C4FF !important; /* Bordure prend le bleu cyan de votre logo */
+    outline: none;
+    box-shadow: 0 0 12px rgba(0, 196, 255, 0.6) !important; /* Halo lumineux néon */
+}
+
+
+select.form-control option {
+    background-color: #00005C !important;
+    color: #ffffff !important;
+}
+
+form input::placeholder{
+  color: #fff;
+}
+
+
+.user span{
+  display: none;
+}
+
+.user select{
+  width: 100%;
+  padding: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.651);
+  border-radius: 25px;
+  outline: none;
+  background: transparent;
+  /* border: rgba(255, 255, 255, 0.2); */
+  font-weight: 20px;
+  padding-right: 40px;
+  box-shadow: 0 0 12px rgba(0, 196, 255, 0.6) !important;
+  border-bottom:2px solid gray;
+}
+
+.user select option{
+  width: 100%;
+  border: 2px solid black;
+  border-radius: 25px;
+  outline: none;
+  background: transparent;
+  border: rgba(255, 255, 255, 0.2);
+  padding-right: 40px;
+  box-shadow: 0 0 12px rgba(0, 196, 255, 0.6) !important;
+  border-bottom:2px solid gray;
+  padding: 10px 10px;
+}
+
+
+.user textarea{
+  border: 2px solid #9bb8f7;
+  outline: 0;
+  width: 90%;
+  margin-left: 30px;
+}
+
+
+.user{
+  display: flex;
+  flex-direction: column;
+}
+
+
+.user ul{
+  color: #fff;
+  display: none;
+}

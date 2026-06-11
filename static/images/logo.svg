@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <!-- Arrière-plan bleu foncé arrondi -->
+  <rect width="500" height="500" rx="90" fill="#00005C" />
+
+  <!-- Groupe contenant toutes les formes du logo -->
+  <g fill="#00C4FF">
+    <!-- Triangle supérieur (pointant vers la gauche) -->
+    <path d="M 172 40 L 140 55 L 172 70 Z" />
+
+    <!-- Lignes horizontales arrondies -->
+    <!-- Ligne 1 -->
+    <rect x="140" y="90" width="245" height="35" rx="17.5" />
+    
+    <!-- Ligne 2 -->
+    <rect x="140" y="145" width="220" height="35" rx="17.5" />
+    
+    <!-- Ligne 3 (Scindée en deux blocs) -->
+    <rect x="140" y="200" width="130" height="35" rx="17.5" />
+    <rect x="285" y="200" width="85" height="35" rx="17.5" />
+    
+    <!-- Ligne 4 -->
+    <rect x="140" y="255" width="170" height="35" rx="17.5" />
+    
+    <!-- Ligne 5 -->
+    <rect x="140" y="310" width="115" height="35" rx="17.5" />
+    
+    <!-- Point isolé (Ligne 6) -->
+    <circle cx="157.5" cy="382.5" r="17.5" />
+
+    <!-- Triangle inférieur (pointant vers la gauche) -->
+    <path d="M 172 430 L 140 445 L 172 460 Z" />
+  </g>
+</svg>

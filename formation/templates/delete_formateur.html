@@ -1,0 +1,25 @@
+{% load static tailwind_tags %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Django Tailwind</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/logo.svg' %}">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    {% tailwind_css %}
+</head>
+
+<body style="background-image: url('{% static 'images/logo.svg' %}'); background-repeat: no-repeat; background-size: cover; background-position: center;" 
+class="w-full h-screen flex justify-center items-center text-black font-serif leading-normal tracking-normal">
+    <form style="box-shadow: 0 0 20px rgba(0, 196, 255, 0.6);" method="post" class="user shadow-2xl rounded-2xl w-[35%]  flex flex-col gap-4 bg-transparent border-2 border-solid border-white/20 py-6 px-10 backdrop-blur-[20px] min-h-[20vh]">
+        <p class="text-center font-semibold">Voulez-vous vraiment supprimer ce formateur ?</p>
+        {% csrf_token %}
+        <div class="flex flex-col justify-center space-y-3">
+            <button type="submit" class="btn btn-error text-[16px]">Oui, supprimer</button>
+            <a href="{% url "list_formateurs" %}" class="btn btn-primary text-[16px]">Annuler</a>
+        </div> 
+    </form>
+</body>
+</html>

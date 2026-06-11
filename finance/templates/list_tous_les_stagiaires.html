@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="bg-white p-6 rounded-2xl shadow-sm">
+   
+    
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4 md:mb-0">Finance</h1>
+        {% if user.role == "super_admin" or user.role == "admin" %}
+            <input type="text" placeholder="Rechercher un stagiaire..." class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-purple-600">
+        {% endif %}
+    </div>
+
+    <div class="flex flex-wrap gap-2 mb-6">
+        <a  class="btn btn-outline btn-primary">Rapport cumulatif de paiement</a>
+        <a href="{% url "list_paiement" %}" class="btn btn-outline btn-neutral">Historique des paiements</a>
+        {% if user.role == "super_admin" or user.role == "admin" %}
+    <a href="{% url 'list_tous_les_stagiaires' %}" class="btn btn-outline btn-info">
+        Liste de tous les stagiaires
+    </a>
+    {% endif %}
+
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="border-b border-slate-100 text-slate-400 text-xs font-semibold uppercase tracking-wider bg-slate-50">
+                    <th class="py-3 px-4">Nom Stagiaire</th>
+                    <th class="py-3 px-4">Prénom Stagiaire</th>
+                    <th class="py-3 px-4">Total Versé</th>
+                    <th class="py-3 px-4">Dernier Versement</th>
+                    <th class="py-3 px-4">Statut</th>
+                </tr>
+            </thead>
+            <tbody class="text-slate-600 text-sm divide-y divide-slate-100">
+                {% for stagiaire in stagiaires %}
+                <tr class="hover:bg-slate-50 transition-colors">
+                 
+                    <td class="py-4 px-4 font-medium text-slate-900">{{ stagiaire.last_name }}</td>
+                    <td class="py-4 px-4 font-medium text-slate-900">{{ stagiaire.first_name }}</td>
+                    <td class="py-4 px-4 font-semibold text-purple-600">
+                        {{ stagiaire.total_paye|default:"0" }} Fbu
+                    </td>
+                    
+                   
+                    <td class="py-4 px-4 text-slate-500">
+                        {% if stagiaire.dernier_paiement %}
+                            {{ stagiaire.dernier_paiement|date:"d M Y" }}
+                        {% else %}
+                            <span class="text-slate-300 italic">Aucun</span>
+                        {% endif %}
+                    </td>
+                    
+                   
+                    <td class="py-4 px-4">
+                        {% if stagiaire.total_paye >= 150000 %} 
+                            <span class="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full text-xs font-medium border border-blue-200">Complet</span>
+                        {% elif stagiaire.total_paye > 0 %}
+                            <span class="bg-green-50 text-green-700 px-2.5 py-1 rounded-full text-xs font-medium border border-green-200">À jour</span>
+                        {% else %}
+                            <span class="bg-red-50 text-red-700 px-2.5 py-1 rounded-full text-xs font-medium border border-red-200">En retard</span>
+                        {% endif %}
+                    </td>
+                    
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Liste des devoirs
+{% endblock %}
+
+{% block content %}
+  <div class="min-h-screen bg-slate-50 py-10">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-200/50">
+        <div class="mb-8 space-y-3">
+          <div class="flex justify-between">
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-600">Devoirs</p>
+            {% if user.role == 'super_admin' or user.role == 'admin' %}
+              <a href="{% url 'add_devoir' %}" class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">Ajouter un devoir</a>
+            {% endif %}
+          </div>
+          <h1 class="text-3xl font-semibold text-slate-900 sm:text-4xl">Devoirs envoyés par le formateur</h1>
+        </div>
+
+        {% if devoirs %}
+          <div class="space-y-6">
+            {% for devoir in devoirs %}
+              <article class="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm shadow-slate-200/40 transition hover:-translate-y-0.5 hover:shadow-md">
+                <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                  <div class="overflow-hidden rounded-3xl border-slate-200 bg-white p-6 shadow-sm">
+                    <div class="">
+                      <h2 class="text-2xl font-semibold text-slate-900">{{ devoir.title }}</h2>
+                      <p class="mt-3 text-slate-600 whitespace-pre-line wrap-break-word">{{ devoir.description }}</p>
+                    </div>
+
+                    <div class="flex min-w-45 flex-col items-start gap-2 rounded-3xl border border-slate-200 bg-white p-4 text-slate-700 shadow-sm mt-7 relative">
+                      <p class="text-sm font-medium text-slate-900">Statut</p>
+                      <p class="text-sm">Publié le {{ devoir.created_at|date:'d/m/Y H:i' }}</p>
+                      <p class="text-sm text-slate-500">Tâche à réaliser avant le {{ devoir.limit_date|date:'d/m/Y H:i' }}</p>
+
+                      <div class="">
+                        {% if user.role == 'super_admin' or user.role == 'admin' %}
+                          <a href="{% url 'update_devoir' devoir.pk %}" class="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-700 hover:bg-blue-100 transition duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                            </svg>Modifier
+                          </a>
+                          <a href="{% url 'delete_devoir' devoir.pk %}" class="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 hover:bg-red-100 transition duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                              <path fill-rule="evenodd" d="M7 4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2h4a1 1 0 1 1 0 2h-1.069l-.867 12.14A2 2 0 0 1 17.069 22H6.93a2 2 0 0 1 -1.995 -1.858L4.07 8H3a1 1 0 0 1 0 -2h4zm2 2h6V4H9zM6.074 8l.857 12H17.07l.857 -12zM10 10a1,₁,₀,₀,₁,₁v6a1,₁,₀,₀,₁,-2,�0v-6a1,₁,₀,₀,₁,�1,-1" clip-rule="evenodd" />
+                            </svg>Supprimer
+                          </a>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="rounded-3xl border border-dashed border-slate-300 bg-slate-100 p-10 text-center text-slate-600">Aucun devoir n'a encore été envoyé par le formateur.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

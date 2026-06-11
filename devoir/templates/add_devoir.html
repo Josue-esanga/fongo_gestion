@@ -1,0 +1,26 @@
+{% load static tailwind_tags %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Django Tailwind</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/logo.svg' %}">
+    {% tailwind_css %}
+</head>
+
+<body style="background-image: url('{% static 'images/logo.svg' %}'); background-repeat: no-repeat; background-size: cover; background-position: center;" 
+class="w-full h-screen flex justify-center items-center text-black font-serif leading-normal tracking-normal">
+<form style="box-shadow: 0 0 20px rgba(0, 196, 255, 0.6);" method="post" class="user shadow-2xl rounded-2xl w-[35%]  flex flex-col gap-4 bg-transparent border-2 border-solid border-white/20 py-6 px-10 backdrop-blur-[20px] min-h-[50vh]">
+        <p class="text-center text-[30px] text-white font-bold mt-3 ">Add devoir</p>
+
+    {% csrf_token %}
+    {{form.as_p}}
+    <div class= "w-full flex justify-center items-center">
+        <button type="submit" class="text-xl outline-none border-0 border-[2px solid bg-transparent] flex justify-center w-[80%] hover:border-2 hover:border-solid hover:border-white/40 py-2 px-40 cursor-pointer font-bold rounded-2xl bg-blue-800 transition-all duration-350 text-white mb-6 mt-2 hover:bg-transparent">Ajouter</button>
+    </div>
+</form>
+</body>
+</html>
