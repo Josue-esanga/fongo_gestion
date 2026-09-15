@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Django Tailwind</title>
+    <title>Fongo Gestion</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
@@ -19,7 +19,7 @@
      
     </div>
     <div class="flex items-center">
-      <button class="flex items-center text-sm border border-white/30 px-3 py-1 rounded hover:bg-white/10">
+      <button class=" hidden sm:flex md:flex items-center text-sm border border-white/30 px-3 py-1 rounded hover:bg-white/10">
         <span class="mr-2">🏳️</span> Langues <span class="ml-2 text-xs">▼</span>
       </button>
     </div>
@@ -29,12 +29,12 @@
   <nav class="bg-white border-b border-gray-200 py-4 px-8 shadow-sm">
     
     <ul class="flex space-x-10 text-[#4a69bd] font-medium">
-    <a href="https://www.fongolab.com" target="_blank" rel="noopener noreferrer"><li class="flex items-center hover:text-blue-800 cursor-pointer hover:underline">voir site web</li></a>
+    <a href="https://www.fongolab.com" target="_blank" rel="noopener noreferrer"><li class="flex items-center hover:text-blue-800 cursor-pointer hover:underline">Visiter notre site web</li></a>
     
       <a href="{% url "login" %}" class="flex items-center hover:text-blue-800 cursor-pointer ml-auto"><li>
         Se connecter
       </li></a>
-      <a href=""  class="flex items-center hover:text-blue-800 cursor-pointer"><li>
+      <a href=""  class=" hidden sm:flex md:flex items-center hover:text-blue-800 cursor-pointer"><li>
         <span class="mr-2">➔</span> Enregistrement
       </li></a>
     </ul>
@@ -56,7 +56,7 @@
     </div>
 
 
-    <div class="grid grid-cols-5 gap-6">
+    <div class="grid sm:grid-cols-5 md:grid-cols-5 gap-6">
       <div class="col-span-3 bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
          <div class="bg-[#3385c7] text-white p-3 rounded shadow-md mb-4 font-semibold">Comment se connecter</div>
          <p class="text-sm text-gray-600 mb-8 leading-relaxed">Veuillez vous connecter avec votre identifiant stagiaire et le mot de passe que vous avez créé lors de votre inscription ou qui vous a été fourni.</p>
@@ -69,7 +69,7 @@
         </div>
 
   
-      <div class="col-span-2 bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex items-center justify-center">
+      <div class="col-span-3 sm:col-span-2 md:col-span-2 bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex items-center justify-center">
         <div class="relative w-full h-full overflow-hidden rounded border border-gray-100">
            <img src="/media/pictures/IMG_9124.JPG" alt="Fongochoux" class="object-cover w-full h-full" />
            

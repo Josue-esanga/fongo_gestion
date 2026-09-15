@@ -12,7 +12,7 @@
 
 label{
   display: block;
-  color: #ffffff !important;
+  /* color: #ffffff !important; */
   font-weight: bold;
   margin-bottom: 8px;
   display: block;
@@ -35,7 +35,7 @@ form input{
   outline: none;
   background: transparent;
   /* border: rgba(255, 255, 255, 0.2); */
-  color: #fff;
+  /* color: #000; */
   padding-right: 40px;
   box-shadow: 0 0 12px rgba(0, 196, 255, 0.6) !important;
 }
@@ -43,7 +43,6 @@ form input{
 
 form input:focus {
     background-color: rgba(255, 255, 255, 0.15) !important; /* Fond un peu plus clair */
-    color: #ffffff !important;
     border-color: #00C4FF !important; /* Bordure prend le bleu cyan de votre logo */
     outline: none;
     box-shadow: 0 0 12px rgba(0, 196, 255, 0.6) !important; /* Halo lumineux néon */
@@ -56,9 +55,16 @@ select.form-control option {
 }
 
 form input::placeholder{
-  color: #fff;
+  /* color: #fff; */
 }
 
+.security label{
+  color: black;
+}
+
+.security input{
+  color: black;
+}
 
 .user span{
   display: none;
@@ -105,6 +111,9 @@ form input::placeholder{
   flex-direction: column;
 }
 
+.user label {
+  color: white;
+}
 
 .user ul{
   color: #fff;

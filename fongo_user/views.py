@@ -102,8 +102,13 @@ class Home(TemplateView):
     #     context['user'] = self.request.user
     #     return context
 
-class Dashboard(LoginRequiredMixin,TemplateView):
+class Dashboard(LoginRequiredMixin,ListView):
     template_name = 'base.html'
+    model = User
+    context_object_name = "users"
+    def get_queryset(self):
+        return User.objects.filter(role = 'stagiaire', is_active = True)
+    
 
 
 def logout_user(request):
@@ -112,6 +117,5 @@ def logout_user(request):
 
 # class Acceuil(LoginRequiredMixin,TemplateView):
 #     template_name = "home.html"
-
 
 
