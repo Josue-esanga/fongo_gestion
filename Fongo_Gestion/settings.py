@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-egy%z6*zz75pxo-896*4@&c2fo&9jz-=*h9+w60u+dv8524i6t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 
 
 # Application definition
@@ -37,8 +37,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'tailwind',
-    'theme',
+    # --- API REST ---
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'corsheaders',
+    'django_filters',
+    'drf_spectacular',
+    # --- Projet ---
     'fongo_user',
     'finance',
     'annonce',
@@ -48,10 +53,9 @@ INSTALLED_APPS = [
     'parametre'
 ]
 
-TAILWIND_APP_NAME = 'theme'
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -65,7 +69,9 @@ ROOT_URLCONF = 'Fongo_Gestion.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        # Plus aucun template applicatif : seuls l'admin Django et les
+        # éventuels templates internes des librairies sont utilisés.
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -88,7 +94,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'Fongo_gestion_db',
         'USER': 'postgres',
-        'PASSWORD': 'password',
+        'PASSWORD': 'josue@esanga1',
         'HOST': 'localhost',
         'PORT': '5432'
     }
@@ -129,8 +135,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = (BASE_DIR / 'static/').as_posix() + '/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 AUTH_USER_MODEL = 'fongo_user.User'
 
@@ -141,17 +147,70 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
+# ---------------------------------------------------------------------------
+# API REST — Django REST Framework
+# ---------------------------------------------------------------------------
+from datetime import timedelta
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 200,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    ),
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': False,
+    'UPDATE_LAST_LOGIN': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'FongoGestion API',
+    'DESCRIPTION': (
+        'API REST du système de gestion du club FongoLab : '
+        'membres, finances, annonces, devoirs, planning et formateurs.'
+    ),
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+}
+
+# Autorise le serveur de développement React (Vite)
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:4173',
+    'http://127.0.0.1:4173',
+]
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
+
 # Force la suppression du cookie de session dès que le navigateur est fermé
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Supprime la session en base de données dès que l'utilisateur se déconnecte (par défaut à True)
 SESSION_SAVE_EVERY_REQUEST = True
-
-# de l'URL de la page de connexion
-LOGIN_URL = 'login' 
-
-#  Où aller après une connexion réussie
-LOGIN_REDIRECT_URL = 'home'
 
 # STATICFILES_DIRS = [
 #     BASE_DIR / "static",
