@@ -1,0 +1,315 @@
+/* Ordre des couches CSS : PrimeReact doit passer AVANT la couche "base"
+   (reset) de Tailwind pour conserver ses paddings, mais APRÈS rien du tout
+   côté utilitaires afin que les classes Tailwind puissent le surcharger. */
+@layer theme, base, components, primereact, utilities;
+
+@import 'tailwindcss';
+
+/* --------------------------------------------------------------------------
+   Thème FongoGestion — palette bleu nuit #03045e
+   -------------------------------------------------------------------------- */
+@theme {
+  --font-sans:
+    'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+  --color-fongo-50: #eef2ff;
+  --color-fongo-100: #e0e7ff;
+  --color-fongo-200: #c7d2fe;
+  --color-fongo-500: #3730a3;
+  --color-fongo-700: #1e1b7a;
+  --color-fongo-900: #03045e;
+  --color-fongo-950: #020344;
+}
+
+:root {
+  color-scheme: light;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+  --primary-color: #03045e;
+  --primary-color-text: #ffffff;
+  --highlight-bg: #eef2ff;
+  --highlight-text-color: #03045e;
+  --focus-ring: 0 0 0 3px rgba(3, 4, 94, 0.15);
+  --surface-border: #e2e8f0;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: inherit;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --------------------------------------------------------------------------
+   PrimeReact — harmonisation avec la charte graphique
+   -------------------------------------------------------------------------- */
+.p-component {
+  font-family: inherit;
+}
+
+.p-button {
+  border-radius: 0.85rem;
+  font-weight: 600;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.p-button:not(.p-button-text):not(.p-button-outlined) {
+  color: #ffffff;
+}
+
+.p-button:not(.p-button-text):not(.p-button-outlined):hover {
+  transform: translateY(-1px);
+}
+
+.p-button.p-button-primary,
+.p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-secondary):not(
+    .p-button-danger
+  ):not(.p-button-success):not(.p-button-warning):not(.p-button-info) {
+  background: #03045e;
+  border-color: #03045e;
+}
+
+.p-button.p-button-primary:hover,
+.p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-secondary):not(
+    .p-button-danger
+  ):not(.p-button-success):not(.p-button-warning):not(.p-button-info):hover {
+  background: #1e1b7a;
+  border-color: #1e1b7a;
+}
+
+/* On exclut les labels internes des dropdowns/multiselects : PrimeReact leur
+   applique aussi la classe .p-inputtext, ce qui créait un double cadre. */
+.p-inputtext:not(.p-dropdown-label):not(.p-multiselect-label),
+.p-dropdown,
+.p-multiselect,
+.p-inputnumber-input,
+.p-calendar .p-inputtext,
+.p-password input {
+  border-radius: 0.85rem;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  font-size: 0.95rem;
+}
+
+.p-inputtext:not(.p-dropdown-label):not(.p-multiselect-label),
+.p-inputnumber-input,
+.p-calendar .p-inputtext,
+.p-password input {
+  padding: 0.7rem 0.9rem;
+}
+
+.p-dropdown .p-dropdown-label,
+.p-multiselect .p-multiselect-label {
+  padding: 0.7rem 0.9rem;
+  background: transparent;
+  color: #0f172a;
+}
+
+.p-inputtext:enabled:focus,
+.p-dropdown:not(.p-disabled).p-focus,
+.p-inputnumber-input:enabled:focus,
+.p-password input:enabled:focus {
+  border-color: #03045e;
+  box-shadow: 0 0 0 4px rgba(3, 4, 94, 0.1);
+}
+
+.p-dropdown {
+  display: inline-flex;
+  align-items: center;
+}
+
+.p-password,
+.p-password .p-icon-field,
+.p-inputnumber {
+  display: block;
+  width: 100%;
+}
+
+.p-password input,
+.p-inputnumber-input {
+  width: 100%;
+}
+
+.p-dialog {
+  border-radius: 1.25rem;
+  box-shadow: 0 25px 80px rgba(15, 23, 42, 0.18);
+  overflow: hidden;
+}
+
+.p-dialog .p-dialog-header {
+  padding: 1.35rem 1.6rem 0.75rem;
+  border-bottom: 0;
+}
+
+.p-dialog .p-dialog-content {
+  padding: 0.5rem 1.6rem 1.5rem;
+}
+
+.p-dialog .p-dialog-footer {
+  border-top: 0;
+  padding: 0.25rem 1.6rem 1.5rem;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-color: #f1f5f9;
+  padding: 0.9rem 1rem;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+  border-color: #f1f5f9;
+  padding: 0.9rem 1rem;
+  color: #334155;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  background: #f8fafc;
+}
+
+.p-datatable .p-paginator {
+  border: 0;
+  padding-top: 1rem;
+}
+
+.p-paginator .p-paginator-page.p-highlight {
+  background: #eef2ff;
+  color: #03045e;
+  font-weight: 700;
+}
+
+.p-paginator .p-paginator-page:not(.p-highlight):hover {
+  background: #f1f5f9;
+}
+
+.p-paginator .p-dropdown {
+  border-radius: 0.75rem;
+}
+
+/* Champ avec icône à gauche : PrimeReact impose son propre padding,
+   on force la marge interne nécessaire pour ne pas chevaucher l'icône. */
+.p-inputtext.pl-9:not(.p-dropdown-label):not(.p-multiselect-label) {
+  padding-left: 2.5rem;
+}
+
+.p-tag {
+  font-weight: 600;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.p-tag.p-tag-info {
+  background: #e0e7ff;
+  color: #03045e;
+}
+
+.p-tag.p-tag-success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.p-tag.p-tag-warning {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.p-tag.p-tag-danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.p-toast {
+  width: min(92vw, 24rem);
+}
+
+.p-toast .p-toast-message {
+  border-radius: 1rem;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.15);
+}
+
+/* --------------------------------------------------------------------------
+   Skeletons
+   -------------------------------------------------------------------------- */
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@layer components {
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.75rem;
+    background-color: #e8edf5;
+  }
+
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.65) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    animation: skeleton-shimmer 1.6s infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Utilitaires
+   -------------------------------------------------------------------------- */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.35s ease both;
+}

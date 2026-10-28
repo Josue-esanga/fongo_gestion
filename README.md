@@ -1,84 +1,66 @@
-# FongoGestion — Backend
+# FongoGestion
 
-API REST Django pour la plateforme de gestion du club **FongoLab**.
+Plateforme de gestion du club **FongoLab** : stagiaires, finances, devoirs,
+planning, annonces et formateurs.
 
-Le frontend React se trouve dans le dossier voisin `../frontend`.
+Le projet est séparé en deux dossiers indépendants :
 
-## Stack
+```
+projet/
+├── backend/    # API REST Django + Django REST Framework
+└── frontend/   # Interface React + TypeScript + Vite + PrimeReact
+```
 
-- **Django 6**
-- **Django REST Framework**
-- **JWT** (`djangorestframework-simplejwt`)
-- **drf-spectacular** (OpenAPI / Swagger / Redoc)
-- **django-cors-headers**, **django-filter**
-- PostgreSQL (configuration dans `Fongo_Gestion/settings.py`)
+## Démarrage rapide
 
-## Installation
+### 1. Backend
 
 ```bash
 cd backend
-
-python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
-
-python manage.py migrate
-python manage.py createsuperuser
 python manage.py runserver 127.0.0.1:8000
 ```
 
-L'API est disponible sur **http://127.0.0.1:8000/api/**.
+API : <http://127.0.0.1:8000/api/>
+Swagger : <http://127.0.0.1:8000/api/docs/>
 
-> Le venv fourni est déjà configuré. En cas de souci avec `pip`, utilisez
-> `python -m pip install -r requirements.txt`.
+Installation complète : [`backend/README.md`](backend/README.md)
 
-## API REST
+### 2. Frontend
 
-Les routes sont déclarées dans `Fongo_Gestion/api_urls.py` et préfixées par `/api/`.
-
-| Méthode  | Route                           | Description                          |
-| -------- | ------------------------------- | ------------------------------------ |
-| POST     | `/api/auth/login/`              | Connexion (retourne les tokens JWT)  |
-| POST     | `/api/auth/refresh/`            | Rafraîchissement de l'access token   |
-| GET      | `/api/auth/me/`                 | Profil de l'utilisateur connecté     |
-| POST     | `/api/auth/change-password/`    | Changement de mot de passe           |
-| GET/POST | `/api/users/`                   | Liste / création des membres         |
-| GET/POST | `/api/annonces/`                | Annonces                             |
-| GET/POST | `/api/devoirs/`                 | Devoirs                              |
-| GET/POST | `/api/planning/events/`         | Événements du planning               |
-| GET/POST | `/api/finance/paiements/`       | Paiements                            |
-| GET      | `/api/finance/students/`        | Stagiaires avec totaux               |
-| GET      | `/api/finance/overview/`        | Statistiques financières             |
-| GET      | `/api/formation/formateurs/`    | Formateurs                           |
-| GET      | `/api/parametre/configuration/` | Configuration du club                |
-| GET      | `/api/dashboard/`               | Données agrégées du tableau de bord  |
-
-### Documentation
-
-- Swagger UI : <http://127.0.0.1:8000/api/docs/>
-- Redoc : <http://127.0.0.1:8000/api/redoc/>
-- Schéma OpenAPI : <http://127.0.0.1:8000/api/schema/>
-
-Validation du schéma :
+Dans un second terminal :
 
 ```bash
-python manage.py spectacular --file schema.yaml --validate
+cd frontend
+npm install
+npm run dev
 ```
 
-## Structure
+Application : <http://127.0.0.1:5173>
 
-```
-backend/
-├── Fongo_Gestion/   # configuration Django, urls, permissions, settings
-├── fongo_user/      # utilisateurs, profils, authentification, API users
-├── finance/         # paiements, stagiaires, statistiques
-├── annonce/         # annonces
-├── devoir/          # devoirs
-├── Planning/        # événements
-├── formation/       # formateurs et modules
-├── parametre/       # configuration du club
-├── media/           # fichiers uploadés
-├── static/          # fichiers statiques
-├── manage.py
-└── requirements.txt
-```
+Installation complète : [`frontend/README.md`](frontend/README.md)
+
+## Fonctionnalités
+
+- Authentification JWT avec rôles `super_admin`, `admin`, `stagiaire`.
+- Tableau de bord et statistiques.
+- Gestion des membres (CRUD, filtres, recherche, photo).
+- Gestion financière : paiements, stagiaires, rapport cumulatif.
+- Devoirs, planning, annonces, formateurs et modules.
+- Paramètres du compte : profil et mot de passe.
+- Documentation OpenAPI interactive.
+
+## Communication frontend ↔ backend
+
+En développement, Vite redirige `/api`, `/media` et `/static` vers
+`http://127.0.0.1:8000` (voir `frontend/vite.config.ts`). Aucune configuration
+supplémentaire n'est nécessaire.
+
+En production, buildez le frontend (`npm run build`) et servez `frontend/dist`
+via un serveur statique, en définissant `VITE_API_URL` vers l'API déployée.
+
+## Prérequis
+
+- Python 3.12+
+- Node.js 20+
+- PostgreSQL (configuration dans `backend/Fongo_Gestion/settings.py`)
