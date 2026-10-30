@@ -35,3 +35,22 @@ class Module(models.Model):
 
     def __str__(self):
         return f'{self.cours}-{self.id_formateur}'
+
+
+class ModulePedagogique(models.Model):
+    """Module de la grille pédagogique affichée dans l'option « Modules ».
+
+    Exemple : « Premier module » → ["HTML5", "CSS3"].
+    """
+
+    ordre = models.PositiveIntegerField(default=1, help_text="Position dans la grille")
+    titre = models.CharField(max_length=100)
+    sujets = models.JSONField(default=list, blank=True)
+    description = models.TextField(blank=True, default="")
+
+    class Meta:
+        ordering = ("ordre", "id")
+        verbose_name = "Module pédagogique"
+
+    def __str__(self):
+        return f"{self.ordre}. {self.titre}"

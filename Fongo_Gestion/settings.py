@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'formation',
     'Planning',
     'devoir',
+    'presence',
     'parametre'
 ]
 

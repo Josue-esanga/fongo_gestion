@@ -16,7 +16,11 @@ from Planning.api_views import EventViewSet
 from annonce.api_views import AnnonceViewSet
 from devoir.api_views import DevoirViewSet
 from finance.api_views import FinanceStatsView, PaiementViewSet
-from formation.api_views import FormateurViewSet, ModuleViewSet
+from formation.api_views import (
+    FormateurViewSet,
+    ModulePedagogiqueViewSet,
+    ModuleViewSet,
+)
 from fongo_user.api_views import (
     ChangePasswordView,
     LoginView,
@@ -24,6 +28,11 @@ from fongo_user.api_views import (
     UserViewSet,
 )
 from parametre.api_views import ConfigurationViewSet, DashboardView
+from presence.api_views import (
+    MaPresenceView,
+    ScannerPresenceView,
+    SeancePresenceViewSet,
+)
 
 router = DefaultRouter()
 router.register("users", UserViewSet, basename="user")
@@ -33,7 +42,13 @@ router.register("planning/events", EventViewSet, basename="event")
 router.register("finance/paiements", PaiementViewSet, basename="paiement")
 router.register("formation/formateurs", FormateurViewSet, basename="formateur")
 router.register("formation/modules", ModuleViewSet, basename="module")
+router.register(
+    "formation/programme", ModulePedagogiqueViewSet, basename="programme"
+)
 router.register("parametre/configuration", ConfigurationViewSet, basename="configuration")
+router.register(
+    "presence/seances", SeancePresenceViewSet, basename="seance-presence"
+)
 
 urlpatterns = [
     # --- Authentification JWT ---
@@ -48,6 +63,13 @@ urlpatterns = [
         "finance/students/",
         PaiementViewSet.as_view({"get": "students"}),
         name="finance_students",
+    ),
+    # --- Présences / absences (QR code) ---
+    path("presence/scan/", ScannerPresenceView.as_view(), name="presence_scan"),
+    path(
+        "presence/ma-presence/",
+        MaPresenceView.as_view(),
+        name="ma_presence",
     ),
     # --- Documentation OpenAPI / Swagger ---
     path("schema/", SpectacularAPIView.as_view(), name="schema"),

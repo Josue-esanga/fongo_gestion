@@ -1,5 +1,7 @@
 """Serializers de l'application utilisateurs (authentification incluse)."""
 
+import json
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
@@ -41,6 +43,8 @@ class UserSerializer(serializers.ModelSerializer):
     )
     full_name = serializers.SerializerMethodField()
     role_display = serializers.CharField(source="get_role_display", read_only=True)
+    # Reçu sous forme de chaîne JSON depuis un formulaire (multipart).
+    roles_supplementaires = serializers.JSONField(required=False, allow_null=True)
 
     class Meta:
         model = User
@@ -52,13 +56,21 @@ class UserSerializer(serializers.ModelSerializer):
             "full_name",
             "email",
             "role",
+            "roles_supplementaires",
             "role_display",
             "pictures",
             "is_active",
+            "is_superuser",
             "date_joined",
             "password",
         )
-        read_only_fields = ("id", "date_joined", "role_display", "full_name")
+        read_only_fields = (
+            "id",
+            "date_joined",
+            "role_display",
+            "full_name",
+            "is_superuser",
+        )
         extra_kwargs = {
             "email": {"required": False, "allow_blank": True},
             "first_name": {"required": False, "allow_blank": True},
@@ -68,17 +80,58 @@ class UserSerializer(serializers.ModelSerializer):
     def get_full_name(self, obj) -> str:
         return obj.get_full_name() or obj.username
 
+    @staticmethod
+    def _is_super_admin(user) -> bool:
+        return bool(user and (user.is_superuser or user.role == "super_admin"))
+
+    def validate_roles_supplementaires(self, value):
+        """Valide les rôles supplémentaires : ``["formateur", "caissier"]``."""
+        if value in (None, ""):
+            return []
+        if isinstance(value, str):
+            # Reçu sous forme de chaîne : soit du JSON (multipart), soit une
+            # liste séparée par des virgules (texte brut).
+            text = value.strip()
+            if not text:
+                return []
+            if text.startswith("["):
+                try:
+                    value = json.loads(text)
+                except ValueError:
+                    raise serializers.ValidationError(
+                        "Format invalide : une liste JSON est attendue."
+                    )
+            else:
+                value = [item for item in text.split(",") if item]
+        if not isinstance(value, list):
+            raise serializers.ValidationError(
+                "Format invalide : une liste de rôles est attendue."
+            )
+        valid = [code for code, _label in User.Role_supplementaire_choice]
+        unknown = [item for item in value if item not in valid]
+        if unknown:
+            raise serializers.ValidationError(
+                f"Rôle(s) supplémentaire(s) inconnu(s) : {', '.join(map(str, unknown))}."
+            )
+        # Un rôle supplémentaire n'a de sens que pour un administrateur.
+        role = (self.initial_data.get("role") if self.initial_data else None) or (
+            getattr(self.instance, "role", None) if self.instance else None
+        )
+        if role != "admin":
+            return []
+        # Pas de doublon, ordre stable.
+        return [item for item in valid if item in value]
+
     def validate(self, attrs):
         if self.instance is None and not attrs.get("password"):
             raise serializers.ValidationError(
                 {"password": "Le mot de passe est obligatoire à la création."}
             )
         request = self.context.get("request")
-        if request and not request.user.is_staff and request.user.role not in (
-            "admin",
-            "super_admin",
-        ):
-            for protected in ("role", "is_active"):
+        user = request.user if request else None
+        # Rôle, statut et rôles supplémentaires : super administrateur uniquement.
+        if user and not self._is_super_admin(user):
+            for protected in ("role", "is_active", "roles_supplementaires"):
                 if protected in attrs:
                     raise serializers.ValidationError(
                         {protected: "Vous ne pouvez pas modifier ce champ."}
@@ -120,14 +173,36 @@ class ProfileSerializer(serializers.ModelSerializer):
             "full_name",
             "email",
             "role",
+            "roles_supplementaires",
             "pictures",
             "is_active",
+            "is_superuser",
             "date_joined",
         )
-        read_only_fields = ("id", "username", "role", "is_active", "date_joined")
+        read_only_fields = (
+            "id",
+            "username",
+            "role",
+            "roles_supplementaires",
+            "is_active",
+            "is_superuser",
+            "date_joined",
+        )
 
     def get_full_name(self, obj) -> str:
         return obj.get_full_name() or obj.username
+
+    def validate(self, attrs):
+        # Un stagiaire ne peut modifier que sa photo de profil.
+        request = self.context.get("request")
+        user = request.user if request else None
+        if user and user.role == "stagiaire":
+            modifiables = [key for key in attrs if key != "pictures"]
+            if modifiables:
+                raise serializers.ValidationError(
+                    "Un stagiaire ne peut modifier que sa photo de profil."
+                )
+        return attrs
 
 
 class ChangePasswordSerializer(serializers.Serializer):

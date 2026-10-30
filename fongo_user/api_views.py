@@ -4,13 +4,14 @@ from django.contrib.auth import get_user_model
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
+
+from Fongo_Gestion.permissions import IsMemberViewer, IsSuperAdmin
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from drf_spectacular.utils import extend_schema
-
-from Fongo_Gestion.permissions import IsAdminOrSuperAdmin, IsOwnerOrAdmin
 
 from .serializers import (
     ChangePasswordSerializer,
@@ -33,6 +34,7 @@ class MeView(RetrieveUpdateAPIView):
 
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_object(self):
         return self.request.user
@@ -60,6 +62,8 @@ class ChangePasswordView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     """CRUD des utilisateurs.
 
+    - Lecture : tous les utilisateurs sauf les stagiaires ;
+    - Écriture / suppression / rôles : super administrateur uniquement ;
     - `?role=stagiaire|admin|super_admin` filtre par rôle ;
     - `?search=` recherche par nom / prénom / email / username.
     """
@@ -71,20 +75,22 @@ class UserViewSet(viewsets.ModelViewSet):
     ordering_fields = ("username", "date_joined", "role")
 
     def get_permissions(self):
-        if self.action in ("list", "create", "destroy", "bulk_create"):
-            return [IsAdminOrSuperAdmin()]
-        if self.action in ("retrieve", "update", "partial_update"):
-            return [IsAuthenticated(), IsOwnerOrAdmin()]
+        # Lecture des profils : réservée aux administrateurs (hors stagiaires).
+        if self.action in ("list", "retrieve", "stagiaires", "admins"):
+            return [IsMemberViewer()]
+        # Écriture / suppression / rôles : super administrateur uniquement.
+        if self.action in ("create", "update", "partial_update", "destroy", "bulk_create"):
+            return [IsSuperAdmin()]
         return [IsAuthenticated()]
 
-    @action(detail=False, methods=["get"], permission_classes=[IsAdminOrSuperAdmin])
+    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def stagiaires(self, request):
         queryset = self.filter_queryset(self.get_queryset().filter(role="stagiaire"))
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, methods=["get"], permission_classes=[IsAdminOrSuperAdmin])
+    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def admins(self, request):
         queryset = self.filter_queryset(self.get_queryset().filter(role="admin"))
         page = self.paginate_queryset(queryset)

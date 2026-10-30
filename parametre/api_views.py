@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 
-from Fongo_Gestion.permissions import IsAdminOrSuperAdmin
+from Fongo_Gestion.permissions import IsSuperAdminOrReadOnly, has_extra_role
 from Planning.models import Event
 from annonce.models import Annonce
 from devoir.models import Devoir
@@ -21,10 +21,14 @@ from .serializers import ConfigurationSerializer
 
 
 class ConfigurationViewSet(viewsets.ModelViewSet):
-    """Configuration générale du club (une seule ligne, créée à la demande)."""
+    """Configuration générale du club (une seule ligne, créée à la demande).
+
+    Lecture ouverte aux utilisateurs authentifiés (frais de formation…),
+    modification réservée au super administrateur.
+    """
 
     serializer_class = ConfigurationSerializer
-    permission_classes = [IsAdminOrSuperAdmin]
+    permission_classes = [IsSuperAdminOrReadOnly]
     queryset = Configuration.objects.all().order_by("id")
 
     def get_queryset(self):
@@ -40,10 +44,11 @@ class DashboardView(APIView):
     @extend_schema(responses=OpenApiTypes.OBJECT)
     def get(self, request):
         user = request.user
-        is_admin = user.is_superuser or user.role in ("admin", "super_admin")
+        # Les finances globales sont réservées au super admin et aux caissiers.
+        peut_voir_finance = has_extra_role(user, "caissier")
 
         paiements = Ajout_Argent.objects.all()
-        if not is_admin:
+        if not peut_voir_finance:
             paiements = paiements.filter(id_stagiaire=user)
 
         total = paiements.aggregate(total=Coalesce(Sum("montant"), 0))["total"]

@@ -1,11 +1,56 @@
 """Serializers de l'application formation."""
 
+import json
+
 from rest_framework import serializers
 
 from fongo_user.models import User
 from fongo_user.serializers import UserCompactSerializer
 
-from .models import Formateur, Module
+from .models import Formateur, Module, ModulePedagogique
+
+
+class ModulePedagogiqueSerializer(serializers.ModelSerializer):
+    """Grille des modules (titre + liste des sujets abordés)."""
+
+    class Meta:
+        model = ModulePedagogique
+        fields = ("id", "ordre", "titre", "sujets", "description")
+        extra_kwargs = {
+            "titre": {"required": True},
+            "description": {"required": False, "allow_blank": True},
+        }
+
+    def validate_ordre(self, value):
+        if value < 1:
+            raise serializers.ValidationError("L'ordre doit être supérieur à zéro.")
+        return value
+
+    def validate_sujets(self, value):
+        if value in (None, ""):
+            return []
+        if isinstance(value, str):
+            text = value.strip()
+            if not text:
+                return []
+            if text.startswith("["):
+                # Chaîne JSON (multipart ou payload texte).
+                try:
+                    value = json.loads(text)
+                except ValueError:
+                    raise serializers.ValidationError(
+                        "Format invalide : une liste JSON est attendue."
+                    )
+            else:
+                # Texte brut : un sujet par ligne.
+                value = [item.strip() for item in text.splitlines() if item.strip()]
+        if not isinstance(value, list) or not all(
+            isinstance(item, str) and item.strip() for item in value
+        ):
+            raise serializers.ValidationError(
+                "Format invalide : une liste de sujets est attendue."
+            )
+        return [item.strip() for item in value]
 
 
 class ModuleSerializer(serializers.ModelSerializer):

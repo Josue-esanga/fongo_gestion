@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 
-from Fongo_Gestion.permissions import IsAdminOrSuperAdmin
+from Fongo_Gestion.permissions import IsFinanceEditor, has_extra_role
 from fongo_user.models import User
 
 from .models import Ajout_Argent
@@ -20,7 +20,8 @@ from .serializers import PaiementSerializer, StagiaireFinanceSerializer
 class PaiementViewSet(viewsets.ModelViewSet):
     """CRUD des paiements.
 
-    Un stagiaire ne voit que ses propres versements ; les admins voient tout.
+    Un stagiaire ne voit que ses propres versements ; le super administrateur
+    et les administrateurs portant le rôle « caissier » voient tout.
     """
 
     serializer_class = PaiementSerializer
@@ -31,13 +32,13 @@ class PaiementViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ("create", "update", "partial_update", "destroy"):
-            return [IsAdminOrSuperAdmin()]
+            return [IsFinanceEditor()]
         return [IsAuthenticated()]
 
     def get_queryset(self):
         queryset = super().get_queryset()
         user = self.request.user
-        if user.is_superuser or user.role in ("admin", "super_admin"):
+        if has_extra_role(user, "caissier"):
             return queryset
         return queryset.filter(id_stagiaire=user)
 
@@ -49,7 +50,7 @@ class PaiementViewSet(viewsets.ModelViewSet):
         """Liste des stagiaires avec total versé et dernier versement."""
         user = request.user
         queryset = User.objects.filter(role="stagiaire")
-        if not (user.is_superuser or user.role in ("admin", "super_admin")):
+        if not has_extra_role(user, "caissier"):
             queryset = queryset.filter(id=user.id)
         queryset = queryset.annotate(
             total_paye=Coalesce(Sum("ajout_argent_stagiaire__montant"), 0),
@@ -86,7 +87,7 @@ class FinanceStatsView(APIView):
     def get(self, request):
         user = request.user
         paiements = Ajout_Argent.objects.all()
-        if not (user.is_superuser or user.role in ("admin", "super_admin")):
+        if not has_extra_role(user, "caissier"):
             paiements = paiements.filter(id_stagiaire=user)
         total = paiements.aggregate(total=Coalesce(Sum("montant"), 0))["total"]
         return Response(
