@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +26,7 @@ SECRET_KEY = 'django-insecure-egy%z6*zz75pxo-896*4@&c2fo&9jz-=*h9+w60u+dv8524i6t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]', 'backend', '*']
 
 
 # Application definition
@@ -92,11 +93,11 @@ WSGI_APPLICATION = 'Fongo_Gestion.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Fongo_gestion_db',
-        'USER': 'postgres',
-        'PASSWORD': 'josue@esanga1',
-        'HOST': 'localhost',
-        'PORT': '5432'
+        'NAME': os.environ.get('DB_NAME', 'fongo_gestion'),
+        'USER': os.environ.get('DB_USER', 'fongo'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'fongo_password'),
+        'HOST': os.environ.get('DB_HOST', 'db'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
@@ -140,7 +141,6 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 AUTH_USER_MODEL = 'fongo_user.User'
 
-import os
 # Le chemin d'accès vers le dossier static (où les fichiers statiques seront stockés)
 MEDIA_URL = '/media/'
 # Le chemin d'accès vers le dossier media (où les fichiers téléchargés seront stockés)
