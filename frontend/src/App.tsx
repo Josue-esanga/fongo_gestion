@@ -2,11 +2,10 @@ import { lazy } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { ConfirmDialog } from 'primereact/confirmdialog'
 import { Layout } from '@/components/Layout'
-import { RequireAuth, RequireRole } from '@/components/guards'
+import { RequireAuth, RequireSection } from '@/components/guards'
 import { HomePage } from '@/pages/HomePage'
 import { LoginPage } from '@/pages/LoginPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
-import type { Role } from '@/types'
 
 // Les pages protégées sont chargées à la demande : le bundle initial reste
 // léger et chaque écran n'est téléchargé qu'à sa première visite.
@@ -33,13 +32,19 @@ const FormateursPage = lazy(() =>
     default: m.FormateursPage,
   })),
 )
+const ModulesPage = lazy(() =>
+  import('@/pages/modules/ModulesPage').then((m) => ({ default: m.ModulesPage })),
+)
+const PresencesPage = lazy(() =>
+  import('@/pages/presences/PresencesPage').then((m) => ({
+    default: m.PresencesPage,
+  })),
+)
 const ParametresPage = lazy(() =>
   import('@/pages/parametres/ParametresPage').then((m) => ({
     default: m.ParametresPage,
   })),
 )
-
-const ADMIN_ROLES: Role[] = ['admin', 'super_admin']
 
 export default function App() {
   return (
@@ -59,9 +64,9 @@ export default function App() {
           <Route
             path="/membres"
             element={
-              <RequireRole roles={ADMIN_ROLES}>
+              <RequireSection section="membres">
                 <MembersPage />
-              </RequireRole>
+              </RequireSection>
             }
           />
           <Route path="/finance" element={<FinancePage />} />
@@ -69,18 +74,34 @@ export default function App() {
           <Route
             path="/planning"
             element={
-              <RequireRole roles={ADMIN_ROLES}>
+              <RequireSection section="planning">
                 <PlanningPage />
-              </RequireRole>
+              </RequireSection>
             }
           />
           <Route path="/annonces" element={<AnnoncesPage />} />
           <Route
             path="/formateurs"
             element={
-              <RequireRole roles={ADMIN_ROLES}>
+              <RequireSection section="formateurs">
                 <FormateursPage />
-              </RequireRole>
+              </RequireSection>
+            }
+          />
+          <Route
+            path="/modules"
+            element={
+              <RequireSection section="modules">
+                <ModulesPage />
+              </RequireSection>
+            }
+          />
+          <Route
+            path="/presences"
+            element={
+              <RequireSection section="presences">
+                <PresencesPage />
+              </RequireSection>
             }
           />
           <Route path="/parametres" element={<ParametresPage />} />

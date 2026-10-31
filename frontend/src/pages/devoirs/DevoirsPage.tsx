@@ -15,7 +15,9 @@ import type { Devoir } from '@/types'
 import { DevoirFormDialog } from './DevoirFormDialog'
 
 export function DevoirsPage() {
-  const { isAdmin } = useAuth()
+  const { can } = useAuth()
+  // Le CRUD des devoirs est réservé au super admin et aux admins formateurs.
+  const canEditDevoirs = can('devoirs')
   const { showToast } = useToast()
   const queryClient = useQueryClient()
   const [dialogVisible, setDialogVisible] = useState(false)
@@ -95,7 +97,7 @@ export function DevoirsPage() {
         title="Devoirs"
         subtitle="Retrouvez les travaux envoyés par les formateurs, leurs consignes et les échéances à respecter."
         actions={
-          isAdmin ? (
+          canEditDevoirs ? (
             <Button
               label="Ajouter un devoir"
               icon="pi pi-plus"
@@ -114,7 +116,7 @@ export function DevoirsPage() {
           icon="pi pi-file-edit"
           title="Aucun devoir pour le moment"
           description={
-            isAdmin
+            canEditDevoirs
               ? 'Publiez un premier devoir pour vos stagiaires.'
               : "Aucun devoir n'a encore été publié par un formateur."
           }
@@ -156,7 +158,7 @@ export function DevoirsPage() {
                       : 'Le travail doit être rendu avant cette date.'}
                   </p>
 
-                  {isAdmin && (
+                  {canEditDevoirs && (
                     <div className="mt-4 flex flex-wrap gap-2">
                       <Button
                         label="Modifier"

@@ -16,8 +16,9 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { getErrorMessage } from '@/lib/errors'
 import { formatDate, formatDateTime, formatMoney } from '@/lib/format'
-import type { Paiement, StagiaireFinance } from '@/types'
+import type { Paiement, StagiaireFinance, StatutPaiement } from '@/types'
 import { PaymentFormDialog } from './PaymentFormDialog'
+import { LumicashPayCard } from './LumicashPayCard'
 
 type Tab = 'payments' | 'students' | 'report'
 
@@ -34,7 +35,11 @@ function studentStatus(total: number, target: number) {
 }
 
 export function FinancePage() {
-  const { isAdmin, isAuthenticated } = useAuth()
+  const { user, can, isStagiaire, isAuthenticated } = useAuth()
+  // Le CRUD finance est réservé au super admin et aux admins caissiers.
+  const canManageFinance = can('finance')
+  // Un admin sans le rôle caissier n'a aucun accès à cette section.
+  const accessRefuse = !canManageFinance && !isStagiaire
   const { showToast } = useToast()
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -43,8 +48,10 @@ export function FinancePage() {
 
   const initialTab = (searchParams.get('tab') as Tab | null) ?? 'payments'
   const [tab, setTab] = useState<Tab>(
-    TABS.some((item) => item.key === initialTab) ? initialTab : 'payments',
+    canManageFinance && TABS.some((item) => item.key === initialTab) ? initialTab : 'payments',
   )
+
+  const visibleTabs = canManageFinance ? TABS : TABS.filter((item) => item.key === 'payments')
 
   const paymentsQuery = useQuery({
     queryKey: ['payments'],
@@ -54,12 +61,13 @@ export function FinancePage() {
   const studentsQuery = useQuery({
     queryKey: ['finance-students'],
     queryFn: financeApi.students,
+    enabled: canManageFinance,
   })
 
   const configurationQuery = useQuery({
     queryKey: ['configuration'],
     queryFn: configurationApi.get,
-    enabled: isAdmin,
+    enabled: canManageFinance,
   })
 
   const target = configurationQuery.data?.frais_formation ?? 150_000
@@ -85,12 +93,48 @@ export function FinancePage() {
       showToast('error', 'Suppression impossible', getErrorMessage(error)),
   })
 
-  const payments = paymentsQuery.data ?? []
+  // Validation / refus d'une demande Lumicash (caissier et super admin).
+  const statutMutation = useMutation({
+    mutationFn: ({ id, statut }: { id: number; statut: StatutPaiement }) =>
+      financeApi.setStatut(id, statut),
+    onSuccess: async (_paiement, variables) => {
+      await queryClient.invalidateQueries({ queryKey: ['payments'] })
+      await queryClient.invalidateQueries({ queryKey: ['finance-students'] })
+      await queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      showToast(
+        'success',
+        variables.statut === 'valide' ? 'Demande validée' : 'Demande refusée',
+        variables.statut === 'valide'
+          ? 'Le versement est compté dans les recettes.'
+          : 'La demande ne sera pas comptée dans les recettes.',
+      )
+    },
+    onError: (error) =>
+      showToast('error', 'Action impossible', getErrorMessage(error)),
+  })
+
+  const allPayments = paymentsQuery.data ?? []
+  const payments = canManageFinance
+    ? allPayments
+    : allPayments.filter((payment) => payment.stagiaire.id === user?.id)
   const students = studentsQuery.data ?? []
 
+  // Demandes Lumicash déposées par les stagiaires, en attente de validation.
+  const demandesEnAttente = payments.filter(
+    (payment) => payment.statut === 'en_attente',
+  ).length
+  const paiementsValides = payments.filter(
+    (payment) => (payment.statut ?? 'valide') === 'valide',
+  )
+
   const totals = useMemo(() => {
-    const total = payments.reduce((sum, payment) => sum + payment.montant, 0)
-    const moduleTotal = payments
+    // Seuls les versements validés sont comptés : les demandes Lumicash « en
+    // attente » ne sont pas encore encaissées (comme côté API).
+    const validees = payments.filter(
+      (payment) => (payment.statut ?? 'valide') === 'valide',
+    )
+    const total = validees.reduce((sum, payment) => sum + payment.montant, 0)
+    const moduleTotal = validees
       .filter((payment) => payment.category === 'module')
       .reduce((sum, payment) => sum + payment.montant, 0)
     const autresTotal = total - moduleTotal
@@ -98,11 +142,12 @@ export function FinancePage() {
       total,
       moduleTotal,
       autresTotal,
-      moyenne: payments.length ? Math.round(total / payments.length) : 0,
+      moyenne: validees.length ? Math.round(total / validees.length) : 0,
     }
   }, [payments])
 
   function changeTab(next: Tab) {
+    if (!canManageFinance && next !== 'payments') return
     setTab(next)
     setSearchParams(next === 'payments' ? {} : { tab: next }, { replace: true })
   }
@@ -157,6 +202,23 @@ export function FinancePage() {
     )
   }
 
+  if (accessRefuse) {
+    return (
+      <div className="space-y-6 animate-fade-in-up">
+        <PageHeader
+          eyebrow="Gestion financière"
+          title="Finance"
+          subtitle="Suivez les versements des stagiaires, analysez les recettes et gardez une vision claire de la trésorerie du club."
+        />
+        <EmptyState
+          icon="pi pi-lock"
+          title="Accès réservé"
+          description="La section Finance est réservée aux caissiers et au super administrateur. Demandez le rôle caissier pour y accéder."
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6 animate-fade-in-up">
       <PageHeader
@@ -164,7 +226,7 @@ export function FinancePage() {
         title="Finance"
         subtitle="Suivez les versements des stagiaires, analysez les recettes et gardez une vision claire de la trésorerie du club."
         actions={
-          isAdmin ? (
+          canManageFinance ? (
             <Button
               label="Ajouter un paiement"
               icon="pi pi-plus"
@@ -176,24 +238,26 @@ export function FinancePage() {
             />
           ) : isAuthenticated ? (
             <Button
-              label="Payer en ligne"
-              icon="pi pi-credit-card"
+              label="Payer par Lumicash"
+              icon="pi pi-mobile"
               outlined
               className="rounded-full px-5"
               onClick={() =>
-                showToast(
-                  'info',
-                  'Bientôt disponible',
-                  'Le paiement en ligne sera activé prochainement. Contactez un administrateur pour le moment.',
-                )
+                document
+                  .getElementById('lumicash')
+                  ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
               }
             />
           ) : null
         }
       />
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[
+      {/* Stagiaire : paiement mobile sur le numéro Lumicash du club. */}
+      {isStagiaire && <LumicashPayCard />}
+
+      {canManageFinance && (
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {[
           {
             label: 'Total collecté',
             value: formatMoney(totals.total),
@@ -202,7 +266,7 @@ export function FinancePage() {
           },
           {
             label: 'Paiements',
-            value: payments.length,
+            value: paiementsValides.length,
             icon: 'pi pi-receipt',
             accent: 'bg-emerald-50 text-emerald-600',
           },
@@ -241,9 +305,10 @@ export function FinancePage() {
           </div>
         ))}
       </section>
+      )}
 
       <div className="flex flex-wrap gap-2 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-        {TABS.map((item) => (
+        {visibleTabs.map((item) => (
           <button
             key={item.key}
             type="button"
@@ -262,6 +327,14 @@ export function FinancePage() {
 
       {tab === 'payments' && (
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          {canManageFinance && demandesEnAttente > 0 && (
+            <div className="flex flex-wrap items-center gap-2 border-b border-amber-200 bg-amber-50 px-5 py-3 text-sm font-semibold text-amber-700">
+              <i className="pi pi-hourglass" />
+              {demandesEnAttente} demande
+              {demandesEnAttente > 1 ? 's' : ''} de paiement Lumicash en attente
+              de validation.
+            </div>
+          )}
           <DataTable
             value={payments}
             dataKey="id"
@@ -273,31 +346,34 @@ export function FinancePage() {
                 icon="pi pi-wallet"
                 title="Aucun paiement enregistré"
                 description={
-                  isAdmin
+                  canManageFinance
                     ? 'Ajoutez un premier versement pour suivre la trésorerie.'
                     : 'Aucun versement ne vous concerne pour le moment.'
                 }
               />
             }
-            responsiveLayout="scroll"
+            scrollable
+            tableStyle={{ minWidth: canManageFinance ? '68rem' : '54rem' }}
             className="text-sm"
           >
-            <Column
-              header="Stagiaire"
-              body={(payment: Paiement) => (
-                <div className="flex items-center gap-3">
-                  <UserAvatar user={payment.stagiaire} />
-                  <div>
-                    <p className="font-semibold text-slate-900">
-                      {payment.stagiaire.full_name}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      @{payment.stagiaire.username}
-                    </p>
+            {canManageFinance && (
+              <Column
+                header="Stagiaire"
+                body={(payment: Paiement) => (
+                  <div className="flex items-center gap-3">
+                    <UserAvatar user={payment.stagiaire} />
+                    <div>
+                      <p className="font-semibold text-slate-900">
+                        {payment.stagiaire.full_name}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        @{payment.stagiaire.username}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
-            />
+                )}
+              />
+            )}
             <Column
               header="Montant"
               sortable
@@ -319,6 +395,29 @@ export function FinancePage() {
             />
             <Column header="Description" field="description" />
             <Column
+              header="Statut"
+              body={(payment: Paiement) => {
+                const statut = payment.statut ?? 'valide'
+                const severity =
+                  statut === 'valide'
+                    ? 'success'
+                    : statut === 'en_attente'
+                      ? 'warning'
+                      : 'danger'
+                return (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Tag
+                      value={payment.statut_display ?? statut}
+                      severity={severity}
+                    />
+                    {payment.moyen === 'lumicash' && (
+                      <Tag value="Lumicash" severity="info" />
+                    )}
+                  </div>
+                )
+              }}
+            />
+            <Column
               header="Date"
               sortable
               sortField="created_at"
@@ -328,32 +427,71 @@ export function FinancePage() {
                 </span>
               )}
             />
-            {isAdmin && (
+            {canManageFinance && (
               <Column
                 header="Actions"
-                body={(payment: Paiement) => (
-                  <div className="flex items-center gap-1">
-                    <Button
-                      icon="pi pi-pencil"
-                      rounded
-                      text
-                      severity="info"
-                      aria-label="Modifier le paiement"
-                      onClick={() => {
-                        setEditing(payment)
-                        setDialogVisible(true)
-                      }}
-                    />
-                    <Button
-                      icon="pi pi-trash"
-                      rounded
-                      text
-                      severity="danger"
-                      aria-label="Supprimer le paiement"
-                      onClick={() => confirmDelete(payment)}
-                    />
-                  </div>
-                )}
+                frozen
+                alignFrozen="right"
+                body={(payment: Paiement) => {
+                  // Demande Lumicash en attente : on valide ou on refuse.
+                  if (payment.statut === 'en_attente') {
+                    return (
+                      <div className="flex items-center gap-1">
+                        <Button
+                          icon="pi pi-check"
+                          rounded
+                          text
+                          severity="success"
+                          aria-label="Valider la demande de paiement"
+                          loading={statutMutation.isPending}
+                          onClick={() =>
+                            statutMutation.mutate({
+                              id: payment.id,
+                              statut: 'valide',
+                            })
+                          }
+                        />
+                        <Button
+                          icon="pi pi-times"
+                          rounded
+                          text
+                          severity="danger"
+                          aria-label="Refuser la demande de paiement"
+                          loading={statutMutation.isPending}
+                          onClick={() =>
+                            statutMutation.mutate({
+                              id: payment.id,
+                              statut: 'refuse',
+                            })
+                          }
+                        />
+                      </div>
+                    )
+                  }
+                  return (
+                    <div className="flex items-center gap-1">
+                      <Button
+                        icon="pi pi-pencil"
+                        rounded
+                        text
+                        severity="info"
+                        aria-label="Modifier le paiement"
+                        onClick={() => {
+                          setEditing(payment)
+                          setDialogVisible(true)
+                        }}
+                      />
+                      <Button
+                        icon="pi pi-trash"
+                        rounded
+                        text
+                        severity="danger"
+                        aria-label="Supprimer le paiement"
+                        onClick={() => confirmDelete(payment)}
+                      />
+                    </div>
+                  )
+                }}
               />
             )}
           </DataTable>
@@ -375,7 +513,8 @@ export function FinancePage() {
                 description="Aucun profil stagiaire n'est disponible."
               />
             }
-            responsiveLayout="scroll"
+            scrollable
+            tableStyle={{ minWidth: '48rem' }}
             className="text-sm"
           >
             <Column

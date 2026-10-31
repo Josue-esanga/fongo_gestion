@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -7,13 +8,20 @@ import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
 import { InputTextarea } from 'primereact/inputtextarea'
+import { MultiSelect } from 'primereact/multiselect'
+import { modulesApi } from '@/api/modules'
 import type { FormateurPayload } from '@/api/formation'
 import type { Formateur, User } from '@/types'
 
 const formateurSchema = z.object({
-  user_id: z.number({ message: 'Sélectionnez un utilisateur.' }),
+  user_id: z
+    .number({ message: 'Sélectionnez un utilisateur.' })
+    .min(1, 'Sélectionnez un utilisateur enregistré comme formateur.'),
   matiere: z.string().min(2, 'La matière est obligatoire.'),
   bio: z.string().min(5, 'La biographie doit contenir au moins 5 caractères.'),
+  modules: z
+    .array(z.number())
+    .min(1, 'Affectez au moins un module à ce formateur.'),
 })
 
 type FormateurFormValues = z.infer<typeof formateurSchema>
@@ -38,6 +46,13 @@ export function FormateurFormDialog({
   onHide: () => void
   onSubmit: (payload: FormateurPayload) => Promise<void>
 }) {
+  // Modules de la grille pédagogique affectables au formateur.
+  const modulesQuery = useQuery({
+    queryKey: ['modules-programme'],
+    queryFn: () => modulesApi.list(),
+    enabled: visible,
+  })
+
   const options = useMemo(() => {
     const list = availableUsers.map((user) => ({
       label: `${user.full_name || user.username} (${user.email || user.username})`,
@@ -55,6 +70,17 @@ export function FormateurFormDialog({
     return list
   }, [availableUsers, formateur])
 
+  const moduleOptions = useMemo(
+    () =>
+      (modulesQuery.data ?? []).map((module) => ({
+        label: `Module ${module.ordre} · ${module.titre}${
+          module.duree > 0 ? ` (${module.duree} h)` : ''
+        }`,
+        value: module.id,
+      })),
+    [modulesQuery.data],
+  )
+
   const {
     control,
     handleSubmit,
@@ -62,7 +88,7 @@ export function FormateurFormDialog({
     formState: { errors },
   } = useForm<FormateurFormValues>({
     resolver: zodResolver(formateurSchema),
-    defaultValues: { user_id: 0, matiere: '', bio: '' },
+    defaultValues: { user_id: 0, matiere: '', bio: '', modules: [] },
   })
 
   useEffect(() => {
@@ -71,6 +97,7 @@ export function FormateurFormDialog({
       user_id: formateur?.user.id ?? 0,
       matiere: formateur?.matiere ?? '',
       bio: formateur?.bio ?? '',
+      modules: formateur?.modules ?? [],
     })
   }, [formateur, reset, visible])
 
@@ -114,6 +141,9 @@ export function FormateurFormDialog({
           <label className="mb-1.5 block text-sm font-semibold text-slate-700">
             Utilisateur
           </label>
+          <p className="mb-1.5 text-xs text-slate-500">
+            Seuls les utilisateurs enregistrés comme formateur sont proposés.
+          </p>
           <Controller
             control={control}
             name="user_id"
@@ -122,7 +152,7 @@ export function FormateurFormDialog({
                 value={field.value || null}
                 options={options}
                 filter
-                placeholder="Sélectionner un administrateur ou super admin"
+                placeholder="Sélectionner un utilisateur formateur"
                 onChange={(event) => field.onChange(event.value ?? 0)}
                 className={`w-full ${errors.user_id ? 'p-invalid' : ''}`}
               />
@@ -147,6 +177,37 @@ export function FormateurFormDialog({
             )}
           />
           <FieldError message={errors.matiere?.message} />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+            Modules affectés
+          </label>
+          <p className="mb-1.5 text-xs text-slate-500">
+            Un module peut être enseigné par plusieurs formateurs.
+          </p>
+          <Controller
+            control={control}
+            name="modules"
+            render={({ field }) => (
+              <MultiSelect
+                value={field.value ?? []}
+                options={moduleOptions}
+                filter
+                showClear
+                disabled={modulesQuery.isLoading}
+                placeholder={
+                  modulesQuery.isLoading
+                    ? 'Chargement des modules…'
+                    : 'Sélectionner un ou plusieurs modules'
+                }
+                selectedItemsLabel="{0} modules sélectionnés"
+                onChange={(event) => field.onChange(event.value ?? [])}
+                className={`w-full ${errors.modules ? 'p-invalid' : ''}`}
+              />
+            )}
+          />
+          <FieldError message={errors.modules?.message} />
         </div>
 
         <div>

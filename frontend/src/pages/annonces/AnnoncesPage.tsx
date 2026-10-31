@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button } from 'primereact/button'
 import { InputText } from 'primereact/inputtext'
+import { Tag } from 'primereact/tag'
 import { confirmDialog } from 'primereact/confirmdialog'
 import { annoncesApi, type AnnoncePayload } from '@/api/annonces'
 import { EmptyState, ErrorState } from '@/components/Feedback'
@@ -11,12 +12,21 @@ import { UserAvatar } from '@/components/UserAvatar'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { getErrorMessage } from '@/lib/errors'
-import { formatDateTime } from '@/lib/format'
+import {
+  formatDateTime,
+  annonceCibleLabel,
+  annonceCibleSeverity,
+  truncateText,
+} from '@/lib/format'
 import type { Annonce } from '@/types'
+import { FongoExpoSession } from '@/components/FongoExpoSession'
 import { AnnonceFormDialog } from './AnnonceFormDialog'
 
 export function AnnoncesPage() {
-  const { isAdmin } = useAuth()
+  // La publication relève du super administrateur et des admins «
+  // communication ».
+  const { can } = useAuth()
+  const canManage = can('annonces')
   const { showToast } = useToast()
   const queryClient = useQueryClient()
   const [dialogVisible, setDialogVisible] = useState(false)
@@ -106,7 +116,7 @@ export function AnnoncesPage() {
       <PageHeader
         eyebrow="Communication"
         title="Annonces"
-        subtitle="Toutes les annonces publiées par l'administration et les formateurs du club."
+        subtitle="Les annonces du club, affichées selon le public visé : tout le monde, les administrateurs ou les stagiaires."
         actions={
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="relative w-full sm:w-64">
@@ -118,7 +128,7 @@ export function AnnoncesPage() {
                 className="w-full pl-9"
               />
             </div>
-            {isAdmin && (
+            {canManage && (
               <Button
                 label="Ajouter une annonce"
                 icon="pi pi-plus"
@@ -140,7 +150,7 @@ export function AnnoncesPage() {
           description={
             search
               ? 'Essayez un autre mot-clé.'
-              : isAdmin
+              : canManage
                 ? 'Publiez une première annonce pour informer les membres.'
                 : 'Aucune annonce publiée pour le moment.'
           }
@@ -154,16 +164,28 @@ export function AnnoncesPage() {
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
-                  <h2 className="text-xl font-bold text-slate-900">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Tag
+                      value={annonce.cible_display ?? annonceCibleLabel(annonce.cible)}
+                      severity={annonceCibleSeverity(annonce.cible)}
+                    />
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
+                      <i className="pi pi-calendar" />
+                      Prévue le {formatDateTime(annonce.date_prevue)}
+                    </span>
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                      Publié le {formatDateTime(annonce.poster_a)}
+                    </p>
+                  </div>
+                  <h2 className="mt-2 break-words text-xl font-bold text-slate-900">
                     {annonce.object}
                   </h2>
-                  <p className="mt-1 text-xs font-medium uppercase tracking-wide text-slate-400">
-                    {formatDateTime(annonce.poster_a)}
-                  </p>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <UserAvatar user={annonce.auteur} size="sm" />
-                  <span>
+                <div className="flex min-w-0 items-center gap-2 text-sm text-slate-600">
+                  <span className="shrink-0">
+                    <UserAvatar user={annonce.auteur} size="sm" />
+                  </span>
+                  <span className="break-words">
                     Par{' '}
                     <span className="font-semibold text-slate-800">
                       {annonce.auteur.full_name}
@@ -172,11 +194,25 @@ export function AnnoncesPage() {
                 </div>
               </div>
 
-              <p className="mt-4 whitespace-pre-line break-words text-sm leading-7 text-slate-600">
-                {annonce.contenu}
-              </p>
+              {annonce.template === 'fongo_expo' ? (
+                /* Modèle FongoExpo : l'annonce est rendue en affiche, alimentée
+                   par son contenu (date prévue, objet, extrait du contenu). */
+                <div className="mt-4 rounded-2xl bg-slate-50 p-4">
+                  <FongoExpoSession
+                    dateInfo={`Prévue le ${formatDateTime(annonce.date_prevue)}`}
+                    subTitle={truncateText(annonce.contenu)}
+                    catchphrase={annonce.object}
+                    imageFront={annonce.image1}
+                    imageBack={annonce.image2}
+                  />
+                </div>
+              ) : (
+                <p className="mt-4 whitespace-pre-line break-words text-sm leading-7 text-slate-600">
+                  {annonce.contenu}
+                </p>
+              )}
 
-              {isAdmin && (
+              {canManage && (
                 <div className="mt-5 flex flex-wrap justify-end gap-2">
                   <Button
                     label="Modifier"
@@ -204,16 +240,18 @@ export function AnnoncesPage() {
         </div>
       )}
 
-      <AnnonceFormDialog
-        visible={dialogVisible}
-        annonce={editing}
-        saving={createMutation.isPending || updateMutation.isPending}
-        onHide={() => {
-          setDialogVisible(false)
-          setEditing(null)
-        }}
-        onSubmit={handleSubmit}
-      />
+      {dialogVisible && (
+        <AnnonceFormDialog
+          visible={dialogVisible}
+          annonce={editing}
+          saving={createMutation.isPending || updateMutation.isPending}
+          onHide={() => {
+            setDialogVisible(false)
+            setEditing(null)
+          }}
+          onSubmit={handleSubmit}
+        />
+      )}
     </div>
   )
 }

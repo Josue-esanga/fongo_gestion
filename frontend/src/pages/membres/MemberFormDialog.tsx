@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from 'primereact/button'
+import { Checkbox } from 'primereact/checkbox'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
 import { Password } from 'primereact/password'
 import { UserAvatar } from '@/components/UserAvatar'
+import { useAuth } from '@/contexts/AuthContext'
 import type { UserPayload } from '@/api/users'
-import type { Role, User } from '@/types'
+import type { Role, RoleSupplementaire, User } from '@/types'
 
 const memberSchema = z.object({
   first_name: z.string().min(1, 'Le prénom est obligatoire.'),
@@ -21,6 +23,9 @@ const memberSchema = z.object({
     .or(z.literal(''))
     .optional(),
   role: z.enum(['super_admin', 'admin', 'stagiaire']),
+  roles_supplementaires: z
+    .array(z.enum(['formateur', 'caissier', 'communication']))
+    .optional(),
   password: z.string().optional(),
 })
 
@@ -30,6 +35,13 @@ const ROLE_OPTIONS: Array<{ label: string; value: Role }> = [
   { label: 'Stagiaire', value: 'stagiaire' },
   { label: 'Administrateur', value: 'admin' },
   { label: 'Super administrateur', value: 'super_admin' },
+]
+
+// Rôles attribuables à un admin, attribués par le super administrateur.
+const EXTRA_ROLE_OPTIONS: Array<{ label: string; value: RoleSupplementaire; hint: string }> = [
+  { label: 'Formateur', value: 'formateur', hint: 'CRUD des devoirs' },
+  { label: 'Caissier', value: 'caissier', hint: 'CRUD de la finance' },
+  { label: 'Communication', value: 'communication', hint: 'Publication des annonces' },
 ]
 
 function FieldError({ message }: { message?: string }) {
@@ -51,6 +63,7 @@ export function MemberFormDialog({
   onSubmit: (payload: UserPayload, picture: File | null) => Promise<void>
 }) {
   const isEdit = Boolean(member)
+  const { isSuperAdmin } = useAuth()
   const [picture, setPicture] = useState<File | null>(null)
 
   const {
@@ -67,9 +80,12 @@ export function MemberFormDialog({
       username: '',
       email: '',
       role: 'stagiaire',
+      roles_supplementaires: [],
       password: '',
     },
   })
+
+  const selectedRole = useWatch({ control, name: 'role' })
 
   useEffect(() => {
     if (!visible) return
@@ -81,6 +97,7 @@ export function MemberFormDialog({
         username: member.username,
         email: member.email ?? '',
         role: member.role,
+        roles_supplementaires: member.roles_supplementaires ?? [],
         password: '',
       })
     } else {
@@ -90,6 +107,7 @@ export function MemberFormDialog({
         username: '',
         email: '',
         role: 'stagiaire',
+        roles_supplementaires: [],
         password: '',
       })
     }
@@ -117,6 +135,11 @@ export function MemberFormDialog({
       last_name: values.last_name.trim(),
       email: values.email?.trim() || '',
       role: values.role,
+    }
+    if (isSuperAdmin) {
+      // Les rôles supplémentaires ne valent que pour un admin.
+      payload.roles_supplementaires =
+        values.role === 'admin' ? (values.roles_supplementaires ?? []) : []
     }
     if (values.password) payload.password = values.password
 
@@ -301,6 +324,67 @@ export function MemberFormDialog({
             <FieldError message={errors.password?.message} />
           </div>
         </div>
+
+        {isSuperAdmin && selectedRole === 'admin' && (
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+              Rôles supplémentaires
+            </label>
+            <p className="mb-2 text-xs text-slate-500">
+              Un admin peut cumuler un second rôle qui détermine les seules
+              sections qu'il pourra gérer.
+            </p>
+            <Controller
+              control={control}
+              name="roles_supplementaires"
+              render={({ field }) => {
+                const selected = field.value ?? []
+                return (
+                  <div className="grid gap-2 sm:grid-cols-3">
+                    {EXTRA_ROLE_OPTIONS.map((option) => {
+                      const checked = selected.includes(option.value)
+                      return (
+                        <label
+                          key={option.value}
+                          className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition ${
+                            checked
+                              ? 'border-fongo-700 bg-blue-50'
+                              : 'border-slate-200 bg-white hover:border-slate-300'
+                          }`}
+                        >
+                          <Checkbox
+                            inputId={`extra-role-${option.value}`}
+                            checked={checked}
+                            onChange={(event) => {
+                              const isChecked = (
+                                event.target as HTMLInputElement
+                              ).checked
+                              field.onChange(
+                                isChecked
+                                  ? [...selected, option.value]
+                                  : selected.filter(
+                                      (value) => value !== option.value,
+                                    ),
+                              )
+                            }}
+                          />
+                          <span>
+                            <span className="block text-sm font-semibold text-slate-800">
+                              {option.label}
+                            </span>
+                            <span className="block text-xs text-slate-500">
+                              {option.hint}
+                            </span>
+                          </span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                )
+              }}
+            />
+          </div>
+        )}
 
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-slate-700">

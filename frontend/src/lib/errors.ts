@@ -10,6 +10,7 @@ const FIELD_LABELS: Record<string, string> = {
   pictures: 'Photo de profil',
   montant: 'Montant',
   category: 'Catégorie',
+  module: 'Module',
   description: 'Description',
   id_stagiaire: 'Stagiaire',
   title: 'Titre',

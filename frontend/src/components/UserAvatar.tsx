@@ -24,13 +24,19 @@ export function UserAvatar({
   size?: keyof typeof SIZES
 }) {
   const [failed, setFailed] = useState(false)
+  const [avatarVersion, setAvatarVersion] = useState(0)
   const label = initials(user?.first_name, user?.last_name, user?.username ?? 'U')
 
+  // Force le rechargement de l'image quand l'URL de la photo change (anti-cache navigateur)
   useEffect(() => {
     setFailed(false)
+    setAvatarVersion((v) => v + 1)
   }, [user?.pictures])
 
   const showImage = Boolean(user?.pictures) && !failed
+  const imageSrc = user?.pictures
+    ? `${user.pictures}${user.pictures.includes('?') ? '&' : '?'}v=${avatarVersion}`
+    : ''
 
   return (
     <span
@@ -38,7 +44,7 @@ export function UserAvatar({
     >
       {showImage ? (
         <img
-          src={user?.pictures ?? ''}
+          src={imageSrc}
           alt={user?.username ?? 'Photo de profil'}
           className="h-full w-full object-cover"
           onError={() => setFailed(true)}

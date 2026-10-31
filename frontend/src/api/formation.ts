@@ -6,6 +6,8 @@ export interface FormateurPayload {
   user_id: number
   matiere: string
   bio: string
+  /** Identifiants des modules enseignés par le formateur. */
+  modules: number[]
 }
 
 export const formationApi = {

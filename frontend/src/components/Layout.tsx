@@ -1,68 +1,158 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { dashboardApi } from '@/api/dashboard'
 import { Logo } from '@/components/Logo'
 import { DefaultPageSkeleton } from '@/components/Skeletons'
 import { UserAvatar } from '@/components/UserAvatar'
-import { useAuth } from '@/contexts/AuthContext'
-import { roleLabel } from '@/lib/format'
+import { useAuth, type Capability } from '@/contexts/AuthContext'
+import { rolesLabel } from '@/lib/format'
+
+/** Sous-ensemble du contexte utilisé pour filtrer le menu latéral. */
+interface NavAccess {
+  canSee: (capability: Capability) => boolean
+}
+
+/** Compteurs affichés en pastille dans le menu. */
+type NavCounts = Partial<Record<'devoirs' | 'annonces', number>>
 
 interface NavItem {
   label: string
   to: string
   icon: string
-  adminOnly?: boolean
+  /** Cache l'entrée lorsque le droit correspondant est absent. */
+  visible?: (access: NavAccess) => boolean
+  /** Clé du compteur à afficher en pastille (source : dashboard). */
+  badge?: keyof NavCounts
 }
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Tableau de bord', to: '/dashboard', icon: 'pi pi-home' },
-  { label: 'Membres', to: '/membres', icon: 'pi pi-users', adminOnly: true },
-  { label: 'Finance', to: '/finance', icon: 'pi pi-wallet' },
-  { label: 'Devoirs', to: '/devoirs', icon: 'pi pi-file-edit' },
-  { label: 'Planning', to: '/planning', icon: 'pi pi-calendar', adminOnly: true },
-  { label: 'Annonces', to: '/annonces', icon: 'pi pi-megaphone' },
-  { label: 'Formateurs', to: '/formateurs', icon: 'pi pi-id-card', adminOnly: true },
+  {
+    label: 'Membres',
+    to: '/membres',
+    icon: 'pi pi-users',
+    // Tous les utilisateurs sauf les stagiaires (CRUD super admin).
+    visible: ({ canSee }) => canSee('membres'),
+  },
+  {
+    label: 'Finance',
+    to: '/finance',
+    icon: 'pi pi-wallet',
+    // Stagiaires (leurs versements), caissiers et super administrateurs.
+    visible: ({ canSee }) => canSee('finance'),
+  },
+  { label: 'Devoirs', to: '/devoirs', icon: 'pi pi-file-edit', badge: 'devoirs' },
+  {
+    label: 'Planning',
+    to: '/planning',
+    icon: 'pi pi-calendar',
+    visible: ({ canSee }) => canSee('planning'),
+  },
+  {
+    label: 'Annonces',
+    to: '/annonces',
+    icon: 'pi pi-megaphone',
+    badge: 'annonces',
+  },
+  {
+    label: 'Formateurs',
+    to: '/formateurs',
+    icon: 'pi pi-id-card',
+    visible: ({ canSee }) => canSee('formateurs'),
+  },
+  {
+    label: 'Modules',
+    to: '/modules',
+    icon: 'pi pi-book',
+    visible: ({ canSee }) => canSee('modules'),
+  },
+  {
+    label: 'Présences',
+    to: '/presences',
+    icon: 'pi pi-qrcode',
+    // Appel par QR code : masqué aux stagiaires (ils scannent depuis leur
+    // carte « Ma présence »).
+    visible: ({ canSee }) => canSee('presences'),
+  },
   { label: 'Paramètres', to: '/parametres', icon: 'pi pi-cog' },
 ]
 
 function SidebarContent({
-  isAdmin,
+  access,
+  counts = {},
   collapsed = false,
   onNavigate,
   onLogout,
 }: {
-  isAdmin: boolean
+  access: NavAccess
+  /** Compteurs (devoirs, annonces) affichés en pastille. */
+  counts?: NavCounts
   collapsed?: boolean
   onNavigate?: () => void
   onLogout: () => void
 }) {
-  const items = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin)
+  const location = useLocation()
+  const items = NAV_ITEMS.filter((item) => !item.visible || item.visible(access))
 
   return (
-    <div className="flex h-full flex-col">
+    // h-full = barre latérale bureau (bloc étiré en hauteur) ; flex-1 min-h-0 =
+    // tiroir mobile (remplit la place restante sous l'en-tête) : la liste
+    // défile et « Se déconnecter » reste épinglé en bas.
+    <div className="flex h-full min-h-0 flex-1 flex-col">
       <nav className="flex-1 space-y-1 overflow-y-auto py-5">
-        {items.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            onClick={onNavigate}
-            title={collapsed ? item.label : undefined}
-            className={({ isActive }) =>
-              [
-                'group mx-3 flex items-center gap-4 rounded-2xl px-4 py-3 text-sm font-semibold transition',
-                collapsed ? 'justify-center px-0' : '',
-                isActive
-                  ? 'bg-white text-fongo-900 shadow-sm'
-                  : 'text-blue-100 hover:bg-white/10 hover:text-white',
-              ].join(' ')
-            }
-          >
-            <i className={`${item.icon} text-base`} />
-            {!collapsed && <span>{item.label}</span>}
-          </NavLink>
-        ))}
+        {items.map((item) => {
+          const count = item.badge ? (counts[item.badge] ?? 0) : 0
+          const isActive =
+            location.pathname === item.to ||
+            location.pathname.startsWith(`${item.to}/`)
+
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              onClick={onNavigate}
+              title={collapsed ? item.label : undefined}
+              className={({ isActive: active }) =>
+                [
+                  'group relative mx-3 flex items-center gap-4 rounded-2xl px-4 py-3 text-sm font-semibold transition',
+                  collapsed ? 'justify-center px-0' : '',
+                  active
+                    ? 'bg-white text-fongo-900 shadow-sm'
+                    : 'text-blue-100 hover:bg-white/10 hover:text-white',
+                ].join(' ')
+              }
+            >
+              <i className={`${item.icon} text-base`} />
+              {!collapsed && <span>{item.label}</span>}
+
+              {/* Pastille de compteur (Devoirs, Annonces). */}
+              {!collapsed && count > 0 && (
+                <span
+                  className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                    isActive
+                      ? 'bg-fongo-700 text-white'
+                      : 'bg-white/15 text-white group-hover:bg-white/25'
+                  }`}
+                >
+                  {count}
+                </span>
+              )}
+              {collapsed && count > 0 && (
+                <span
+                  className={`absolute right-1.5 top-1.5 min-w-[1.2rem] rounded-full px-1 text-center text-[10px] font-bold leading-4 ${
+                    isActive ? 'bg-fongo-700 text-white' : 'bg-white text-fongo-900'
+                  }`}
+                >
+                  {count}
+                </span>
+              )}
+            </NavLink>
+          )
+        })}
       </nav>
 
-      <div className="border-t border-white/10 p-3">
+      <div className="shrink-0 border-t border-white/10 p-3">
         <button
           type="button"
           onClick={onLogout}
@@ -81,13 +171,34 @@ function SidebarContent({
 }
 
 export function Layout() {
-  const { user, isAdmin, logout } = useAuth()
+  const { user, canSee, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const profileMenuRef = useRef<HTMLDivElement>(null)
+
+  const access = useMemo<NavAccess>(() => ({ canSee }), [canSee])
+  // Compteurs affichés en pastille dans le menu : même requête (et même cache
+  // React Query) que le tableau de bord.
+  const { data: dashboard } = useQuery({
+    queryKey: ['dashboard'],
+    queryFn: dashboardApi.get,
+    staleTime: 60_000,
+    retry: false,
+  })
+  const counts = useMemo<NavCounts>(
+    () => ({
+      devoirs: dashboard?.activite.devoirs ?? 0,
+      annonces: dashboard?.activite.annonces ?? 0,
+    }),
+    [dashboard],
+  )
+  const roleText = useMemo(
+    () => rolesLabel(user?.role, user?.roles_supplementaires),
+    [user?.role, user?.roles_supplementaires],
+  )
 
   const pageTitle = useMemo(() => {
     const item = NAV_ITEMS.find((entry) => location.pathname.startsWith(entry.to))
@@ -128,8 +239,8 @@ export function Layout() {
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-fongo-900">
-      <header className="flex h-20 shrink-0 items-center justify-between gap-4 px-4 sm:px-6">
+    <div className="flex h-dvh flex-col overflow-hidden bg-fongo-900">
+      <header className="flex h-16 shrink-0 items-center justify-between gap-4 px-4 sm:h-20 sm:px-6">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -171,7 +282,7 @@ export function Layout() {
                   {user?.full_name || user?.username}
                 </span>
                 <span className="text-[11px] font-medium uppercase tracking-wide text-blue-200">
-                  {roleLabel(user?.role)}
+                  {roleText}
                 </span>
               </div>
               <UserAvatar user={user} size="md" />
@@ -186,14 +297,14 @@ export function Layout() {
               <div
                 id="profile-menu"
                 role="menu"
-                className="absolute right-0 top-full z-50 mt-3 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/25 animate-fade-in-up"
+                className="absolute right-0 top-full z-50 mt-3 w-[min(18rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/25 animate-fade-in-up"
               >
                 <div className="border-b border-slate-100 bg-slate-50/80 px-4 py-3.5">
                   <p className="truncate text-sm font-bold text-slate-900">
                     {user?.full_name || user?.username}
                   </p>
                   <p className="mt-0.5 truncate text-xs text-slate-500">
-                    @{user?.username} · {roleLabel(user?.role)}
+                    @{user?.username} · {roleText}
                   </p>
                 </div>
 
@@ -240,13 +351,17 @@ export function Layout() {
           }`}
         >
           <SidebarContent
-            isAdmin={isAdmin}
+            access={access}
+            counts={counts}
             collapsed={collapsed}
             onLogout={handleLogout}
           />
         </aside>
 
-        <section className="flex-1 overflow-y-auto rounded-tl-3xl bg-white scrollbar-thin">
+        {/* overflow-x-hidden : aucun défilement horizontal possible sur
+            mobile, quelle que soit la largeur d'un contenu (titres longs,
+            affiche FongoExpo…). */}
+        <section className="flex-1 overflow-x-hidden overflow-y-auto rounded-tl-3xl bg-white scrollbar-thin">
           <div className="mx-auto min-h-full max-w-7xl p-4 sm:p-6 lg:p-8">
             <Suspense fallback={<DefaultPageSkeleton />}>
               <Outlet />
@@ -262,8 +377,8 @@ export function Layout() {
             onClick={() => setMobileOpen(false)}
             aria-hidden
           />
-          <aside className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-fongo-900 shadow-2xl md:hidden">
-            <div className="flex h-20 items-center justify-between px-5">
+          <aside className="fixed inset-y-0 left-0 z-50 flex w-[min(18rem,85vw)] flex-col bg-fongo-900 shadow-2xl md:hidden">
+            <div className="flex h-16 shrink-0 items-center justify-between px-5 sm:h-20">
               <Logo />
               <button
                 type="button"
@@ -275,7 +390,8 @@ export function Layout() {
               </button>
             </div>
             <SidebarContent
-              isAdmin={isAdmin}
+              access={access}
+              counts={counts}
               onNavigate={() => setMobileOpen(false)}
               onLogout={handleLogout}
             />

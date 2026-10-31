@@ -340,6 +340,33 @@ export function PlanningSkeleton() {
   )
 }
 
+export function ModulesSkeleton() {
+  return (
+    <SkeletonPage label="Chargement des modules…">
+      <SkeletonHeader />
+      <SkeletonGrid count={3} />
+    </SkeletonPage>
+  )
+}
+
+export function PresencesSkeleton() {
+  return (
+    <SkeletonPage label="Chargement des présences…">
+      <SkeletonHeader />
+      <div className="grid gap-5 lg:grid-cols-3">
+        <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-56 w-56 rounded-3xl" />
+          <Skeleton className="h-9 w-full rounded-full" />
+        </div>
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
+          <SkeletonTable rows={6} columns={4} />
+        </div>
+      </div>
+    </SkeletonPage>
+  )
+}
+
 export function DefaultPageSkeleton() {
   return (
     <SkeletonPage label="Chargement de la page…">

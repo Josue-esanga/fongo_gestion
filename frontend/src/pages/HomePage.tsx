@@ -114,8 +114,8 @@ export function HomePage() {
           <div className="flex items-center justify-center rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:col-span-2">
             <div className="h-full min-h-64 w-full overflow-hidden rounded-xl border border-slate-100">
               <img
-                src="/images/fongolab.jpg"
-                alt="Le club FongoLab"
+                src="/images/membres.jpg"
+                alt="Les membres et stagiaires du club FongoLab réunis lors d'une session"
                 className="h-full w-full object-cover"
               />
             </div>

@@ -40,7 +40,62 @@ export function roleLabel(role?: string): string {
   }
 }
 
+export function extraRoleLabel(code?: string): string {
+  switch (code) {
+    case 'formateur':
+      return 'Formateur'
+    case 'caissier':
+      return 'Caissier'
+    case 'communication':
+      return 'Communication'
+    default:
+      return code ? String(code) : ''
+  }
+}
+
+/** Rôle principal complété par les rôles supplémentaires, ex. « Administrateur · Caissier ». */
+export function rolesLabel(role?: string, extras?: string[] | null): string {
+  const base = roleLabel(role)
+  const extra = (extras ?? []).map(extraRoleLabel).filter(Boolean)
+  return extra.length ? `${base} · ${extra.join(' · ')}` : base
+}
+
 export function toDateTimeLocal(value?: string | null): string {
   if (!value) return ''
   return dayjs(value).format('YYYY-MM-DDTHH:mm')
+}
+
+/**
+ * Extrait tronqué d'un texte (sous-titre de l'affiche FongoExpo) :
+ * espaces normalisés, + « … » au-delà de `max` caractères.
+ */
+export function truncateText(text: string, max = 140): string {
+  const oneLine = text.replace(/\s+/g, ' ').trim()
+  return oneLine.length > max ? `${oneLine.slice(0, max).trimEnd()}…` : oneLine
+}
+
+/** Libellé du public visé par une annonce (« tous » → Tout le monde). */
+export function annonceCibleLabel(cible?: string | null): string {
+  switch (cible) {
+    case 'admins':
+      return 'Administrateurs'
+    case 'stagiaires':
+      return 'Stagiaires'
+    default:
+      return 'Tout le monde'
+  }
+}
+
+/** Couleur du badge de public visé. */
+export function annonceCibleSeverity(
+  cible?: string | null,
+): 'secondary' | 'info' | 'success' {
+  switch (cible) {
+    case 'admins':
+      return 'info'
+    case 'stagiaires':
+      return 'success'
+    default:
+      return 'secondary'
+  }
 }

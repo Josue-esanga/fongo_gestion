@@ -13,7 +13,10 @@ export const authApi = {
   },
 
   async updateMe(formData: FormData): Promise<User> {
-    const { data } = await api.patch<User>('auth/me/', formData)
+    const { data } = await api.patch<User>('auth/me/', formData, {
+      // Laisser le navigateur définir multipart/form-data avec boundary
+      headers: { 'Content-Type': undefined },
+    })
     return data
   },
 

@@ -45,7 +45,7 @@ function FieldError({ message }: { message?: string }) {
 }
 
 export function ParametresPage() {
-  const { user, setUser } = useAuth()
+  const { user, setUser, isStagiaire } = useAuth()
   const { showToast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const initialTab = searchParams.get('tab') === 'securite' ? 'securite' : 'profil'
@@ -99,16 +99,27 @@ export function ParametresPage() {
   }
 
   async function saveProfile(values: ProfileValues) {
+    // Un stagiaire ne peut modifier que sa photo de profil.
+    if (isStagiaire && !picture) {
+      showToast(
+        'info',
+        'Lecture seule',
+        'Seul un administrateur peut modifier vos informations personnelles.',
+      )
+      return
+    }
     setSavingProfile(true)
     try {
-      const formData = buildFormData(
-        {
-          first_name: values.first_name.trim(),
-          last_name: values.last_name.trim(),
-          email: values.email.trim(),
-        },
-        picture,
-      )
+      const formData = isStagiaire
+        ? buildFormData({}, picture)
+        : buildFormData(
+            {
+              first_name: values.first_name.trim(),
+              last_name: values.last_name.trim(),
+              email: values.email.trim(),
+            },
+            picture,
+          )
       const updated = await authApi.updateMe(formData)
       setUser(updated)
       setPicture(null)
@@ -116,7 +127,9 @@ export function ParametresPage() {
       showToast(
         'success',
         'Profil mis à jour',
-        'Vos informations ont été enregistrées avec succès.',
+        isStagiaire
+          ? 'Votre photo de profil a été mise à jour.'
+          : 'Vos informations ont été enregistrées avec succès.',
       )
     } catch (error) {
       showToast('error', 'Mise à jour impossible', getErrorMessage(error))
@@ -153,7 +166,11 @@ export function ParametresPage() {
       <PageHeader
         eyebrow="Compte"
         title="Paramètres"
-        subtitle="Gérez vos informations personnelles et la sécurité de votre compte FongoGestion."
+        subtitle={
+          isStagiaire
+            ? 'Consultez vos informations personnelles et changez votre photo de profil.'
+            : 'Gérez vos informations personnelles et la sécurité de votre compte FongoGestion.'
+        }
       />
 
       <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
@@ -196,7 +213,9 @@ export function ParametresPage() {
                   Informations personnelles
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  Mettez à jour vos coordonnées et votre photo de profil.
+                  {isStagiaire
+                    ? 'Vos informations sont en lecture seule : seul un administrateur peut les modifier. Vous pouvez changer votre photo.'
+                    : 'Mettez à jour vos coordonnées et votre photo de profil.'}
                 </p>
               </div>
 
@@ -269,6 +288,7 @@ export function ParametresPage() {
                     render={({ field }) => (
                       <InputText
                         {...field}
+                        disabled={isStagiaire}
                         className={`w-full ${profileForm.formState.errors.first_name ? 'p-invalid' : ''}`}
                       />
                     )}
@@ -287,6 +307,7 @@ export function ParametresPage() {
                     render={({ field }) => (
                       <InputText
                         {...field}
+                        disabled={isStagiaire}
                         className={`w-full ${profileForm.formState.errors.last_name ? 'p-invalid' : ''}`}
                       />
                     )}
@@ -308,6 +329,7 @@ export function ParametresPage() {
                     <InputText
                       {...field}
                       type="email"
+                      disabled={isStagiaire}
                       className={`w-full ${profileForm.formState.errors.email ? 'p-invalid' : ''}`}
                     />
                   )}
@@ -316,13 +338,21 @@ export function ParametresPage() {
               </div>
 
               <div className="flex justify-end border-t border-slate-100 pt-5">
-                <Button
-                  type="submit"
-                  label="Enregistrer les modifications"
-                  icon="pi pi-check"
-                  loading={savingProfile}
-                  className="rounded-full px-6"
-                />
+                {isStagiaire ? (
+                  <p className="flex items-center gap-2 rounded-2xl bg-slate-50 px-4 py-3 text-xs font-medium text-slate-500">
+                    <i className="pi pi-lock" />
+                    Lecture seule : contactez un administrateur pour modifier vos
+                    informations.
+                  </p>
+                ) : (
+                  <Button
+                    type="submit"
+                    label="Enregistrer les modifications"
+                    icon="pi pi-check"
+                    loading={savingProfile}
+                    className="rounded-full px-6"
+                  />
+                )}
               </div>
             </form>
           ) : (

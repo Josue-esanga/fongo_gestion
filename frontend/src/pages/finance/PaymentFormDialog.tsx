@@ -1,30 +1,29 @@
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import { Button } from 'primereact/button'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
 import { InputNumber } from 'primereact/inputnumber'
 import { InputText } from 'primereact/inputtext'
-import type { PaiementPayload } from '@/api/finance'
+import { financeApi, type PaiementPayload } from '@/api/finance'
 import type { Paiement, StagiaireFinance } from '@/types'
 
 const paymentSchema = z.object({
   montant: z
     .number({ message: 'Le montant est obligatoire.' })
     .positive('Le montant doit être supérieur à zéro.'),
-  category: z.enum(['module', 'autres']),
+  /** Le paiement est rattaché à un module : le choix « catégorie » disparaît. */
+  module: z
+    .number({ message: 'Sélectionnez un module.' })
+    .min(1, 'Sélectionnez un module.'),
   description: z.string().min(2, 'La description est obligatoire.'),
   id_stagiaire: z.number({ message: 'Sélectionnez un stagiaire.' }),
 })
 
 type PaymentFormValues = z.infer<typeof paymentSchema>
-
-const CATEGORIES = [
-  { label: 'Module', value: 'module' as const },
-  { label: 'Autres', value: 'autres' as const },
-]
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null
@@ -55,25 +54,33 @@ export function PaymentFormDialog({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
       montant: 0,
-      category: 'module',
+      module: 0,
       description: '',
       id_stagiaire: 0,
     },
   })
+
+  // Modules du projet proposés à la place de l'ancien champ « Catégorie ».
+  const modulesQuery = useQuery({
+    queryKey: ['paiement-modules'],
+    queryFn: financeApi.modulesPaiement,
+    staleTime: 5 * 60_000,
+  })
+  const modules = modulesQuery.data ?? []
 
   useEffect(() => {
     if (!visible) return
     if (payment) {
       reset({
         montant: payment.montant,
-        category: payment.category,
+        module: payment.module ?? 0,
         description: payment.description,
         id_stagiaire: payment.stagiaire.id,
       })
     } else {
       reset({
         montant: 0,
-        category: 'module',
+        module: 0,
         description: '',
         id_stagiaire: 0,
       })
@@ -163,21 +170,31 @@ export function PaymentFormDialog({
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-slate-700">
-              Catégorie
+              Module
             </label>
             <Controller
               control={control}
-              name="category"
+              name="module"
               render={({ field }) => (
                 <Dropdown
-                  value={field.value}
-                  options={CATEGORIES}
-                  onChange={(event) => field.onChange(event.value)}
-                  className="w-full"
+                  value={field.value || null}
+                  options={modules}
+                  optionLabel="titre"
+                  optionValue="id"
+                  filter
+                  loading={modulesQuery.isLoading}
+                  placeholder={
+                    modulesQuery.isLoading
+                      ? 'Chargement…'
+                      : 'Sélectionner un module'
+                  }
+                  emptyMessage="Aucun module enregistré"
+                  onChange={(event) => field.onChange(event.value ?? 0)}
+                  className={`w-full ${errors.module ? 'p-invalid' : ''}`}
                 />
               )}
             />
-            <FieldError message={errors.category?.message} />
+            <FieldError message={errors.module?.message} />
           </div>
         </div>
 

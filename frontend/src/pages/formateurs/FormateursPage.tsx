@@ -6,18 +6,32 @@ import { DataTable } from 'primereact/datatable'
 import { Tag } from 'primereact/tag'
 import { confirmDialog } from 'primereact/confirmdialog'
 import { formationApi, type FormateurPayload } from '@/api/formation'
+import { modulesApi } from '@/api/modules'
 import { usersApi } from '@/api/users'
 import { EmptyState, ErrorState } from '@/components/Feedback'
 import { FormateursSkeleton } from '@/components/Skeletons'
 import { PageHeader } from '@/components/PageHeader'
 import { UserAvatar } from '@/components/UserAvatar'
+import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { getErrorMessage } from '@/lib/errors'
-import type { Formateur } from '@/types'
+import type { Formateur, ModuleFormation, User } from '@/types'
 import { FormateurFormDialog } from './FormateurFormDialog'
+
+/**
+ * Un utilisateur est proposable comme formateur s'il porte le rôle
+ * supplémentaire « formateur » (le super admin possède tous les rôles).
+ */
+function isFormateurCandidate(user: User): boolean {
+  if (user.role === 'stagiaire') return false
+  if (user.role === 'super_admin' || user.is_superuser) return true
+  return (user.roles_supplementaires ?? []).includes('formateur')
+}
 
 export function FormateursPage() {
   const { showToast } = useToast()
+  // L'écriture reste réservée au super administrateur.
+  const { isSuperAdmin } = useAuth()
   const queryClient = useQueryClient()
   const [dialogVisible, setDialogVisible] = useState(false)
   const [editing, setEditing] = useState<Formateur | null>(null)
@@ -32,8 +46,15 @@ export function FormateursPage() {
     queryFn: () => usersApi.list(),
   })
 
+  // Grille pédagogique : utilisée pour l'assignation et l'affichage.
+  const modulesQuery = useQuery({
+    queryKey: ['modules-programme'],
+    queryFn: () => modulesApi.list(),
+  })
+
   const formateurs = formateursQuery.data ?? []
   const users = usersQuery.data ?? []
+  const modules = modulesQuery.data ?? []
 
   const availableUsers = useMemo(() => {
     const assignedIds = new Set(
@@ -42,9 +63,7 @@ export function FormateursPage() {
         .map((item) => item.user.id),
     )
     return users.filter(
-      (user) =>
-        (user.role === 'admin' || user.role === 'super_admin') &&
-        !assignedIds.has(user.id),
+      (user) => isFormateurCandidate(user) && !assignedIds.has(user.id),
     )
   }, [editing?.id, formateurs, users])
 
@@ -118,17 +137,19 @@ export function FormateursPage() {
       <PageHeader
         eyebrow="Pédagogie"
         title="Gestion des formateurs"
-        subtitle="Assignez les administrateurs et super administrateurs aux matières enseignées au club."
+        subtitle="Affectez les utilisateurs enregistrés comme formateur aux matières et aux modules enseignés au club."
         actions={
-          <Button
-            label="Ajouter un formateur"
-            icon="pi pi-plus"
-            className="rounded-full px-5"
-            onClick={() => {
-              setEditing(null)
-              setDialogVisible(true)
-            }}
-          />
+          isSuperAdmin ? (
+            <Button
+              label="Ajouter un formateur"
+              icon="pi pi-plus"
+              className="rounded-full px-5"
+              onClick={() => {
+                setEditing(null)
+                setDialogVisible(true)
+              }}
+            />
+          ) : undefined
         }
       />
 
@@ -146,7 +167,8 @@ export function FormateursPage() {
               description="Nommez un premier formateur pour commencer."
             />
           }
-          responsiveLayout="scroll"
+          scrollable
+          tableStyle={{ minWidth: '52rem' }}
           className="text-sm"
         >
           <Column
@@ -181,43 +203,67 @@ export function FormateursPage() {
           />
           <Column
             header="Modules"
-            body={(formateur: Formateur) => (
-              <span className="text-sm text-slate-500">
-                {formateur.modules.length} module
-                {formateur.modules.length > 1 ? 's' : ''}
-              </span>
-            )}
+            body={(formateur: Formateur) => {
+              if (formateur.modules.length === 0) {
+                return <span className="text-sm text-slate-400">Aucun module</span>
+              }
+              const modulesAffectes = formateur.modules
+                .map((id) => modules.find((module) => module.id === id))
+                .filter(
+                  (module): module is ModuleFormation => module !== undefined,
+                )
+              if (modulesAffectes.length !== formateur.modules.length) {
+                // Grille indisponible : on retombe sur le compteur.
+                return (
+                  <span className="text-sm text-slate-500">
+                    {formateur.modules.length} module
+                    {formateur.modules.length > 1 ? 's' : ''}
+                  </span>
+                )
+              }
+              return (
+                <div className="flex flex-wrap gap-1.5">
+                  {modulesAffectes.map((module) => (
+                    <Tag key={module.id} value={module.titre} severity="info" />
+                  ))}
+                </div>
+              )
+            }}
           />
           <Column
             header="Statut"
             body={() => <Tag value="Actif" severity="success" />}
           />
-          <Column
-            header="Actions"
-            body={(formateur: Formateur) => (
-              <div className="flex items-center gap-1">
-                <Button
-                  icon="pi pi-pencil"
-                  rounded
-                  text
-                  severity="info"
-                  aria-label="Modifier le formateur"
-                  onClick={() => {
-                    setEditing(formateur)
-                    setDialogVisible(true)
-                  }}
-                />
-                <Button
-                  icon="pi pi-trash"
-                  rounded
-                  text
-                  severity="danger"
-                  aria-label="Supprimer le formateur"
-                  onClick={() => confirmDelete(formateur)}
-                />
-              </div>
-            )}
-          />
+          {isSuperAdmin && (
+            <Column
+              header="Actions"
+              frozen
+              alignFrozen="right"
+              body={(formateur: Formateur) => (
+                <div className="flex items-center gap-1">
+                  <Button
+                    icon="pi pi-pencil"
+                    rounded
+                    text
+                    severity="info"
+                    aria-label="Modifier le formateur"
+                    onClick={() => {
+                      setEditing(formateur)
+                      setDialogVisible(true)
+                    }}
+                  />
+                  <Button
+                    icon="pi pi-trash"
+                    rounded
+                    text
+                    severity="danger"
+                    aria-label="Supprimer le formateur"
+                    onClick={() => confirmDelete(formateur)}
+                  />
+                </div>
+              )}
+            />
+          )}
         </DataTable>
       </div>
 

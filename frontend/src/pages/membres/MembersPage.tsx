@@ -12,9 +12,10 @@ import { EmptyState, ErrorState } from '@/components/Feedback'
 import { MembersSkeleton } from '@/components/Skeletons'
 import { PageHeader } from '@/components/PageHeader'
 import { UserAvatar } from '@/components/UserAvatar'
+import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { getErrorMessage } from '@/lib/errors'
-import { formatDate, roleLabel } from '@/lib/format'
+import { extraRoleLabel, formatDate, roleLabel } from '@/lib/format'
 import type { User } from '@/types'
 import { MemberFormDialog } from './MemberFormDialog'
 
@@ -35,6 +36,8 @@ function roleSeverity(role: User['role']) {
 export function MembersPage() {
   const queryClient = useQueryClient()
   const { showToast } = useToast()
+  // Le CRUD des membres est réservé au super administrateur.
+  const { isSuperAdmin } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const [filter, setFilter] = useState<Filter>('all')
   const [search, setSearch] = useState('')
@@ -166,14 +169,20 @@ export function MembersPage() {
       <PageHeader
         eyebrow="Administration"
         title="Gestion des membres"
-        subtitle="Créez, filtrez et mettez à jour les comptes des stagiaires et administrateurs du club."
+        subtitle={
+          isSuperAdmin
+            ? "Créez, filtrez et mettez à jour les comptes des stagiaires et administrateurs du club."
+            : "Consultez les comptes des stagiaires et administrateurs du club."
+        }
         actions={
-          <Button
-            label="Ajouter un utilisateur"
-            icon="pi pi-plus"
-            onClick={openCreate}
-            className="rounded-full px-5"
-          />
+          isSuperAdmin ? (
+            <Button
+              label="Ajouter un utilisateur"
+              icon="pi pi-plus"
+              onClick={openCreate}
+              className="rounded-full px-5"
+            />
+          ) : undefined
         }
       />
 
@@ -236,7 +245,8 @@ export function MembersPage() {
             />
           }
           className="text-sm"
-          responsiveLayout="scroll"
+          scrollable
+          tableStyle={{ minWidth: '46rem' }}
         >
           <Column
             header="Utilisateur"
@@ -261,10 +271,19 @@ export function MembersPage() {
             sortable
             sortField="role"
             body={(user: User) => (
-              <Tag
-                value={roleLabel(user.role)}
-                severity={roleSeverity(user.role)}
-              />
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Tag
+                  value={roleLabel(user.role)}
+                  severity={roleSeverity(user.role)}
+                />
+                {(user.roles_supplementaires ?? []).map((code) => (
+                  <Tag
+                    key={code}
+                    value={extraRoleLabel(code)}
+                    severity="secondary"
+                  />
+                ))}
+              </div>
             )}
           />
           <Column
@@ -292,30 +311,33 @@ export function MembersPage() {
               </span>
             )}
           />
-          <Column
-            header="Actions"
-            alignFrozen="right"
-            body={(user: User) => (
-              <div className="flex items-center gap-1">
-                <Button
-                  icon="pi pi-pencil"
-                  rounded
-                  text
-                  severity="info"
-                  aria-label={`Modifier ${user.username}`}
-                  onClick={() => openEdit(user)}
-                />
-                <Button
-                  icon="pi pi-trash"
-                  rounded
-                  text
-                  severity="danger"
-                  aria-label={`Supprimer ${user.username}`}
-                  onClick={() => confirmDelete(user)}
-                />
-              </div>
-            )}
-          />
+          {isSuperAdmin && (
+            <Column
+              header="Actions"
+              frozen
+              alignFrozen="right"
+              body={(user: User) => (
+                <div className="flex items-center gap-1">
+                  <Button
+                    icon="pi pi-pencil"
+                    rounded
+                    text
+                    severity="info"
+                    aria-label={`Modifier ${user.username}`}
+                    onClick={() => openEdit(user)}
+                  />
+                  <Button
+                    icon="pi pi-trash"
+                    rounded
+                    text
+                    severity="danger"
+                    aria-label={`Supprimer ${user.username}`}
+                    onClick={() => confirmDelete(user)}
+                  />
+                </div>
+              )}
+            />
+          )}
         </DataTable>
       </div>
 

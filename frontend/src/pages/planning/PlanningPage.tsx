@@ -16,7 +16,8 @@ import type { EventItem } from '@/types'
 import { EventFormDialog } from './EventFormDialog'
 
 export function PlanningPage() {
-  const { isAdmin } = useAuth()
+  // Le planning relève du super administrateur.
+  const { isSuperAdmin } = useAuth()
   const { showToast } = useToast()
   const queryClient = useQueryClient()
   const [dialogVisible, setDialogVisible] = useState(false)
@@ -96,7 +97,7 @@ export function PlanningPage() {
         title="Planning"
         subtitle="Organisez les événements et activités du comité FongoLab, et partagez-les avec les membres."
         actions={
-          isAdmin ? (
+          isSuperAdmin ? (
             <Button
               label="Ajouter un événement"
               icon="pi pi-plus"
@@ -115,7 +116,7 @@ export function PlanningPage() {
           icon="pi pi-calendar"
           title="Aucun événement planifié"
           description={
-            isAdmin
+            isSuperAdmin
               ? 'Ajoutez un premier événement au calendrier du club.'
               : 'Le calendrier du club est vide pour le moment.'
           }
@@ -165,7 +166,7 @@ export function PlanningPage() {
                   </div>
                 </div>
 
-                {isAdmin && (
+                {isSuperAdmin && (
                   <div className="flex gap-1">
                     <Button
                       icon="pi pi-pencil"

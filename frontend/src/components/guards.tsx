@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { LoadingScreen } from '@/components/Feedback'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth, type Capability } from '@/contexts/AuthContext'
 import type { Role } from '@/types'
 
 export function RequireAuth({ children }: { children: ReactNode }) {
@@ -33,6 +33,27 @@ export function RequireRole({
   const { user } = useAuth()
 
   if (!user || !roles.includes(user.role)) {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  return <>{children}</>
+}
+
+/**
+ * Protège une section selon sa visibilité : membres, planning, formateurs,
+ * modules et présences sont masqués aux stagiaires, la finance aux profils
+ * non caissiers.
+ */
+export function RequireSection({
+  section,
+  children,
+}: {
+  section: Capability
+  children: ReactNode
+}) {
+  const { canSee } = useAuth()
+
+  if (!canSee(section)) {
     return <Navigate to="/dashboard" replace />
   }
 

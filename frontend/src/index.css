@@ -114,6 +114,10 @@ body {
   padding: 0.7rem 0.9rem;
   background: transparent;
   color: #0f172a;
+  /* Libellé long → tronqué (…) plutôt que de déborder du champ. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .p-inputtext:enabled:focus,
@@ -312,4 +316,87 @@ body {
 
 .animate-fade-in-up {
   animation: fade-in-up 0.35s ease both;
+}
+
+/* Repli pour les navigateurs sans support de `dvh` (utilisé par h-dvh). */
+@supports not (height: 100dvh) {
+  .h-dvh {
+    height: 100vh;
+  }
+}
+
+/* Fond explicite des lignes : permet aux colonnes figées (position sticky,
+   background: inherit chez PrimeReact) d'être opaques pendant le défilement. */
+.p-datatable .p-datatable-tbody > tr {
+  background: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   Mobile — réglages spécifiques aux petits écrans (téléphones)
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  /* iOS : Safari zoome automatiquement si la police d'un champ vaut < 16 px. */
+  .p-inputtext:not(.p-dropdown-label):not(.p-multiselect-label),
+  .p-dropdown,
+  .p-multiselect,
+  .p-inputnumber-input,
+  .p-calendar .p-inputtext,
+  .p-password input {
+    font-size: 16px;
+  }
+
+  /* Défilement horizontal des tableaux plus fluide au doigt (iOS). */
+  .p-datatable > .p-datatable-wrapper {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Cellules plus serrées et pagination allégée. */
+  .p-datatable .p-datatable-thead > tr > th,
+  .p-datatable .p-datatable-tbody > tr > td {
+    padding: 0.7rem 0.75rem;
+  }
+
+  .p-paginator {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .p-paginator .p-paginator-first,
+  .p-paginator .p-paginator-last,
+  .p-paginator .p-paginator-pages {
+    display: none;
+  }
+
+  /* Fenêtres modales (et fenêtres de confirmation) : jamais plus larges
+     que l'écran, paddings réduits, boutons pleine largeur. */
+  .p-dialog {
+    max-width: calc(100vw - 1.25rem);
+  }
+
+  .p-dialog .p-dialog-header {
+    padding: 1.1rem 1.1rem 0.5rem;
+  }
+
+  .p-dialog .p-dialog-content {
+    padding: 0.35rem 1.1rem 1rem;
+  }
+
+  .p-dialog .p-dialog-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.25rem 1.1rem 1.1rem;
+  }
+
+  .p-dialog .p-dialog-footer > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .p-dialog .p-dialog-footer .p-button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
 }
