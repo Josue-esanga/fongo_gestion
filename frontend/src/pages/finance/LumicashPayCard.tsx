@@ -65,7 +65,8 @@ export function LumicashPayCard() {
     }
   }
 
-  const canSubmit = Boolean(montant && montant > 0) && !mutation.isPending
+  const canSubmit =
+    Boolean(montant && montant > 0 && module != null) && !mutation.isPending
 
   return (
     <section
@@ -132,19 +133,21 @@ export function LumicashPayCard() {
 
           <div>
             <label
-              htmlFor="lumicash-categorie"
+              htmlFor="lumicash-module"
               className="mb-1.5 block text-sm font-semibold text-slate-700"
             >
-              Catégorie
+              Module
             </label>
             <Dropdown
-              id="lumicash-categorie"
-              value={category}
-              options={CATEGORIES}
+              id="lumicash-module"
+              value={module}
+              options={modules.map((m) => ({ value: m.id, label: m.titre }))}
+              optionLabel="label"
               onChange={(event) =>
-                setCategory((event.value as CategoriePaiement) ?? 'module')
+                setModule((event.value as number) ?? null)
               }
               className="w-full"
+              placeholder="Choisir un module"
             />
           </div>
 
