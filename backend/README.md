@@ -11,15 +11,16 @@ Le frontend React se trouve dans le dossier voisin `../frontend`.
 - **JWT** (`djangorestframework-simplejwt`)
 - **drf-spectacular** (OpenAPI / Swagger / Redoc)
 - **django-cors-headers**, **django-filter**
-- PostgreSQL (configuration dans `Fongo_Gestion/settings.py`)
+- PostgreSQL (base locale `fongo_gestion` sur `127.0.0.1:5432`, créée par
+  `../dev.sh` ; configuration dans `Fongo_Gestion/settings.py`)
 
 ## Installation
 
 ```bash
 cd backend
 
-python -m venv .venv
-source .venv/bin/activate
+python -m venv env
+source env/bin/activate
 pip install -r requirements.txt
 
 python manage.py migrate
@@ -38,8 +39,8 @@ Les routes sont déclarées dans `Fongo_Gestion/api_urls.py` et préfixées par 
 
 | Méthode  | Route                           | Description                          |
 | -------- | ------------------------------- | ------------------------------------ |
-| POST     | `/api/auth/login/`              | Connexion (retourne les tokens JWT)  |
-| POST     | `/api/auth/refresh/`            | Rafraîchissement de l'access token   |
+| POST     | `/api/auth/token/`              | Connexion (retourne les tokens JWT)  |
+| POST     | `/api/auth/token/refresh/`      | Rafraîchissement de l'access token   |
 | GET      | `/api/auth/me/`                 | Profil de l'utilisateur connecté     |
 | POST     | `/api/auth/change-password/`    | Changement de mot de passe           |
 | GET/POST | `/api/users/`                   | Liste / création des membres         |

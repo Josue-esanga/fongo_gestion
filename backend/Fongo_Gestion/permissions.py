@@ -31,6 +31,49 @@ class IsAdminOrReadOnly(BasePermission):
         return user.is_superuser or user.role in ("admin", "super_admin")
 
 
+class IsNonStagiaire(BasePermission):
+    """Réservé aux comptes qui ne sont pas des stagiaires (admins, formateurs)."""
+
+    message = "Cette action est réservée aux administrateurs."
+
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(
+            user
+            and user.is_authenticated
+            and (user.is_superuser or user.role != 'stagiaire')
+        )
+
+
+class IsStagiaire(BasePermission):
+    """Réservé aux stagiaires (pointage par QR code)."""
+
+    message = "Cette action est réservée aux stagiaires."
+
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(
+            user
+            and user.is_authenticated
+            and not user.is_superuser
+            and user.role == 'stagiaire'
+        )
+
+
+class IsSuperAdmin(BasePermission):
+    """Réservé au super administrateur."""
+
+    message = "Cette action est réservée au super administrateur."
+
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(
+            user
+            and user.is_authenticated
+            and (user.is_superuser or user.role == 'super_admin')
+        )
+
+
 class IsOwnerOrAdmin(BasePermission):
     """Un utilisateur accède à ses propres données, un admin à toutes."""
 

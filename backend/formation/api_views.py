@@ -11,7 +11,7 @@ from .serializers import FormateurSerializer, ModuleSerializer
 class FormateurViewSet(viewsets.ModelViewSet):
     serializer_class = FormateurSerializer
     permission_classes = [IsAdminOrReadOnly]
-    queryset = Formateur.objects.select_related("user").prefetch_related("module_set")
+    queryset = Formateur.objects.select_related("user").prefetch_related("modules")
     search_fields = ("user__username", "user__last_name", "matiere", "bio")
     filterset_fields = ("matiere",)
 
@@ -19,6 +19,8 @@ class FormateurViewSet(viewsets.ModelViewSet):
 class ModuleViewSet(viewsets.ModelViewSet):
     serializer_class = ModuleSerializer
     permission_classes = [IsAdminOrReadOnly]
-    queryset = Module.objects.select_related("id_formateur__user")
-    search_fields = ("cours",)
-    filterset_fields = ("id_formateur",)
+    queryset = Module.objects.prefetch_related("formateurs__user")
+    search_fields = ("titre", "description")
+    filterset_fields = ("formateurs",)
+    ordering = ("ordre", "id")
+    ordering_fields = ("ordre", "titre", "duree")

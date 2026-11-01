@@ -24,6 +24,11 @@ from fongo_user.api_views import (
     UserViewSet,
 )
 from parametre.api_views import ConfigurationViewSet, DashboardView
+from presence.api_views import (
+    MaPresenceView,
+    ScannerPresenceView,
+    SeancePresenceViewSet,
+)
 
 router = DefaultRouter()
 router.register("users", UserViewSet, basename="user")
@@ -34,6 +39,7 @@ router.register("finance/paiements", PaiementViewSet, basename="paiement")
 router.register("formation/formateurs", FormateurViewSet, basename="formateur")
 router.register("formation/modules", ModuleViewSet, basename="module")
 router.register("parametre/configuration", ConfigurationViewSet, basename="configuration")
+router.register("presence/seances", SeancePresenceViewSet, basename="seance-presence")
 
 urlpatterns = [
     # --- Authentification JWT ---
@@ -41,6 +47,13 @@ urlpatterns = [
     path("auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("auth/me/", MeView.as_view(), name="auth_me"),
     path("auth/change-password/", ChangePasswordView.as_view(), name="change_password"),
+    # --- Présences (QR code d'appel) ---
+    path("presence/scan/", ScannerPresenceView.as_view(), name="presence_scan"),
+    path(
+        "presence/ma-presence/",
+        MaPresenceView.as_view(),
+        name="ma_presence",
+    ),
     # --- Endpoints transverses ---
     path("dashboard/", DashboardView.as_view(), name="dashboard"),
     path("finance/overview/", FinanceStatsView.as_view(), name="finance_overview"),

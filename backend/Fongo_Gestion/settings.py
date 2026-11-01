@@ -51,7 +51,8 @@ INSTALLED_APPS = [
     'formation',
     'Planning',
     'devoir',
-    'parametre'
+    'parametre',
+    'presence',
 ]
 
 MIDDLEWARE = [

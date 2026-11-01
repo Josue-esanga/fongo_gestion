@@ -16,3 +16,12 @@ class AnnonceViewSet(viewsets.ModelViewSet):
     queryset = Annonce.objects.select_related("auteur").order_by("-poster_a")
     search_fields = ("object", "contenu", "auteur__username")
     ordering_fields = ("poster_a", "object")
+
+    def get_queryset(self):
+        """Masque les annonces réservées aux admins aux autres comptes."""
+        queryset = super().get_queryset()
+        user = self.request.user
+        is_admin = user.is_superuser or user.role in ("admin", "super_admin")
+        if not is_admin:
+            queryset = queryset.exclude(cible="admins")
+        return queryset

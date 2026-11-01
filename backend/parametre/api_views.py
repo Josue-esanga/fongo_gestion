@@ -48,6 +48,14 @@ class DashboardView(APIView):
 
         total = paiements.aggregate(total=Coalesce(Sum("montant"), 0))["total"]
 
+        annonces = Annonce.objects.select_related("auteur")
+        if not is_admin:
+            annonces = annonces.exclude(cible="admins")
+        annonces = annonces.order_by("-poster_a")[:3]
+
+        def image_url(image):
+            return request.build_absolute_uri(image.url) if image else None
+
         data = {
             "utilisateur": {
                 "id": user.id,
@@ -72,11 +80,21 @@ class DashboardView(APIView):
                 "devoirs": Devoir.objects.count(),
                 "evenements": Event.objects.count(),
             },
-            "dernieres_annonces": list(
-                Annonce.objects.order_by("-poster_a").values(
-                    "id", "object", "poster_a", "auteur__username"
-                )[:3]
-            ),
+            "dernieres_annonces": [
+                {
+                    "id": annonce.id,
+                    "object": annonce.object,
+                    "contenu": annonce.contenu,
+                    "cible": annonce.cible,
+                    "template": annonce.template,
+                    "date_prevue": annonce.date_prevue,
+                    "image1": image_url(annonce.image1),
+                    "image2": image_url(annonce.image2),
+                    "poster_a": annonce.poster_a,
+                    "auteur__username": annonce.auteur.username,
+                }
+                for annonce in annonces
+            ],
             "prochains_evenements": list(
                 Event.objects.order_by("date").values(
                     "id", "title", "date", "dirigent__username"
