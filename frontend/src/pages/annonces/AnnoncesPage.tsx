@@ -5,10 +5,13 @@ import { InputText } from 'primereact/inputtext'
 import { Tag } from 'primereact/tag'
 import { confirmDialog } from 'primereact/confirmdialog'
 import { annoncesApi, type AnnoncePayload } from '@/api/annonces'
+import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
 import { EmptyState, ErrorState } from '@/components/Feedback'
+import { FongoExpoSession } from '@/components/FongoExpoSession'
 import { AnnoncesSkeleton } from '@/components/Skeletons'
 import { PageHeader } from '@/components/PageHeader'
 import { UserAvatar } from '@/components/UserAvatar'
+import { Icon } from '@/components/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { getErrorMessage } from '@/lib/errors'
@@ -18,9 +21,13 @@ import {
   annonceCibleSeverity,
   truncateText,
 } from '@/lib/format'
+import { lazyNamed } from '@/lib/lazy'
 import type { Annonce } from '@/types'
-import { FongoExpoSession } from '@/components/FongoExpoSession'
-import { AnnonceFormDialog } from './AnnonceFormDialog'
+
+const AnnonceFormDialog = lazyNamed(
+  () => import('./AnnonceFormDialog'),
+  'AnnonceFormDialog',
+)
 
 export function AnnoncesPage() {
   // La publication relève du super administrateur et des admins «
@@ -120,7 +127,7 @@ export function AnnoncesPage() {
         actions={
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="relative w-full sm:w-64">
-              <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400" />
+              <Icon className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400" />
               <InputText
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
@@ -170,7 +177,7 @@ export function AnnoncesPage() {
                       severity={annonceCibleSeverity(annonce.cible)}
                     />
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
-                      <i className="pi pi-calendar" />
+                      <Icon className="pi pi-calendar" />
                       Prévue le {formatDateTime(annonce.date_prevue)}
                     </span>
                     <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
@@ -243,16 +250,18 @@ export function AnnoncesPage() {
       )}
 
       {dialogVisible && (
-        <AnnonceFormDialog
-          visible={dialogVisible}
-          annonce={editing}
-          saving={createMutation.isPending || updateMutation.isPending}
-          onHide={() => {
-            setDialogVisible(false)
-            setEditing(null)
-          }}
-          onSubmit={handleSubmit}
-        />
+        <LazyDialogBoundary open={dialogVisible}>
+          <AnnonceFormDialog
+            visible={dialogVisible}
+            annonce={editing}
+            saving={createMutation.isPending || updateMutation.isPending}
+            onHide={() => {
+              setDialogVisible(false)
+              setEditing(null)
+            }}
+            onSubmit={handleSubmit}
+          />
+        </LazyDialogBoundary>
       )}
     </div>
   )

@@ -4,6 +4,7 @@ import { Button } from 'primereact/button'
 import { Tag } from 'primereact/tag'
 import { confirmDialog } from 'primereact/confirmdialog'
 import { devoirsApi, type DevoirPayload } from '@/api/devoirs'
+import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
 import { EmptyState, ErrorState } from '@/components/Feedback'
 import { DevoirsSkeleton } from '@/components/Skeletons'
 import { PageHeader } from '@/components/PageHeader'
@@ -11,8 +12,13 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { getErrorMessage } from '@/lib/errors'
 import { formatDateTime } from '@/lib/format'
+import { lazyNamed } from '@/lib/lazy'
 import type { Devoir } from '@/types'
-import { DevoirFormDialog } from './DevoirFormDialog'
+
+const DevoirFormDialog = lazyNamed(
+  () => import('./DevoirFormDialog'),
+  'DevoirFormDialog',
+)
 
 export function DevoirsPage() {
   const { can } = useAuth()
@@ -188,16 +194,18 @@ export function DevoirsPage() {
         </div>
       )}
 
-      <DevoirFormDialog
-        visible={dialogVisible}
-        devoir={editing}
-        saving={createMutation.isPending || updateMutation.isPending}
-        onHide={() => {
-          setDialogVisible(false)
-          setEditing(null)
-        }}
-        onSubmit={handleSubmit}
-      />
+      <LazyDialogBoundary open={dialogVisible}>
+        <DevoirFormDialog
+          visible={dialogVisible}
+          devoir={editing}
+          saving={createMutation.isPending || updateMutation.isPending}
+          onHide={() => {
+            setDialogVisible(false)
+            setEditing(null)
+          }}
+          onSubmit={handleSubmit}
+        />
+      </LazyDialogBoundary>
     </div>
   )
 }

@@ -10,6 +10,7 @@ import { getErrorMessage } from '@/lib/errors'
 import { formatDateTime, formatMoney, roleLabel, truncateText } from '@/lib/format'
 import { FongoExpoSession } from '@/components/FongoExpoSession'
 import { MaPresenceCard } from '@/pages/presences/MaPresenceCard'
+import { Icon } from '@/components/Icon'
 
 function StatCard({
   label,
@@ -39,7 +40,7 @@ function StatCard({
         <span
           className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-lg ${accent}`}
         >
-          <i className={icon} />
+          <Icon className={icon} />
         </span>
       </div>
     </div>
@@ -253,7 +254,7 @@ export function DashboardPage() {
                         {annonce.object}
                       </p>
                       <p className="mt-1 break-words text-xs font-medium text-fongo-700">
-                        <i className="pi pi-calendar mr-1.5" />
+                        <Icon className="pi pi-calendar mr-1.5" />
                         Prévue le {formatDateTime(annonce.date_prevue)}
                       </p>
                       <p className="mt-1 break-words text-xs text-slate-500">

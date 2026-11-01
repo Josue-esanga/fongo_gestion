@@ -1,8 +1,13 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
+import { useSEO } from '@/hooks/useSEO'
+import { Icon } from '@/components/Icon'
 
 export function HomePage() {
   const { isAuthenticated } = useAuth()
+
+  // Balises SEO pour la page d'accueil
+  useSEO()
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
@@ -117,6 +122,10 @@ export function HomePage() {
                 src="/images/membres.jpg"
                 alt="Les membres et stagiaires du club FongoLab réunis lors d'une session"
                 className="h-full w-full object-cover"
+                width="600"
+                height="400"
+                loading="lazy"
+                decoding="async"
               />
             </div>
           </div>
@@ -145,7 +154,7 @@ export function HomePage() {
               className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
             >
               <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#3385c7]">
-                <i className={feature.icon} />
+                <Icon className={feature.icon} />
               </span>
               <h4 className="font-bold text-slate-800">{feature.title}</h4>
               <p className="mt-1 text-sm leading-6 text-slate-500">{feature.text}</p>

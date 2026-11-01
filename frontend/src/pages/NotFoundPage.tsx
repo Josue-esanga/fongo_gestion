@@ -1,7 +1,11 @@
 import { Link } from 'react-router-dom'
 import { Button } from 'primereact/button'
+import { useSEO } from '@/hooks/useSEO'
 
 export function NotFoundPage() {
+  // Balises SEO pour la page 404
+  useSEO()
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 text-center">
       <p className="text-7xl font-extrabold text-fongo-900">404</p>

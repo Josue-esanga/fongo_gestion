@@ -1,10 +1,12 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from 'primereact/button'
 import { InputText } from 'primereact/inputtext'
 import { Password } from 'primereact/password'
 import { useAuth } from '@/contexts/AuthContext'
 import { getErrorMessage } from '@/lib/errors'
+import { useSEO } from '@/hooks/useSEO'
+import { Icon } from '@/components/Icon'
 
 interface LocationState {
   from?: string
@@ -29,9 +31,8 @@ export function LoginPage() {
 
   const from = (location.state as LocationState | null)?.from ?? '/dashboard'
 
-  useEffect(() => {
-    document.title = 'Connexion — FongoGestion'
-  }, [])
+  // Balises SEO pour la page de connexion
+  useSEO()
 
   if (!loading && user) {
     return <Navigate to={from} replace />
@@ -90,7 +91,7 @@ export function LoginPage() {
                   className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-sm"
                 >
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-cyan-300">
-                    <i className={feature.icon} />
+                    <Icon className={feature.icon} />
                   </span>
                   {feature.label}
                 </li>
@@ -131,7 +132,7 @@ export function LoginPage() {
 
               {error && (
                 <div className="mb-5 flex items-start gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  <i className="pi pi-exclamation-circle mt-0.5" />
+                  <Icon className="pi pi-exclamation-circle mt-0.5" />
                   <span>{error}</span>
                 </div>
               )}

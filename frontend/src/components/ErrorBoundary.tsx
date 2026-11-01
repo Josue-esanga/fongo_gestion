@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { Button } from 'primereact/button'
+import { Icon } from '@/components/Icon'
 
 interface Props {
   children: ReactNode
@@ -37,7 +38,7 @@ export class ErrorBoundary extends Component<Props, State> {
           className="w-full max-w-lg rounded-3xl border border-red-200 bg-white p-8 text-center shadow-sm sm:p-10"
         >
           <span className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-100 text-2xl text-red-600">
-            <i className="pi pi-exclamation-triangle" />
+            <Icon className="pi pi-exclamation-triangle" />
           </span>
           <h1 className="text-xl font-extrabold text-slate-900">
             Une erreur inattendue est survenue

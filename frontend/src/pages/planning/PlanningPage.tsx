@@ -4,6 +4,7 @@ import { Button } from 'primereact/button'
 import { Tag } from 'primereact/tag'
 import { confirmDialog } from 'primereact/confirmdialog'
 import { eventsApi, type EventPayload } from '@/api/events'
+import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
 import { EmptyState, ErrorState } from '@/components/Feedback'
 import { PlanningSkeleton } from '@/components/Skeletons'
 import { PageHeader } from '@/components/PageHeader'
@@ -12,8 +13,13 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { getErrorMessage } from '@/lib/errors'
 import { formatDateTime } from '@/lib/format'
+import { lazyNamed } from '@/lib/lazy'
 import type { EventItem } from '@/types'
-import { EventFormDialog } from './EventFormDialog'
+
+const EventFormDialog = lazyNamed(
+  () => import('./EventFormDialog'),
+  'EventFormDialog',
+)
 
 export function PlanningPage() {
   // Le planning relève du super administrateur.
@@ -195,16 +201,18 @@ export function PlanningPage() {
         </div>
       )}
 
-      <EventFormDialog
-        visible={dialogVisible}
-        event={editing}
-        saving={createMutation.isPending || updateMutation.isPending}
-        onHide={() => {
-          setDialogVisible(false)
-          setEditing(null)
-        }}
-        onSubmit={handleSubmit}
-      />
+      <LazyDialogBoundary open={dialogVisible}>
+        <EventFormDialog
+          visible={dialogVisible}
+          event={editing}
+          saving={createMutation.isPending || updateMutation.isPending}
+          onHide={() => {
+            setDialogVisible(false)
+            setEditing(null)
+          }}
+          onSubmit={handleSubmit}
+        />
+      </LazyDialogBoundary>
     </div>
   )
 }

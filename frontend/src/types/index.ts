@@ -146,6 +146,8 @@ export interface ModulePaiement {
   /** Durée du module en heures. */
   duree: number
   ordre: number
+  /** Image de couverture du module (URL renvoyée par l'API). */
+  image?: string | null
 }
 
 /** Séance d'appel rattachée à un QR code (option Présences). */

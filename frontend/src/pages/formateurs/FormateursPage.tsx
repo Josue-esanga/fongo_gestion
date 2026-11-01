@@ -8,15 +8,22 @@ import { confirmDialog } from 'primereact/confirmdialog'
 import { formationApi, type FormateurPayload } from '@/api/formation'
 import { modulesApi } from '@/api/modules'
 import { usersApi } from '@/api/users'
+import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
 import { EmptyState, ErrorState } from '@/components/Feedback'
 import { FormateursSkeleton } from '@/components/Skeletons'
 import { PageHeader } from '@/components/PageHeader'
 import { UserAvatar } from '@/components/UserAvatar'
+import { Icon } from '@/components/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { getErrorMessage } from '@/lib/errors'
+import { lazyNamed } from '@/lib/lazy'
 import type { Formateur, ModuleFormation, User } from '@/types'
-import { FormateurFormDialog } from './FormateurFormDialog'
+
+const FormateurFormDialog = lazyNamed(
+  () => import('./FormateurFormDialog'),
+  'FormateurFormDialog',
+)
 
 /**
  * Un utilisateur est proposable comme formateur s'il porte le rôle
@@ -235,7 +242,7 @@ export function FormateursPage() {
                           className="h-4 w-4 rounded object-cover"
                         />
                       ) : (
-                        <i className="pi pi-book text-[10px]" />
+                        <Icon className="pi pi-book text-[10px]" />
                       )}
                       {module.titre}
                     </span>
@@ -281,17 +288,19 @@ export function FormateursPage() {
         </DataTable>
       </div>
 
-      <FormateurFormDialog
-        visible={dialogVisible}
-        formateur={editing}
-        availableUsers={availableUsers}
-        saving={createMutation.isPending || updateMutation.isPending}
-        onHide={() => {
-          setDialogVisible(false)
-          setEditing(null)
-        }}
-        onSubmit={handleSubmit}
-      />
+      <LazyDialogBoundary open={dialogVisible}>
+        <FormateurFormDialog
+          visible={dialogVisible}
+          formateur={editing}
+          availableUsers={availableUsers}
+          saving={createMutation.isPending || updateMutation.isPending}
+          onHide={() => {
+            setDialogVisible(false)
+            setEditing(null)
+          }}
+          onSubmit={handleSubmit}
+        />
+      </LazyDialogBoundary>
     </div>
   )
 }

@@ -4,6 +4,13 @@ const ACCESS_TOKEN_KEY = 'fongo.access_token'
 const REFRESH_TOKEN_KEY = 'fongo.refresh_token'
 const USER_KEY = 'fongo.user'
 
+/** Clés exposées pour synchroniser l'authentification entre les onglets. */
+export const STORAGE_KEYS = {
+  access: ACCESS_TOKEN_KEY,
+  refresh: REFRESH_TOKEN_KEY,
+  user: USER_KEY,
+} as const
+
 export const tokenStorage = {
   getAccess(): string | null {
     return localStorage.getItem(ACCESS_TOKEN_KEY)

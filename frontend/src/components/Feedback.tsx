@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Button } from 'primereact/button'
 import { ProgressSpinner } from 'primereact/progressspinner'
+import { Icon } from '@/components/Icon'
 
 export function LoadingScreen({ label = 'Chargement…' }: { label?: string }) {
   return (
@@ -29,7 +30,7 @@ export function EmptyState({
   return (
     <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center">
       <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-xl text-fongo-700 shadow-sm">
-        <i className={icon} />
+        <Icon className={icon} />
       </span>
       <p className="text-lg font-semibold text-slate-800">{title}</p>
       {description && (
@@ -57,7 +58,7 @@ export function ErrorState({
       className="flex flex-col items-center justify-center rounded-3xl border border-red-200 bg-gradient-to-b from-red-50 to-white px-6 py-14 text-center"
     >
       <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-100 text-xl text-red-600 shadow-sm">
-        <i className="pi pi-exclamation-triangle" />
+        <Icon className="pi pi-exclamation-triangle" />
       </span>
       <p className="text-lg font-semibold text-slate-800">{title}</p>
       <p className="mt-2 max-w-md text-sm text-slate-500">

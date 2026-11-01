@@ -3,15 +3,22 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button } from 'primereact/button'
 import { confirmDialog } from 'primereact/confirmdialog'
 import { modulesApi, type ModulePayload } from '@/api/modules'
+import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
 import { EmptyState, ErrorState } from '@/components/Feedback'
 import { ModulesSkeleton } from '@/components/Skeletons'
 import { PageHeader } from '@/components/PageHeader'
+import { Icon } from '@/components/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { getErrorMessage } from '@/lib/errors'
+import { lazyNamed } from '@/lib/lazy'
 import { subjectIcon } from '@/lib/moduleIcons'
 import type { ModuleFormation } from '@/types'
-import { ModuleFormDialog } from './ModuleFormDialog'
+
+const ModuleFormDialog = lazyNamed(
+  () => import('./ModuleFormDialog'),
+  'ModuleFormDialog',
+)
 
 export function ModulesPage() {
   const { showToast } = useToast()
@@ -187,7 +194,7 @@ export function ModulesPage() {
                           ))
                         ) : (
                           <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/95 text-fongo-700 shadow-xl ring-1 ring-white/60">
-                            <i className="pi pi-book text-2xl" />
+                            <Icon className="pi pi-book text-2xl" />
                           </span>
                         )}
                       </div>
@@ -196,11 +203,11 @@ export function ModulesPage() {
 
                   <div className="absolute inset-x-4 top-4 z-10 flex flex-wrap items-start justify-between gap-2">
                     <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white ring-1 ring-inset ring-white/20 backdrop-blur">
-                      <i className="pi pi-book text-[10px]" />
+                      <Icon className="pi pi-book text-[10px]" />
                       Module {module.ordre}
                     </span>
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white ring-1 ring-inset ring-white/20 backdrop-blur">
-                      <i className="pi pi-clock text-[10px]" />
+                      <Icon className="pi pi-clock text-[10px]" />
                       {module.duree > 0 ? `${module.duree} h` : 'Durée à définir'}
                     </span>
                   </div>
@@ -215,7 +222,7 @@ export function ModulesPage() {
                       {module.formateurs_detail &&
                         module.formateurs_detail.length > 0 && (
                           <p className="mt-1.5 text-sm font-semibold text-fongo-700">
-                            <i className="pi pi-id-card mr-1.5" />
+                            <Icon className="pi pi-id-card mr-1.5" />
                             {module.formateurs_detail
                               .map((formateur) => formateur.full_name)
                               .join(' · ')}
@@ -283,16 +290,18 @@ export function ModulesPage() {
         </div>
       )}
 
-      <ModuleFormDialog
-        visible={dialogVisible}
-        module={editing}
-        saving={createMutation.isPending || updateMutation.isPending}
-        onHide={() => {
-          setDialogVisible(false)
-          setEditing(null)
-        }}
-        onSubmit={handleSubmit}
-      />
+      <LazyDialogBoundary open={dialogVisible}>
+        <ModuleFormDialog
+          visible={dialogVisible}
+          module={editing}
+          saving={createMutation.isPending || updateMutation.isPending}
+          onHide={() => {
+            setDialogVisible(false)
+            setEditing(null)
+          }}
+          onSubmit={handleSubmit}
+        />
+      </LazyDialogBoundary>
     </div>
   )
 }

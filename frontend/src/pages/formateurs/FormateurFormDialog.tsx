@@ -12,6 +12,7 @@ import { MultiSelect } from 'primereact/multiselect'
 import { modulesApi } from '@/api/modules'
 import type { FormateurPayload } from '@/api/formation'
 import type { Formateur, User } from '@/types'
+import { Icon } from '@/components/Icon'
 
 const formateurSchema = z.object({
   user_id: z
@@ -213,7 +214,7 @@ export function FormateurFormDialog({
                       />
                     ) : (
                       <span className="flex h-7 w-7 items-center justify-center rounded-md bg-fongo-50 text-fongo-700">
-                        <i className="pi pi-book text-xs" />
+                        <Icon className="pi pi-book text-xs" />
                       </span>
                     )}
                     <span>{option.label}</span>

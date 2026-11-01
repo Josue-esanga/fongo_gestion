@@ -10,14 +10,6 @@ export const api = axios.create({
   },
 })
 
-api.interceptors.request.use((config) => {
-  const token = tokenStorage.getAccess()
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
-
 type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean }
 
 let refreshRequest: Promise<string | null> | null = null
@@ -28,10 +20,15 @@ async function refreshAccessToken(): Promise<string | null> {
 
   if (!refreshRequest) {
     refreshRequest = axios
-      .post<{ access: string }>(`${baseURL}/auth/token/refresh/`, { refresh })
+      .post<{ access: string; refresh?: string }>(
+        `${baseURL}/auth/token/refresh/`,
+        { refresh },
+      )
       .then((response) => {
         const access = response.data.access
-        tokenStorage.setTokens(access)
+        // Le backend fait tourner le refresh token : on conserve le nouveau
+        // pour que la session reste valide après plusieurs renouvellements.
+        tokenStorage.setTokens(access, response.data.refresh)
         return access
       })
       .catch(() => null)
@@ -42,6 +39,23 @@ async function refreshAccessToken(): Promise<string | null> {
 
   return refreshRequest
 }
+
+api.interceptors.request.use(async (config) => {
+  const isAuthEndpoint = config.url?.includes('/auth/token')
+  let token = tokenStorage.getAccess()
+
+  // Si le jeton d'accès a disparu mais que le refresh token est encore là,
+  // on renouvelle avant d'envoyer la requête. Cela évite les actions
+  // envoyées sans en-tête Authorization (donc refusées par l'API).
+  if (!token && !isAuthEndpoint) {
+    token = await refreshAccessToken()
+  }
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
 
 api.interceptors.response.use(
   (response) => response,

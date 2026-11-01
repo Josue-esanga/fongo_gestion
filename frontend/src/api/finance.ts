@@ -1,6 +1,7 @@
 import api from '@/api/client'
 import { unwrap } from '@/api/helpers'
 import type {
+  CategoriePaiement,
   FinanceOverview,
   ModulePaiement,
   Paginated,
@@ -11,8 +12,10 @@ import type {
 
 export interface PaiementPayload {
   montant: number
-  /** Module payé : obligatoire (remplace l'ancien choix « catégorie »). */
-  module: number
+  /** Module de formation ou autre frais (inscription, cotisation…). */
+  category: CategoriePaiement
+  /** Module payé, uniquement pour la catégorie « module ». */
+  module?: number | null
   description: string
   id_stagiaire: number
 }
@@ -20,8 +23,10 @@ export interface PaiementPayload {
 /** Demande de paiement Lumicash déposée par le stagiaire lui-même. */
 export interface LumicashPayload {
   montant: number
-  /** Module payé : obligatoire. */
-  module: number
+  /** Module de formation ou autre frais. */
+  category: CategoriePaiement
+  /** Module payé, uniquement pour la catégorie « module ». */
+  module?: number | null
   description?: string
 }
 

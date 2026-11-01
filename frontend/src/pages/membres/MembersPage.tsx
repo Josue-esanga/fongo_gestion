@@ -8,16 +8,23 @@ import { InputText } from 'primereact/inputtext'
 import { Tag } from 'primereact/tag'
 import { confirmDialog } from 'primereact/confirmdialog'
 import { usersApi, type UserPayload } from '@/api/users'
+import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
 import { EmptyState, ErrorState } from '@/components/Feedback'
 import { MembersSkeleton } from '@/components/Skeletons'
 import { PageHeader } from '@/components/PageHeader'
 import { UserAvatar } from '@/components/UserAvatar'
+import { Icon } from '@/components/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { getErrorMessage } from '@/lib/errors'
 import { extraRoleLabel, formatDate, roleLabel } from '@/lib/format'
+import { lazyNamed } from '@/lib/lazy'
 import type { User } from '@/types'
-import { MemberFormDialog } from './MemberFormDialog'
+
+const MemberFormDialog = lazyNamed(
+  () => import('./MemberFormDialog'),
+  'MemberFormDialog',
+)
 
 type Filter = 'all' | 'stagiaire' | 'admin'
 
@@ -212,7 +219,7 @@ export function MembersPage() {
         </div>
 
         <div className="relative w-full lg:w-72">
-          <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400" />
+          <Icon className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400" />
           <InputText
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -341,16 +348,18 @@ export function MembersPage() {
         </DataTable>
       </div>
 
-      <MemberFormDialog
-        visible={dialogVisible}
-        member={editing}
-        saving={createMutation.isPending || updateMutation.isPending}
-        onHide={() => {
-          setDialogVisible(false)
-          setEditing(null)
-        }}
-        onSubmit={handleSubmit}
-      />
+      <LazyDialogBoundary open={dialogVisible}>
+        <MemberFormDialog
+          visible={dialogVisible}
+          member={editing}
+          saving={createMutation.isPending || updateMutation.isPending}
+          onHide={() => {
+            setDialogVisible(false)
+            setEditing(null)
+          }}
+          onSubmit={handleSubmit}
+        />
+      </LazyDialogBoundary>
     </div>
   )
 }

@@ -4,9 +4,16 @@ import { Button } from 'primereact/button'
 import { Tag } from 'primereact/tag'
 import dayjs from 'dayjs'
 import { presencesApi } from '@/api/presences'
-import { QrScannerDialog } from '@/components/QrScannerDialog'
+import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
+import { Icon } from '@/components/Icon'
 import { useToast } from '@/contexts/ToastContext'
 import { getErrorMessage } from '@/lib/errors'
+import { lazyNamed } from '@/lib/lazy'
+
+const QrScannerDialog = lazyNamed(
+  () => import('@/components/QrScannerDialog'),
+  'QrScannerDialog',
+)
 
 /**
  * Carte « Ma présence » du tableau de bord stagiaire : statut du jour et
@@ -85,7 +92,7 @@ export function MaPresenceCard() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-            <i className="pi pi-qrcode text-lg" />
+            <Icon className="pi pi-qrcode text-lg" />
           </span>
           <div>
             <h2 className="text-lg font-bold text-slate-900">Ma présence</h2>
@@ -121,12 +128,17 @@ export function MaPresenceCard() {
         )}
       </div>
 
-      <QrScannerDialog
-        key={scanAttempt}
-        visible={scannerVisible}
-        onHide={() => setScannerVisible(false)}
-        onCode={(code) => scanMutation.mutate(code)}
-      />
+      <LazyDialogBoundary
+        open={scannerVisible}
+        label="Chargement du scanner…"
+      >
+        <QrScannerDialog
+          key={scanAttempt}
+          visible={scannerVisible}
+          onHide={() => setScannerVisible(false)}
+          onCode={(code) => scanMutation.mutate(code)}
+        />
+      </LazyDialogBoundary>
     </section>
   )
 }

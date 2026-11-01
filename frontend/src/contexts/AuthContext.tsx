@@ -9,7 +9,7 @@ import {
 } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { authApi } from '@/api/auth'
-import { tokenStorage } from '@/lib/storage'
+import { STORAGE_KEYS, tokenStorage } from '@/lib/storage'
 import type { User } from '@/types'
 
 /**
@@ -106,6 +106,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('fongo:session-expired', handleExpired)
     }
   }, [logout, setUser])
+
+  // Si l'utilisateur se connecte ou se déconnecte dans un autre onglet, on
+  // synchronise l'état local. Sans cela, un ancien onglet peut continuer à
+  // afficher une session qui n'existe plus et envoyer des requêtes sans jeton.
+  useEffect(() => {
+    function handleStorage(event: StorageEvent) {
+      if (event.key === null || (event.key === STORAGE_KEYS.access && !event.newValue)) {
+        logout()
+        return
+      }
+      if (event.key === STORAGE_KEYS.user) {
+        const storedUser = tokenStorage.getUser()
+        if (!storedUser || !tokenStorage.getAccess()) {
+          logout()
+          return
+        }
+        setUserState(storedUser)
+        queryClient.clear()
+      }
+    }
+
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [logout, queryClient])
 
   const login = useCallback(
     async (username: string, password: string) => {

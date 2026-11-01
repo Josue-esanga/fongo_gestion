@@ -55,6 +55,15 @@ function flatten(value: unknown): string | null {
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
     const data = error.response?.data
+    const status = error.response?.status
+    const isAuthRequest = error.config?.url?.includes('/auth/token')
+
+    // Sur une requête métier, un 401 signifie que la session n'est plus
+    // utilisable : on affiche un message clair au lieu du détail technique
+    // renvoyé par DRF (« Informations d'authentification non fournies. »).
+    if (status === 401 && !isAuthRequest) {
+      return 'Votre session a expiré. Veuillez vous reconnecter.'
+    }
 
     if (typeof data === 'string') {
       const message = normalizeMessage(data)
@@ -84,10 +93,6 @@ export function getErrorMessage(error: unknown): string {
       return 'Le serveur met trop de temps à répondre. Veuillez réessayer.'
     }
 
-    const status = error.response?.status
-    if (status === 401) {
-      return 'Votre session a expiré. Veuillez vous reconnecter.'
-    }
     if (status === 403) {
       return "Vous n'avez pas les droits nécessaires pour effectuer cette action."
     }

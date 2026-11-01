@@ -1,53 +1,22 @@
 import { useEffect, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { Button } from 'primereact/button'
-import { Checkbox } from 'primereact/checkbox'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
 import { Password } from 'primereact/password'
+import type { UserPayload } from '@/api/users'
+import { FieldError } from '@/components/forms/FieldError'
 import { UserAvatar } from '@/components/UserAvatar'
 import { useAuth } from '@/contexts/AuthContext'
-import type { UserPayload } from '@/api/users'
-import type { Role, RoleSupplementaire, User } from '@/types'
-
-const memberSchema = z.object({
-  first_name: z.string().min(1, 'Le prénom est obligatoire.'),
-  last_name: z.string().min(1, 'Le nom est obligatoire.'),
-  username: z.string().min(3, "Le nom d'utilisateur doit contenir au moins 3 caractères."),
-  email: z
-    .string()
-    .email('Adresse e-mail invalide.')
-    .or(z.literal(''))
-    .optional(),
-  role: z.enum(['super_admin', 'admin', 'stagiaire']),
-  roles_supplementaires: z
-    .array(z.enum(['formateur', 'caissier', 'communication']))
-    .optional(),
-  password: z.string().optional(),
-})
-
-type MemberFormValues = z.infer<typeof memberSchema>
-
-const ROLE_OPTIONS: Array<{ label: string; value: Role }> = [
-  { label: 'Stagiaire', value: 'stagiaire' },
-  { label: 'Administrateur', value: 'admin' },
-  { label: 'Super administrateur', value: 'super_admin' },
-]
-
-// Rôles attribuables à un admin, attribués par le super administrateur.
-const EXTRA_ROLE_OPTIONS: Array<{ label: string; value: RoleSupplementaire; hint: string }> = [
-  { label: 'Formateur', value: 'formateur', hint: 'CRUD des devoirs' },
-  { label: 'Caissier', value: 'caissier', hint: 'CRUD de la finance' },
-  { label: 'Communication', value: 'communication', hint: 'Publication des annonces' },
-]
-
-function FieldError({ message }: { message?: string }) {
-  if (!message) return null
-  return <p className="mt-1 text-xs font-medium text-red-500">{message}</p>
-}
+import type { User } from '@/types'
+import { ExtraRolesField } from './components/ExtraRolesField'
+import {
+  ROLE_OPTIONS,
+  memberSchema,
+  type MemberFormValues,
+} from './components/memberFormConfig'
 
 export function MemberFormDialog({
   visible,
@@ -326,64 +295,7 @@ export function MemberFormDialog({
         </div>
 
         {isSuperAdmin && selectedRole === 'admin' && (
-          <div>
-            <label className="mb-1.5 block text-sm font-semibold text-slate-700">
-              Rôles supplémentaires
-            </label>
-            <p className="mb-2 text-xs text-slate-500">
-              Un admin peut cumuler un second rôle qui détermine les seules
-              sections qu'il pourra gérer.
-            </p>
-            <Controller
-              control={control}
-              name="roles_supplementaires"
-              render={({ field }) => {
-                const selected = field.value ?? []
-                return (
-                  <div className="grid gap-2 sm:grid-cols-3">
-                    {EXTRA_ROLE_OPTIONS.map((option) => {
-                      const checked = selected.includes(option.value)
-                      return (
-                        <label
-                          key={option.value}
-                          className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition ${
-                            checked
-                              ? 'border-fongo-700 bg-blue-50'
-                              : 'border-slate-200 bg-white hover:border-slate-300'
-                          }`}
-                        >
-                          <Checkbox
-                            inputId={`extra-role-${option.value}`}
-                            checked={checked}
-                            onChange={(event) => {
-                              const isChecked = (
-                                event.target as HTMLInputElement
-                              ).checked
-                              field.onChange(
-                                isChecked
-                                  ? [...selected, option.value]
-                                  : selected.filter(
-                                      (value) => value !== option.value,
-                                    ),
-                              )
-                            }}
-                          />
-                          <span>
-                            <span className="block text-sm font-semibold text-slate-800">
-                              {option.label}
-                            </span>
-                            <span className="block text-xs text-slate-500">
-                              {option.hint}
-                            </span>
-                          </span>
-                        </label>
-                      )
-                    })}
-                  </div>
-                )
-              }}
-            />
-          </div>
+          <ExtraRolesField control={control} />
         )}
 
         <div>
