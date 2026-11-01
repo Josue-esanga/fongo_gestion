@@ -17,6 +17,23 @@ class IsAdminOrSuperAdmin(BasePermission):
         )
 
 
+class IsCaissierOrSuperAdmin(BasePermission):
+    """Autorise le super administrateur et les admins ayant le rôle caissier."""
+
+    message = "Action réservée aux caissiers et au super administrateur."
+
+    def has_permission(self, request, view):
+        user = request.user
+        if not (user and user.is_authenticated):
+            return False
+        if user.is_superuser or user.role == "super_admin":
+            return True
+        return bool(
+            user.role == "admin"
+            and "caissier" in (user.roles_supplementaires or [])
+        )
+
+
 class IsAdminOrReadOnly(BasePermission):
     """Lecture ouverte à tout utilisateur connecté, écriture réservée aux admins."""
 

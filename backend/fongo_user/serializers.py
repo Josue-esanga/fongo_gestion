@@ -23,6 +23,7 @@ class UserCompactSerializer(serializers.ModelSerializer):
             "full_name",
             "email",
             "role",
+            "roles_supplementaires",
             "pictures",
         )
         read_only_fields = fields
@@ -39,6 +40,9 @@ class UserSerializer(serializers.ModelSerializer):
         style={"input_type": "password"},
         validators=[validate_password],
     )
+    # Sans ce défaut explicite, DRF enregistre `False` quand le formulaire
+    # n'envoie pas is_active : le nouveau membre ne peut alors pas se connecter.
+    is_active = serializers.BooleanField(required=False, default=True)
     full_name = serializers.SerializerMethodField()
     role_display = serializers.CharField(source="get_role_display", read_only=True)
 
@@ -53,6 +57,7 @@ class UserSerializer(serializers.ModelSerializer):
             "email",
             "role",
             "role_display",
+            "roles_supplementaires",
             "pictures",
             "is_active",
             "date_joined",
@@ -67,6 +72,22 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, obj) -> str:
         return obj.get_full_name() or obj.username
+
+    def validate_roles_supplementaires(self, value):
+        allowed = {"formateur", "caissier", "communication"}
+        if not isinstance(value, list):
+            raise serializers.ValidationError(
+                "Les rôles supplémentaires doivent être une liste."
+            )
+        invalid = [item for item in value if item not in allowed]
+        if invalid:
+            raise serializers.ValidationError(
+                "Rôles supplémentaires invalides : "
+                + ", ".join(str(item) for item in invalid)
+                + "."
+            )
+        # Évite les doublons tout en conservant l'ordre choisi.
+        return list(dict.fromkeys(value))
 
     def validate(self, attrs):
         if self.instance is None and not attrs.get("password"):
@@ -83,6 +104,11 @@ class UserSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError(
                         {protected: "Vous ne pouvez pas modifier ce champ."}
                     )
+
+        # Les rôles supplémentaires ne concernent que les administrateurs.
+        role = attrs.get("role", getattr(self.instance, "role", None))
+        if role != "admin":
+            attrs["roles_supplementaires"] = []
         return attrs
 
     def create(self, validated_data):
@@ -120,11 +146,19 @@ class ProfileSerializer(serializers.ModelSerializer):
             "full_name",
             "email",
             "role",
+            "roles_supplementaires",
             "pictures",
             "is_active",
             "date_joined",
         )
-        read_only_fields = ("id", "username", "role", "is_active", "date_joined")
+        read_only_fields = (
+            "id",
+            "username",
+            "role",
+            "roles_supplementaires",
+            "is_active",
+            "date_joined",
+        )
 
     def get_full_name(self, obj) -> str:
         return obj.get_full_name() or obj.username

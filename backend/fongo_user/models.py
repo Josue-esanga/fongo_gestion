@@ -15,6 +15,13 @@ class User(AbstractUser):
         choices= Role_choice,
         default= 'super_admin'
     )
+    # Rôles opérationnels supplémentaires d'un administrateur :
+    # formateur → devoirs, caissier → finance, communication → annonces.
+    roles_supplementaires = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="Rôles supplémentaires",
+    )
     pictures = models.ImageField(
         upload_to="pictures/", # Le chemin d'accès vers nos photos theme/static/pictures
         null=True, #les champs peut être vide (NULL)
