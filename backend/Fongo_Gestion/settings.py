@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-egy%z6*zz75pxo-896*4@&c2fo&9jz-=*h9+w60u+dv8524i6t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]', 'backend', '*']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 
 
 # Application definition
@@ -90,14 +90,15 @@ WSGI_APPLICATION = 'Fongo_Gestion.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# Configuration locale : PostgreSQL installé sur la machine (pas de Docker).
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'fongo_gestion'),
-        'USER': os.environ.get('DB_USER', 'fongo'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'fongo_password'),
-        'HOST': os.environ.get('DB_HOST', 'db'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+        'NAME': 'fongo_gestion',
+        'USER': 'fongo',
+        'PASSWORD': 'fongo_password',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
