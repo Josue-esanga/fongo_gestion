@@ -51,10 +51,11 @@ Le proxy de développement (`vite.config.ts`) redirige `/api`, `/media` et
 
 ## Authentification
 
-- Connexion via `POST /api/auth/login/` (JWT access + refresh).
+- Connexion via `POST /api/auth/token/` (JWT access + refresh).
 - Les tokens sont conservés dans `localStorage`.
 - Un intercepteur Axios rafraîchit automatiquement l'access token expiré
-  (`POST /api/auth/refresh/`) et déconnecte l'utilisateur si le refresh échoue.
+  (`POST /api/auth/token/refresh/`) et déconnecte l'utilisateur si le refresh
+  échoue.
 - Les routes sont protégées par rôle (`super_admin`, `admin`, `stagiaire`).
 
 ## Organisation

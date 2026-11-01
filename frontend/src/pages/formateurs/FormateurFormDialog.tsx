@@ -77,6 +77,7 @@ export function FormateurFormDialog({
           module.duree > 0 ? ` (${module.duree} h)` : ''
         }`,
         value: module.id,
+        image: module.image ?? null,
       })),
     [modulesQuery.data],
   )
@@ -202,6 +203,22 @@ export function FormateurFormDialog({
                     : 'Sélectionner un ou plusieurs modules'
                 }
                 selectedItemsLabel="{0} modules sélectionnés"
+                itemTemplate={(option) => (
+                  <div className="flex items-center gap-2">
+                    {option.image ? (
+                      <img
+                        src={option.image}
+                        alt=""
+                        className="h-7 w-7 rounded-md object-cover"
+                      />
+                    ) : (
+                      <span className="flex h-7 w-7 items-center justify-center rounded-md bg-fongo-50 text-fongo-700">
+                        <i className="pi pi-book text-xs" />
+                      </span>
+                    )}
+                    <span>{option.label}</span>
+                  </div>
+                )}
                 onChange={(event) => field.onChange(event.value ?? [])}
                 className={`w-full ${errors.modules ? 'p-invalid' : ''}`}
               />

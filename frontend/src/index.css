@@ -133,16 +133,136 @@ body {
   align-items: center;
 }
 
+/* Menu de sélection de durée : sélection et survol aux couleurs de l'app. */
+.duree-dropdown-panel .p-dropdown-item.p-highlight {
+  background: #eef2ff !important;
+  color: #03045e !important;
+  font-weight: 600;
+}
+
+.duree-dropdown-panel .p-dropdown-item:not(.p-highlight):hover {
+  background: #f8fafc !important;
+  color: #1e1b7a !important;
+}
+
 .p-password,
-.p-password .p-icon-field,
-.p-inputnumber {
+.p-password .p-icon-field {
   display: block;
   width: 100%;
 }
 
-.p-password input,
-.p-inputnumber-input {
+.p-password input {
   width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   Champs numériques — un seul contrôle visuel avec stepper intégré.
+   La bordure et le focus sont portés par le conteneur, pas par l'input :
+   le champ et les boutons forment ainsi un bloc cohérent.
+   -------------------------------------------------------------------------- */
+.p-inputnumber {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.85rem;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.p-inputnumber:focus-within {
+  border-color: #03045e;
+  box-shadow: 0 0 0 4px rgba(3, 4, 94, 0.1);
+}
+
+.p-inputnumber.p-invalid {
+  border-color: #ef4444;
+}
+
+.p-inputnumber.p-invalid:focus-within {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+}
+
+.p-inputnumber .p-inputnumber-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.p-inputnumber .p-inputnumber-input:enabled:focus {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Boutons du stepper : surface discrète, icônes bleu nuit, zone de 44 px. */
+.p-inputnumber .p-inputnumber-button {
+  width: 2.75rem !important;
+  min-width: 2.75rem !important;
+  padding: 0 !important;
+  background: #eef2ff !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #1e1b7a !important;
+  box-shadow: none !important;
+  transform: none !important;
+  flex: 0 0 auto !important;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.p-inputnumber .p-inputnumber-button:hover {
+  background: #e0e7ff !important;
+  color: #03045e !important;
+}
+
+.p-inputnumber .p-inputnumber-button:active {
+  background: #c7d2fe !important;
+}
+
+.p-inputnumber .p-inputnumber-button .p-button-icon {
+  font-size: 0.95rem;
+}
+
+.p-inputnumber .p-inputnumber-button:focus-visible {
+  outline: 2px solid #03045e;
+  outline-offset: -2px;
+}
+
+/* Disposition verticale (par défaut) : chevrons empilés à droite. */
+.p-inputnumber-buttons-stacked .p-inputnumber-button-group {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  border-left: 1px solid #e2e8f0;
+}
+
+.p-inputnumber-buttons-stacked .p-inputnumber-button-up {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* Disposition horizontale (− / +) : boutons aux extrémités du champ. */
+.p-inputnumber-buttons-horizontal .p-inputnumber-input {
+  order: 2;
+}
+
+.p-inputnumber-buttons-horizontal .p-inputnumber-button-down {
+  order: 1;
+  border-right: 1px solid #e2e8f0;
+}
+
+.p-inputnumber-buttons-horizontal .p-inputnumber-button-up {
+  order: 3;
+  border-left: 1px solid #e2e8f0;
 }
 
 .p-dialog {

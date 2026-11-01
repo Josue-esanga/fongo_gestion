@@ -341,12 +341,15 @@ export function PresencesPage() {
             {seance.ouverte ? (
               <>
                 <div className="flex justify-center rounded-3xl border border-slate-200 bg-slate-50 p-3 sm:p-5">
-                  <div className="rounded-2xl bg-white p-2 shadow-sm sm:p-3">
+                  {/* Mobile : le QR code occupe toute la largeur de son bloc ;
+                      à partir de `sm`, il reprend sa taille fixe centrée. */}
+                  <div className="w-full rounded-2xl bg-white p-2 shadow-sm sm:w-auto sm:p-3">
                     <QRCodeSVG
                       value={seance.qr_payload}
                       size={200}
                       level="M"
                       aria-label="QR code de présence"
+                      className="h-auto w-full"
                     />
                   </div>
                 </div>

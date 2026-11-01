@@ -20,12 +20,17 @@ const ICONS: Record<string, string> = {
   'programmation orientee objet': poo,
 }
 
-/** Minuscules, sans accents : « Base de données » → « base de donnees ». */
+/**
+ * Minuscules, sans accents et sans parenthèses :
+ * « Programmation orientée objet (POO) » → « programmation orientee objet ».
+ */
 function normalize(value: string): string {
   return value
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim()
 }
 

@@ -125,101 +125,161 @@ export function ModulesPage() {
         />
       ) : (
         <div className="grid gap-5 lg:grid-cols-2 2xl:grid-cols-3">
-          {modules.map((module) => (
-            <article
-              key={module.id}
-              className="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-fongo-100 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-fongo-900">
-                      <i className="pi pi-book" />
+          {modules.map((module) => {
+            // Les logos connus (HTML5, CSS3, JavaScript, Python, POO, Django…)
+            // sont affichés en grand dans la bannière du module.
+            const iconSubjects = module.sujets
+              .map((sujet) => ({ sujet, icon: subjectIcon(sujet) }))
+              .filter(
+                (item): item is { sujet: string; icon: string } =>
+                  Boolean(item.icon),
+              )
+              .slice(0, 3)
+
+            return (
+              <article
+                key={module.id}
+                className="group flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <div className="relative h-40 overflow-hidden bg-gradient-to-br from-fongo-900 via-[#13177a] to-[#3730a3]">
+                  {module.image ? (
+                    <>
+                      <img
+                        src={module.image}
+                        alt={module.titre}
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-fongo-950/85 via-fongo-950/15 to-fongo-950/55" />
+                    </>
+                  ) : (
+                    <>
+                      <div
+                        className="absolute -right-10 -top-12 h-40 w-40 rounded-full bg-sky-300/20 blur-2xl"
+                        aria-hidden
+                      />
+                      <div
+                        className="absolute -bottom-16 -left-10 h-40 w-40 rounded-full bg-indigo-400/25 blur-2xl"
+                        aria-hidden
+                      />
+                      <div
+                        className="absolute inset-0 opacity-[0.08]"
+                        style={{
+                          backgroundImage:
+                            'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+                          backgroundSize: '18px 18px',
+                        }}
+                        aria-hidden
+                      />
+
+                      <div className="relative flex h-full items-center justify-center gap-3 px-4 pt-10">
+                        {iconSubjects.length > 0 ? (
+                          iconSubjects.map(({ sujet, icon }) => (
+                            <span
+                              key={sujet}
+                              className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/95 p-3 shadow-xl ring-1 ring-white/60 transition duration-300 group-hover:-translate-y-0.5"
+                            >
+                              <img
+                                src={icon}
+                                alt={sujet}
+                                className="h-full w-full object-contain"
+                              />
+                            </span>
+                          ))
+                        ) : (
+                          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/95 text-fongo-700 shadow-xl ring-1 ring-white/60">
+                            <i className="pi pi-book text-2xl" />
+                          </span>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  <div className="absolute inset-x-4 top-4 z-10 flex flex-wrap items-start justify-between gap-2">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white ring-1 ring-inset ring-white/20 backdrop-blur">
+                      <i className="pi pi-book text-[10px]" />
                       Module {module.ordre}
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-600">
-                      <i className="pi pi-clock" />
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white ring-1 ring-inset ring-white/20 backdrop-blur">
+                      <i className="pi pi-clock text-[10px]" />
                       {module.duree > 0 ? `${module.duree} h` : 'Durée à définir'}
                     </span>
                   </div>
-                  <h2 className="mt-3 text-xl font-bold text-slate-900">
-                    {module.titre}
-                  </h2>
-                  {module.formateurs_detail && module.formateurs_detail.length > 0 && (
-                    <p className="mt-1.5 text-sm font-semibold text-fongo-700">
-                      <i className="pi pi-id-card mr-1.5" />
-                      {module.formateurs_detail
-                        .map((formateur) => formateur.full_name)
-                        .join(' · ')}
+                </div>
+
+                <div className="flex flex-1 flex-col p-6">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h2 className="text-xl font-bold text-slate-900">
+                        {module.titre}
+                      </h2>
+                      {module.formateurs_detail &&
+                        module.formateurs_detail.length > 0 && (
+                          <p className="mt-1.5 text-sm font-semibold text-fongo-700">
+                            <i className="pi pi-id-card mr-1.5" />
+                            {module.formateurs_detail
+                              .map((formateur) => formateur.full_name)
+                              .join(' · ')}
+                          </p>
+                        )}
+                    </div>
+
+                    {canManage && (
+                      <div className="flex shrink-0 gap-1">
+                        <Button
+                          icon="pi pi-pencil"
+                          rounded
+                          text
+                          severity="info"
+                          aria-label={`Modifier ${module.titre}`}
+                          onClick={() => {
+                            setEditing(module)
+                            setDialogVisible(true)
+                          }}
+                        />
+                        <Button
+                          icon="pi pi-trash"
+                          rounded
+                          text
+                          severity="danger"
+                          aria-label={`Supprimer ${module.titre}`}
+                          onClick={() => confirmDelete(module)}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {module.description && (
+                    <p className="mt-3 text-sm leading-6 text-slate-600">
+                      {module.description}
                     </p>
                   )}
-                </div>
 
-                {canManage && (
-                  <div className="flex shrink-0 gap-1">
-                    <Button
-                      icon="pi pi-pencil"
-                      rounded
-                      text
-                      severity="info"
-                      aria-label={`Modifier ${module.titre}`}
-                      onClick={() => {
-                        setEditing(module)
-                        setDialogVisible(true)
-                      }}
-                    />
-                    <Button
-                      icon="pi pi-trash"
-                      rounded
-                      text
-                      severity="danger"
-                      aria-label={`Supprimer ${module.titre}`}
-                      onClick={() => confirmDelete(module)}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {module.description && (
-                <p className="mt-3 text-sm leading-6 text-slate-600">
-                  {module.description}
-                </p>
-              )}
-
-              <div className="mt-5 flex-1">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
-                  Sujets abordés
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {module.sujets.length > 0 ? (
-                    module.sujets.map((sujet) => {
-                      const icon = subjectIcon(sujet)
-                      return (
-                        <span
-                          key={sujet}
-                          className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm"
-                        >
-                          {icon ? (
-                            <img
-                              src={icon}
-                              alt=""
-                              aria-hidden
-                              className="h-5 w-5 object-contain"
-                            />
-                          ) : (
-                            <i className="pi pi-code text-fongo-500" />
-                          )}
-                          {sujet}
+                  <div className="mt-5 flex-1">
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+                      Sujets abordés
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {module.sujets.length > 0 ? (
+                        module.sujets.map((sujet) => (
+                          <span
+                            key={sujet}
+                            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-semibold text-slate-700"
+                          >
+                            <span className="h-1.5 w-1.5 rounded-full bg-fongo-500" />
+                            {sujet}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-sm text-slate-400">
+                          Aucun sujet renseigné.
                         </span>
-                      )
-                    })
-                  ) : (
-                    <span className="text-sm text-slate-400">Aucun sujet renseigné.</span>
-                  )}
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            )
+          })}
         </div>
       )}
 

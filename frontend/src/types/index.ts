@@ -127,6 +127,8 @@ export interface ModuleFormation {
   id: number
   ordre: number
   titre: string
+  /** Image de couverture du module (URL renvoyée par l'API). */
+  image?: string | null
   /** Durée du module en heures. */
   duree: number
   sujets: string[]

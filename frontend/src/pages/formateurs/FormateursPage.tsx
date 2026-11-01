@@ -224,7 +224,21 @@ export function FormateursPage() {
               return (
                 <div className="flex flex-wrap gap-1.5">
                   {modulesAffectes.map((module) => (
-                    <Tag key={module.id} value={module.titre} severity="info" />
+                    <span
+                      key={module.id}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700"
+                    >
+                      {module.image ? (
+                        <img
+                          src={module.image}
+                          alt=""
+                          className="h-4 w-4 rounded object-cover"
+                        />
+                      ) : (
+                        <i className="pi pi-book text-[10px]" />
+                      )}
+                      {module.titre}
+                    </span>
                   ))}
                 </div>
               )

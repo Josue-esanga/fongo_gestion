@@ -68,9 +68,11 @@ export const FongoExpoSession = ({
     </span>
   )
 
+  // Sur mobile, l'affiche occupe toute la largeur disponible ; à partir de
+  // `sm`, elle reste centrée et limitée à une largeur de carte.
   return (
     <div
-      className={`relative w-full max-w-md mx-auto ${minHeight} overflow-hidden bg-gradient-to-b from-[#0077d8] via-[#006bbd] to-[#00559e] text-white flex flex-col justify-between p-6 select-none font-sans ${className}`}
+      className={`relative w-full max-w-full sm:max-w-md sm:mx-auto ${minHeight} overflow-hidden bg-gradient-to-b from-[#0077d8] via-[#006bbd] to-[#00559e] text-white flex flex-col justify-between p-6 select-none font-sans ${className}`}
     >
       {/* Motif géométrique en bas à gauche */}
       <div

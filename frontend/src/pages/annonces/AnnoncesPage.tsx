@@ -196,8 +196,10 @@ export function AnnoncesPage() {
 
               {annonce.template === 'fongo_expo' ? (
                 /* Modèle FongoExpo : l'annonce est rendue en affiche, alimentée
-                   par son contenu (date prévue, objet, extrait du contenu). */
-                <div className="mt-4 rounded-2xl bg-slate-50 p-4">
+                   par son contenu (date prévue, objet, extrait du contenu).
+                   Pleine largeur sur mobile (bord à bord de la carte) ;
+                   marge et fond arrondi conservés à partir de `sm`. */
+                <div className="-mx-6 mt-4 overflow-hidden border-y border-slate-100 bg-slate-50 sm:mx-0 sm:rounded-2xl sm:border-0 sm:p-4">
                   <FongoExpoSession
                     dateInfo={`Prévue le ${formatDateTime(annonce.date_prevue)}`}
                     subTitle={truncateText(annonce.contenu)}
