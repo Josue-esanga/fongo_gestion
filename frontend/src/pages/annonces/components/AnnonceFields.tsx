@@ -146,9 +146,9 @@ export function AnnonceFields({
               {TEMPLATE_OPTIONS.map((option) => {
                 const selected = field.value === option.value
                 return (
-                  <button
+                  <button type="button"
                     key={option.value}
-                    type="button"
+                    
                     aria-pressed={selected}
                     onClick={() => field.onChange(option.value)}
                     className={`relative overflow-hidden rounded-2xl border p-3 text-left transition ${

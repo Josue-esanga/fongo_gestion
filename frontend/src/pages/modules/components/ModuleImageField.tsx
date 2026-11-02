@@ -61,16 +61,16 @@ export function ModuleImageField({
               </p>
             </div>
             <div className="flex shrink-0 gap-1.5">
-              <button
-                type="button"
+              <button type="button"
+                
                 className="rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:bg-white"
                 onClick={() => document.getElementById(inputId)?.click()}
               >
                 <Icon className="pi pi-refresh mr-1 text-[10px]" />
                 Remplacer
               </button>
-              <button
-                type="button"
+              <button type="button"
+                
                 className="rounded-full bg-red-500 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm transition hover:bg-red-600"
                 onClick={onRemove}
               >

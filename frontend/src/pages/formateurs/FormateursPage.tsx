@@ -238,7 +238,9 @@ export function FormateursPage() {
                       {module.image ? (
                         <img
                           src={module.image}
-                          alt=""
+                          alt="Image du module"
+                          width="16"
+                          height="16"
                           className="h-4 w-4 rounded object-cover"
                         />
                       ) : (

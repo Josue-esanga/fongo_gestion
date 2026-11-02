@@ -13,9 +13,9 @@ export function FinanceTabs({
   return (
     <div className="flex flex-wrap gap-2 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
       {tabs.map((item) => (
-        <button
+        <button type="button"
           key={item.key}
-          type="button"
+          
           onClick={() => onChange(item.key)}
           className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
             active === item.key

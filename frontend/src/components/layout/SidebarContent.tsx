@@ -86,8 +86,8 @@ export function SidebarContent({
       </nav>
 
       <div className="shrink-0 border-t border-white/10 p-3">
-        <button
-          type="button"
+        <button type="button"
+          
           onClick={onLogout}
           title={collapsed ? 'Se déconnecter' : undefined}
           className={[

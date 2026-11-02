@@ -71,8 +71,8 @@ export function Topbar({
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-4 px-4 sm:h-20 sm:px-6">
       <div className="flex items-center gap-3">
-        <button
-          type="button"
+        <button type="button"
+          
           className="flex h-10 w-10 items-center justify-center rounded-xl text-white transition hover:bg-white/10 md:hidden"
           onClick={onOpenMobile}
           aria-label="Ouvrir le menu"
@@ -87,8 +87,8 @@ export function Topbar({
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4">
-        <button
-          type="button"
+        <button type="button"
+          
           className="hidden h-10 w-10 items-center justify-center rounded-xl text-white transition hover:bg-white/10 md:flex"
           onClick={onToggleCollapsed}
           aria-label="Réduire le menu latéral"
@@ -97,8 +97,8 @@ export function Topbar({
         </button>
 
         <div ref={profileMenuRef} className="relative">
-          <button
-            type="button"
+          <button type="button"
+            
             onClick={() => setProfileMenuOpen((value) => !value)}
             className="flex items-center gap-2 rounded-full p-0.5 text-left transition hover:ring-4 hover:ring-white/10"
             aria-label="Menu utilisateur"
@@ -138,8 +138,8 @@ export function Topbar({
               </div>
 
               <div className="p-2">
-                <button
-                  type="button"
+                <button type="button"
+                  
                   role="menuitem"
                   onClick={() => goTo('/parametres')}
                   onMouseEnter={() => prefetchRoute('/parametres')}
@@ -148,8 +148,8 @@ export function Topbar({
                   <Icon className="pi pi-user text-slate-400" />
                   Mon profil
                 </button>
-                <button
-                  type="button"
+                <button type="button"
+                  
                   role="menuitem"
                   onClick={() => goTo('/parametres?tab=securite')}
                   onMouseEnter={() => prefetchRoute('/parametres')}
@@ -159,8 +159,8 @@ export function Topbar({
                   Sécurité
                 </button>
                 <div className="my-1 border-t border-slate-100" />
-                <button
-                  type="button"
+                <button type="button"
+                  
                   role="menuitem"
                   onClick={handleLogout}
                   className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50"

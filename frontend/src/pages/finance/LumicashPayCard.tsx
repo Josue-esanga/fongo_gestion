@@ -205,7 +205,9 @@ export function LumicashPayCard() {
                     ) : option.image ? (
                       <img
                         src={option.image}
-                        alt=""
+                        alt="Image du module"
+                        width="32"
+                        height="32"
                         className="h-8 w-8 rounded-lg object-cover"
                       />
                     ) : (

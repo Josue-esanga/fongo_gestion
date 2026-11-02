@@ -67,8 +67,8 @@ export function AnnonceImageField({
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-1">
-              <button
-                type="button"
+              <button type="button"
+                
                 aria-label={`Remplacer ${label.toLowerCase()}`}
                 title="Remplacer"
                 className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white ring-1 ring-white/25 backdrop-blur transition hover:bg-white/25"
@@ -76,8 +76,8 @@ export function AnnonceImageField({
               >
                 <Icon className="pi pi-refresh text-xs" />
               </button>
-              <button
-                type="button"
+              <button type="button"
+                
                 aria-label={`Retirer ${label.toLowerCase()}`}
                 title="Retirer"
                 className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white ring-1 ring-white/25 backdrop-blur transition hover:bg-red-500"

@@ -10,8 +10,8 @@ export function SettingsNav({
 }) {
   return (
     <aside className="h-fit rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
-      <button
-        type="button"
+      <button type="button"
+        
         onClick={() => onChange('profil')}
         className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-semibold transition ${
           tab === 'profil'
@@ -22,8 +22,8 @@ export function SettingsNav({
         <Icon className="pi pi-user" />
         Mon profil
       </button>
-      <button
-        type="button"
+      <button type="button"
+        
         onClick={() => onChange('securite')}
         className={`mt-1 flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-semibold transition ${
           tab === 'securite'

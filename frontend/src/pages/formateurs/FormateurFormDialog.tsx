@@ -209,7 +209,9 @@ export function FormateurFormDialog({
                     {option.image ? (
                       <img
                         src={option.image}
-                        alt=""
+                        alt="Image du module"
+                        width="28"
+                        height="28"
                         className="h-7 w-7 rounded-md object-cover"
                       />
                     ) : (

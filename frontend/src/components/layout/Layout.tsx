@@ -48,6 +48,14 @@ export function Layout() {
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-fongo-900">
+      {/* Lien d'évitement pour la navigation au clavier */}
+      <a
+        href="#main-content"
+        className="absolute -top-10 left-4 z-50 px-4 py-2 bg-fongo-700 text-white rounded-lg font-medium transition-all focus:top-4"
+      >
+        Aller au contenu principal
+      </a>
+
       <Topbar
         collapsed={collapsed}
         onToggleCollapsed={() => setCollapsed((value) => !value)}
@@ -72,7 +80,7 @@ export function Layout() {
         {/* overflow-x-hidden : aucun défilement horizontal possible sur
             mobile, quelle que soit la largeur d'un contenu (titres longs,
             affiche FongoExpo…). */}
-        <section className="flex-1 overflow-x-hidden overflow-y-auto rounded-tl-3xl bg-white scrollbar-thin">
+        <section id="main-content" className="flex-1 overflow-x-hidden overflow-y-auto rounded-tl-3xl bg-white scrollbar-thin">
           <div className="mx-auto min-h-full max-w-7xl p-4 sm:p-6 lg:p-8">
             <Suspense fallback={<DefaultPageSkeleton />}>
               <Outlet />
@@ -91,8 +99,8 @@ export function Layout() {
           <aside className="fixed inset-y-0 left-0 z-50 flex w-[min(18rem,85vw)] flex-col bg-fongo-900 shadow-2xl md:hidden">
             <div className="flex h-16 shrink-0 items-center justify-between px-5 sm:h-20">
               <Logo />
-              <button
-                type="button"
+              <button type="button"
+                
                 className="flex h-10 w-10 items-center justify-center rounded-xl text-white hover:bg-white/10"
                 onClick={() => setMobileOpen(false)}
                 aria-label="Fermer le menu"

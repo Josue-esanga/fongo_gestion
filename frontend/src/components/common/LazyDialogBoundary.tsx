@@ -9,7 +9,7 @@ function DialogLoading({ label }: { label: string }) {
       aria-live="polite"
     >
       <div className="flex items-center gap-3 rounded-2xl bg-white px-5 py-4 text-sm font-medium text-slate-600 shadow-2xl">
-        <i className="pi pi-spinner pi-spin text-fongo-700" />
+        <Icon className="pi pi-spinner pi-spin text-fongo-700" />
         {label}
       </div>
     </div>

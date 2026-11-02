@@ -118,8 +118,8 @@ export function ProfileTab({
             }}
             size="2xl"
           />
-          <button
-            type="button"
+          <button type="button"
+            
             onClick={() => pictureInput.current?.click()}
             className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full bg-fongo-900 text-white shadow-lg ring-4 ring-white transition hover:-translate-y-0.5 hover:bg-fongo-700"
             aria-label="Changer la photo de profil"
@@ -150,8 +150,8 @@ export function ProfileTab({
             <p className="mt-2 flex flex-wrap items-center gap-2 text-xs font-medium text-fongo-700">
               <Icon className="pi pi-image" />
               <span className="max-w-[16rem] truncate">{picture.name}</span>
-              <button
-                type="button"
+              <button type="button"
+                
                 onClick={() => {
                   setPicture(null)
                   if (pictureInput.current) pictureInput.current.value = ''

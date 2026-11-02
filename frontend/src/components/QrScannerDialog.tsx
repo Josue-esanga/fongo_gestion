@@ -126,8 +126,8 @@ export function QrScannerDialog({
               <Icon className="pi pi-sync animate-spin text-emerald-600" />
               Recherche du QR code…
             </span>
-            <button
-              type="button"
+            <button type="button"
+              
               className="font-semibold text-fongo-700 hover:underline"
               onClick={retry}
             >

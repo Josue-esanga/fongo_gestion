@@ -172,8 +172,8 @@ export function ModuleFormDialog({
                     scrollHeight="20rem"
                     panelClassName="duree-dropdown-panel"
                     panelFooterTemplate={(_, hide) => (
-                      <button
-                        type="button"
+                      <button type="button"
+                        
                         className="flex w-full items-center gap-2 border-t border-slate-100 px-3 py-2.5 text-sm font-semibold text-fongo-700 transition hover:bg-fongo-50"
                         onClick={() => {
                           setCustomDuree(true)
@@ -257,8 +257,8 @@ export function ModuleFormDialog({
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-amber-700">
               <Icon className="pi pi-info-circle" />
               L'image actuelle sera retirée à l'enregistrement.
-              <button
-                type="button"
+              <button type="button"
+                
                 className="font-semibold underline underline-offset-2 transition hover:text-amber-900"
                 onClick={() => setImageClear(false)}
               >

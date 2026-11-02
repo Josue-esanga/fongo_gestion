@@ -196,9 +196,9 @@ export function MembersPage() {
       <div className="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap gap-2">
           {FILTERS.map((item) => (
-            <button
+            <button type="button"
               key={item.key}
-              type="button"
+              
               onClick={() => setFilter(item.key)}
               className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                 filter === item.key
