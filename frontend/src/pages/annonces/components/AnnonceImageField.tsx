@@ -55,6 +55,9 @@ export function AnnonceImageField({
             src={preview}
             alt={label}
             className="h-full w-full object-cover"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none'
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/10 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-3">
@@ -93,8 +96,8 @@ export function AnnonceImageField({
           htmlFor={inputId}
           className="flex h-32 cursor-pointer flex-col items-center justify-center gap-1 bg-slate-50/70 px-4 text-center transition hover:bg-fongo-50/50"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm">
-            <Icon className="pi pi-image" />
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm text-2xl font-bold">
+            ?
           </span>
           <span className="text-sm font-semibold text-slate-700">{label}</span>
           <span className="text-[11px] leading-4 text-slate-400">{hint}</span>

@@ -62,19 +62,32 @@ export function PaymentsTable({
         {canManage && (
           <Column
             header="Stagiaire"
-            body={(payment: Paiement) => (
-              <div className="flex items-center gap-3">
-                <UserAvatar user={payment.stagiaire} />
-                <div>
-                  <p className="font-semibold text-slate-900">
-                    {payment.stagiaire.full_name}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    @{payment.stagiaire.username}
-                  </p>
+            body={(payment: Paiement) => {
+              const stagiaire = payment.stagiaire ?? null
+              return (
+                <div className="flex items-center gap-3">
+                  {stagiaire ? (
+                    <>
+                      <UserAvatar user={stagiaire} />
+                      <div>
+                        <p className="font-semibold text-slate-900">
+                          {stagiaire.full_name}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          @{stagiaire.username}
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <div>
+                      <p className="font-semibold text-slate-900">
+                        Stagiaire inconnu
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
+              )
+            }}
           />
         )}
         <Column

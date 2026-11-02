@@ -1,92 +1,26 @@
 import axios from 'axios'
 
-const FIELD_LABELS: Record<string, string> = {
-  username: "Nom d'utilisateur",
-  password: 'Mot de passe',
-  email: 'Adresse e-mail',
-  first_name: 'Prénom',
-  last_name: 'Nom',
-  role: 'Rôle',
-  pictures: 'Photo de profil',
-  montant: 'Montant',
-  category: 'Catégorie',
-  module: 'Module',
-  description: 'Description',
-  id_stagiaire: 'Stagiaire',
-  title: 'Titre',
-  object: 'Objet',
-  contenu: 'Contenu',
-  limit_date: 'Date limite',
-  date: 'Date',
-  user_id: 'Utilisateur',
-  matiere: 'Matière',
-  bio: 'Biographie',
-  old_password: 'Ancien mot de passe',
-  new_password: 'Nouveau mot de passe',
-  confirm_password: 'Confirmation',
-  detail: 'Erreur',
-  non_field_errors: 'Erreur',
-}
-
-function normalizeMessage(value: string): string | null {
-  const message = value.trim()
-  if (!message || message.startsWith('<')) return null
-  return message.length > 300 ? `${message.slice(0, 300)}…` : message
-}
-
-function flatten(value: unknown): string | null {
-  if (typeof value === 'string') return normalizeMessage(value)
-  if (Array.isArray(value)) {
-    for (const item of value) {
-      const message = flatten(item)
-      if (message) return message
-    }
-    return null
-  }
-  if (value && typeof value === 'object') {
-    for (const item of Object.values(value as Record<string, unknown>)) {
-      const message = flatten(item)
-      if (message) return message
-    }
-  }
-  return null
-}
-
+/**
+ * Transforme une erreur (Axios ou JavaScript) en un message utilisateur sûr.
+ *
+ * Aucun détail technique brut (stack trace, message serveur, code interne)
+ * n’est jamais exposé à l’utilisateur final. On se base uniquement sur le
+ * code HTTP et le type d’erreur réseau.
+ */
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
-    const data = error.response?.data
     const status = error.response?.status
     const isAuthRequest = error.config?.url?.includes('/auth/token')
 
-    // Sur une requête métier, un 401 signifie que la session n'est plus
+    // Sur une requête métier, un 401 signifie que la session n’est plus
     // utilisable : on affiche un message clair au lieu du détail technique
-    // renvoyé par DRF (« Informations d'authentification non fournies. »).
+    // renvoyé par le serveur.
     if (status === 401 && !isAuthRequest) {
       return 'Votre session a expiré. Veuillez vous reconnecter.'
     }
 
-    if (typeof data === 'string') {
-      const message = normalizeMessage(data)
-      if (message) return message
-    }
-
-    if (Array.isArray(data)) {
-      const message = flatten(data)
-      if (message) return message
-    } else if (data && typeof data === 'object') {
-      for (const [field, value] of Object.entries(
-        data as Record<string, unknown>,
-      )) {
-        const message = flatten(value)
-        if (message) {
-          const label = FIELD_LABELS[field] ?? field
-          return label === 'Erreur' ? message : `${label} : ${message}`
-        }
-      }
-    }
-
     if (error.code === 'ERR_NETWORK') {
-      return 'Impossible de joindre le serveur. Vérifiez votre connexion ou que le backend est démarré.'
+      return 'Impossible de joindre le serveur. Vérifiez votre connexion.'
     }
 
     if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
@@ -94,21 +28,22 @@ export function getErrorMessage(error: unknown): string {
     }
 
     if (status === 403) {
-      return "Vous n'avez pas les droits nécessaires pour effectuer cette action."
+      return "Vous n'avez pas les droits nécessaires pour cette action."
     }
     if (status === 404) {
       return 'La ressource demandée est introuvable.'
     }
     if (status === 429) {
-      return 'Trop de requêtes envoyées. Patientez quelques instants avant de réessayer.'
+      return 'Trop de requêtes envoyées. Patientez quelques instants.'
     }
     if (status && status >= 500) {
-      return 'Le serveur a rencontré une erreur. Veuillez réessayer dans un instant.'
+      return 'Le serveur a rencontré une erreur. Veuillez réessayer plus tard.'
     }
 
-    return error.message || 'Une erreur est survenue.'
+    // Tout autre cas : message générique, jamais de détail technique.
+    return 'Une erreur est survenue. Veuillez réessayer.'
   }
 
-  if (error instanceof Error) return error.message
+  // Erreur JavaScript non-Axios : jamais de message brut.
   return 'Une erreur inattendue est survenue.'
 }

@@ -42,12 +42,13 @@ export function EmptyState({
 }
 
 export function ErrorState({
-  title = 'Impossible de charger les données',
+  title = 'Une erreur est survenue',
   description,
   onRetry,
   retrying = false,
 }: {
   title?: string
+  /** Message déjà sanitisé (sans détails techniques). Si omis, un message générique est affiché. */
   description?: string
   onRetry?: () => void
   retrying?: boolean
@@ -55,23 +56,26 @@ export function ErrorState({
   return (
     <div
       role="alert"
-      className="flex flex-col items-center justify-center rounded-3xl border border-red-200 bg-gradient-to-b from-red-50 to-white px-6 py-14 text-center"
+      className="flex flex-col items-center justify-center rounded-3xl border border-fongo-200 bg-gradient-to-b from-fongo-50 to-white px-6 py-14 text-center"
     >
-      <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-100 text-xl text-red-600 shadow-sm">
+      <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-fongo-100 text-xl text-fongo-900 shadow-sm">
         <Icon className="pi pi-exclamation-triangle" />
       </span>
-      <p className="text-lg font-semibold text-slate-800">{title}</p>
-      <p className="mt-2 max-w-md text-sm text-slate-500">
-        {description ||
-          'Une erreur est survenue lors de la communication avec le serveur.'}
-      </p>
+      <p className="text-lg font-semibold text-slate-900">{title}</p>
+      {description ? (
+        <p className="mt-2 max-w-md text-sm text-slate-600">{description}</p>
+      ) : (
+        <p className="mt-2 max-w-md text-sm text-slate-600">
+          Une erreur est survenue lors de la communication avec le serveur.
+        </p>
+      )}
       {onRetry && (
         <Button
           label="Réessayer"
           icon="pi pi-refresh"
           onClick={onRetry}
           loading={retrying}
-          className="mt-5 rounded-full px-6"
+          className="mt-5 rounded-full px-6 bg-fongo-900 text-white hover:bg-fongo-800"
         />
       )}
     </div>

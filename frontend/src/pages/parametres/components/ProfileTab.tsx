@@ -56,13 +56,13 @@ export function ProfileTab({
     return () => URL.revokeObjectURL(url)
   }, [picture])
 
-  async function save(values: ProfileValues) {
+  async function save(values: ProfileValues | null) {
     // Un stagiaire ne peut modifier que sa photo de profil.
     if (isStagiaire && !picture) {
       showToast(
         'info',
-        'Lecture seule',
-        'Seul un administrateur peut modifier vos informations personnelles.',
+        'Aucune photo sélectionnée',
+        'Choisissez une photo avant de l’enregistrer.',
       )
       return
     }
@@ -72,9 +72,9 @@ export function ProfileTab({
         ? buildFormData({}, picture)
         : buildFormData(
             {
-              first_name: values.first_name.trim(),
-              last_name: values.last_name.trim(),
-              email: values.email.trim(),
+              first_name: values?.first_name.trim() ?? '',
+              last_name: values?.last_name.trim() ?? '',
+              email: values?.email.trim() ?? '',
             },
             picture,
           )
@@ -97,7 +97,18 @@ export function ProfileTab({
   }
 
   return (
-    <form onSubmit={form.handleSubmit(save)} className="space-y-6" noValidate>
+    <form
+      onSubmit={
+        isStagiaire
+          ? (event) => {
+              event.preventDefault()
+              void save(null)
+            }
+          : form.handleSubmit(save)
+      }
+      className="space-y-6"
+      noValidate
+    >
       <div>
         <h2 className="text-lg font-bold text-slate-900">
           Informations personnelles
@@ -221,20 +232,30 @@ export function ProfileTab({
         <FieldError message={form.formState.errors.email?.message} />
       </div>
 
-      <div className="flex justify-end border-t border-slate-100 pt-5">
+      <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
         {isStagiaire ? (
-          <p className="flex items-center gap-2 rounded-2xl bg-slate-50 px-4 py-3 text-xs font-medium text-slate-500">
-            <Icon className="pi pi-lock" />
-            Lecture seule : contactez un administrateur pour modifier vos
-            informations.
-          </p>
+          <>
+            <p className="flex items-center gap-2 rounded-2xl bg-slate-50 px-4 py-3 text-xs font-medium text-slate-500">
+              <Icon className="pi pi-lock" />
+              Lecture seule : seul un administrateur peut modifier vos
+              informations. Vous pouvez toutefois changer votre photo.
+            </p>
+            <Button
+              type="submit"
+              label="Enregistrer la photo"
+              icon="pi pi-camera"
+              loading={saving}
+              disabled={!picture}
+              className="rounded-full px-6"
+            />
+          </>
         ) : (
           <Button
             type="submit"
             label="Enregistrer les modifications"
             icon="pi pi-check"
             loading={saving}
-            className="rounded-full px-6"
+            className="ml-auto rounded-full px-6"
           />
         )}
       </div>

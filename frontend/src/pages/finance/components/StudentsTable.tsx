@@ -77,9 +77,11 @@ export function StudentsTable({
         <Column
           header="Progression"
           body={(student: StagiaireFinance) => {
+            // Garde contre une cible à 0 (évite la division par zéro).
+            const safeTarget = target || 1
             const percent = Math.min(
               100,
-              Math.round((student.total_paye / target) * 100),
+              Math.round((student.total_paye / safeTarget) * 100),
             )
             return (
               <div className="w-40">

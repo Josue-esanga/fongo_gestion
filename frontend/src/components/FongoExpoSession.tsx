@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useState } from 'react'
 
 /**
  * Affiche « FongoExpo session » utilisée pour les annonces au modèle
@@ -37,17 +38,18 @@ function CardContent({
   fallback: ReactNode
   alt: string
 }) {
-  if (image) {
-    return (
-      <img
-        src={image}
-        alt={alt}
-        loading="lazy"
-        className="h-full w-full rounded-[36px] object-cover"
-      />
-    )
-  }
-  return fallback
+  const [failed, setFailed] = useState(false)
+  // Pas d'image fournie OU image introuvable (404) → point d'interrogation
+  if (!image || failed) return fallback
+  return (
+    <img
+      src={image}
+      alt={alt}
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className="h-full w-full rounded-[36px] object-cover"
+    />
+  )
 }
 
 export const FongoExpoSession = ({

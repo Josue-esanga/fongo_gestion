@@ -193,6 +193,10 @@ export function FinancePage() {
     return <FinanceSkeleton />
   }
 
+  // Un utilisateur sans droit caissier/stagiaire voit un message d'accès
+  // refusé, jamais une erreur technique de données.
+  if (accessRefuse) return <FinanceAccessDenied />
+
   if (paymentsQuery.isError || studentsQuery.isError) {
     const queryError = paymentsQuery.error ?? studentsQuery.error
     return (
@@ -207,8 +211,6 @@ export function FinancePage() {
       />
     )
   }
-
-  if (accessRefuse) return <FinanceAccessDenied />
 
   return (
     <div className="space-y-6 animate-fade-in-up">

@@ -1,7 +1,11 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { tokenStorage } from '@/lib/storage'
 
-const baseURL = import.meta.env.VITE_API_URL ?? '/api'
+// `VITE_API_URL` peut être défini mais vide (cf. `.env.example`) : dans ce cas
+// on retombe sur le proxy Vite `/api` au lieu d'envoyer les requêtes à la racine
+// du frontend (ce qui produirait des 404 sur /auth/token/, /dashboard/, etc.).
+const configuredBaseUrl = import.meta.env.VITE_API_URL?.trim()
+const baseURL = configuredBaseUrl ? configuredBaseUrl.replace(/\/$/, '') : '/api'
 
 export const api = axios.create({
   baseURL,

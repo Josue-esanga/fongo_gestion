@@ -6,7 +6,7 @@
  * via la variable d'environnement `VITE_LUMICASH_NUMBER` (fichier `.env`).
  */
 export const LUMICASH_NUMBER: string =
-  import.meta.env.VITE_LUMICASH_NUMBER ?? '+257 79 00 00 00'
+  import.meta.env.VITE_LUMICASH_NUMBER?.trim() || '+257 79 00 00 00'
 
 /** Libellé du canal affiché aux stagiaires. */
 export const LUMICASH_LABEL = 'Lumicash'
