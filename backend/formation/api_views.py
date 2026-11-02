@@ -2,7 +2,7 @@
 
 from rest_framework import viewsets
 
-from Fongo_Gestion.permissions import IsAdminOrReadOnly
+from Fongo_Gestion.permissions import IsSuperAdminOrReadOnly
 
 from .models import Formateur, Module
 from .serializers import FormateurSerializer, ModuleSerializer
@@ -10,7 +10,7 @@ from .serializers import FormateurSerializer, ModuleSerializer
 
 class FormateurViewSet(viewsets.ModelViewSet):
     serializer_class = FormateurSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsSuperAdminOrReadOnly]
     queryset = Formateur.objects.select_related("user").prefetch_related("modules")
     search_fields = ("user__username", "user__last_name", "matiere", "bio")
     filterset_fields = ("matiere",)
@@ -18,7 +18,7 @@ class FormateurViewSet(viewsets.ModelViewSet):
 
 class ModuleViewSet(viewsets.ModelViewSet):
     serializer_class = ModuleSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsSuperAdminOrReadOnly]
     queryset = Module.objects.prefetch_related("formateurs__user")
     search_fields = ("titre", "description")
     filterset_fields = ("formateurs",)

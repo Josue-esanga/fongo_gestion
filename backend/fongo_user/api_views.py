@@ -10,7 +10,11 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from drf_spectacular.utils import extend_schema
 
-from Fongo_Gestion.permissions import IsAdminOrSuperAdmin, IsOwnerOrAdmin
+from Fongo_Gestion.permissions import (
+    IsAdminOrSuperAdmin,
+    IsOwnerOrSuperAdmin,
+    IsSuperAdmin,
+)
 
 from .serializers import (
     ChangePasswordSerializer,
@@ -71,10 +75,12 @@ class UserViewSet(viewsets.ModelViewSet):
     ordering_fields = ("username", "date_joined", "role")
 
     def get_permissions(self):
-        if self.action in ("list", "create", "destroy", "bulk_create"):
+        if self.action in ("create", "destroy"):
+            return [IsSuperAdmin()]
+        if self.action in ("list", "bulk_create"):
             return [IsAdminOrSuperAdmin()]
         if self.action in ("retrieve", "update", "partial_update"):
-            return [IsAuthenticated(), IsOwnerOrAdmin()]
+            return [IsAuthenticated(), IsOwnerOrSuperAdmin()]
         return [IsAuthenticated()]
 
     @action(detail=False, methods=["get"], permission_classes=[IsAdminOrSuperAdmin])

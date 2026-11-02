@@ -11,8 +11,11 @@ Le frontend React se trouve dans le dossier voisin `../frontend`.
 - **JWT** (`djangorestframework-simplejwt`)
 - **drf-spectacular** (OpenAPI / Swagger / Redoc)
 - **django-cors-headers**, **django-filter**
-- PostgreSQL (base locale `fongo_gestion` sur `127.0.0.1:5432`, créée par
-  `../dev.sh` ; configuration dans `Fongo_Gestion/settings.py`)
+- PostgreSQL (base `Fongo_gestion_db` sur `127.0.0.1:5432`, utilisateur
+  `postgres`, créée par `../dev.sh` ; configuration dans
+  `Fongo_Gestion/settings.py`). Les paramètres sont surchargeables par les
+  variables `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` et le
+  fuseau par `DJANGO_TIME_ZONE` (défaut `Africa/Bujumbura`).
 
 ## Installation
 

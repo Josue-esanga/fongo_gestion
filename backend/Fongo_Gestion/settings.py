@@ -92,14 +92,17 @@ WSGI_APPLICATION = 'Fongo_Gestion.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 # Configuration locale : PostgreSQL installé sur la machine (pas de Docker).
+# Toutes les valeurs peuvent être surchargées par variables d'environnement
+# (voir `../dev.sh`), ce qui permet de lancer le projet sur une autre machine
+# sans modifier ce fichier.
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'fongo_gestion',
-        'USER': 'fongo',
-        'PASSWORD': 'fongo_password',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.environ.get('DB_NAME', 'Fongo_gestion_db'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'josue@esanga1'),
+        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
@@ -128,7 +131,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'fr-fr'
 
-TIME_ZONE = 'UTC'
+# Heure locale du club (Burundi, UTC+2). Indispensable pour que « aujourd'hui »,
+# le classement des séances et la règle « pas d'appel le week-end » soient
+# corrects autour de minuit. Surchargeable via DJANGO_TIME_ZONE.
+TIME_ZONE = os.environ.get('DJANGO_TIME_ZONE', 'Africa/Bujumbura')
 
 USE_I18N = True
 
