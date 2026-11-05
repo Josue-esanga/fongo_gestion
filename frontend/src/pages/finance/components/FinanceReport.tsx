@@ -40,7 +40,7 @@ export function FinanceReport({
             {
               label: 'Autres frais',
               value: totals.autresTotal,
-              color: 'bg-[#3385c7]',
+              color: 'bg-fongo-400',
             },
           ].map((item) => {
             const percent = totals.total
@@ -79,7 +79,7 @@ export function FinanceReport({
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-bold text-slate-900">Situation du club</h2>
         <div className="mt-5 space-y-3">
-          <div className="flex items-center justify-between rounded-2xl bg-blue-50 p-4">
+          <div className="flex items-center justify-between rounded-2xl bg-fongo-50 p-4">
             <span className="text-sm font-medium text-slate-700">
               Stagiaires à jour
             </span>

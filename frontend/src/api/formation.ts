@@ -1,4 +1,4 @@
-import api from '@/api/client'
+import api, { apiDedup, getKey } from '@/api/client'
 import { unwrap } from '@/api/helpers'
 import type { Formateur, Paginated } from '@/types'
 
@@ -12,9 +12,12 @@ export interface FormateurPayload {
 
 export const formationApi = {
   async list(search?: string): Promise<Formateur[]> {
-    const { data } = await api.get<Paginated<Formateur> | Formateur[]>(
-      'formation/formateurs/',
-      { params: search ? { search } : undefined },
+    const key = getKey('formation/formateurs/', search ? { search } : undefined)
+    const { data } = await apiDedup(key, () =>
+      api.get<Paginated<Formateur> | Formateur[]>(
+        'formation/formateurs/',
+        { params: search ? { search } : undefined },
+      ),
     )
     return unwrap(data)
   },

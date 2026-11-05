@@ -46,15 +46,27 @@ export function ProfileTab({
     })
   }, [form, user])
 
+  // Génère un aperçu immédiat (base64) dès qu'une image est sélectionnée
   useEffect(() => {
     if (!picture) {
       setPreview(null)
       return
     }
-    const url = URL.createObjectURL(picture)
-    setPreview(url)
-    return () => URL.revokeObjectURL(url)
-  }, [picture])
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      setPreview(reader.result as string)
+    }
+    reader.onerror = () => {
+      setPreview(null)
+      showToast('error', 'Erreur', 'Impossible de lire l’image sélectionnée.')
+    }
+    reader.readAsDataURL(picture)
+
+    return () => {
+      reader.abort()
+    }
+  }, [picture, showToast])
 
   async function save(values: ProfileValues | null) {
     // Un stagiaire ne peut modifier que sa photo de profil.
@@ -81,6 +93,7 @@ export function ProfileTab({
       const updated = await authApi.updateMe(formData)
       setUser(updated)
       setPicture(null)
+      setPreview(null)
       if (pictureInput.current) pictureInput.current.value = ''
       showToast(
         'success',
@@ -95,6 +108,10 @@ export function ProfileTab({
       setSaving(false)
     }
   }
+
+  // Active le bouton dès qu'une photo ou une information a été modifiée.
+  const hasPendingChanges =
+    Boolean(picture) || (!isStagiaire && form.formState.isDirty)
 
   return (
     <form
@@ -122,15 +139,24 @@ export function ProfileTab({
 
       <div className="flex flex-col gap-5 rounded-2xl bg-slate-50 p-5 sm:flex-row sm:items-center">
         <div className="relative w-fit shrink-0">
-          <UserAvatar
-            user={{
-              ...user,
-              pictures: preview ?? user.pictures,
-            }}
-            size="2xl"
-          />
+          {/* Aperçu immédiat de l'image sélectionnée (à la place de l'avatar) */}
+          {preview ? (
+            <span className="inline-flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-fongo-100 ring-2 ring-white">
+              <img
+                src={preview}
+                alt="Aperçu de votre nouvelle photo de profil"
+                className="h-full w-full object-cover"
+              />
+            </span>
+          ) : (
+            <UserAvatar user={user} size="2xl" />
+          )}
+          {preview && (
+            <span className="absolute -top-2 -right-2 z-10 whitespace-nowrap rounded-full bg-fongo-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow ring-2 ring-white">
+              Nouveau
+            </span>
+          )}
           <button type="button"
-            
             onClick={() => pictureInput.current?.click()}
             className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full bg-fongo-900 text-white shadow-lg ring-4 ring-white transition hover:-translate-y-0.5 hover:bg-fongo-700"
             aria-label="Changer la photo de profil"
@@ -144,7 +170,11 @@ export function ProfileTab({
             accept="image/*"
             aria-label="Choisir une photo de profil"
             className="hidden"
-            onChange={(event) => setPicture(event.target.files?.[0] ?? null)}
+            onChange={(event) => {
+              const file = event.target.files?.[0] ?? null
+              setPicture(file)
+              // L'aperçu est généré automatiquement par l'effet au-dessus
+            }}
           />
         </div>
         <div className="min-w-0 flex-1">
@@ -162,9 +192,9 @@ export function ProfileTab({
               <Icon className="pi pi-image" />
               <span className="max-w-[16rem] truncate">{picture.name}</span>
               <button type="button"
-                
                 onClick={() => {
                   setPicture(null)
+                  setPreview(null)
                   if (pictureInput.current) pictureInput.current.value = ''
                 }}
                 className="font-semibold text-slate-500 underline-offset-2 hover:text-red-600 hover:underline"
@@ -255,6 +285,7 @@ export function ProfileTab({
             label="Enregistrer les modifications"
             icon="pi pi-check"
             loading={saving}
+            disabled={!hasPendingChanges}
             className="ml-auto rounded-full px-6"
           />
         )}

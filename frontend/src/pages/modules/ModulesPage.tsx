@@ -1,18 +1,15 @@
-import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button } from 'primereact/button'
 import { confirmDialog } from 'primereact/confirmdialog'
-import { modulesApi, type ModulePayload } from '@/api/modules'
+import { useAuth } from '@/contexts/AuthContext'
+import { getErrorMessage } from '@/lib/errors'
+import { lazyNamed } from '@/lib/lazy'
+import { subjectIcon } from '@/lib/moduleIcons'
+import { useModules } from '@/hooks/useModules'
 import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
 import { EmptyState, ErrorState } from '@/components/Feedback'
 import { ModulesSkeleton } from '@/components/Skeletons'
 import { PageHeader } from '@/components/PageHeader'
 import { Icon } from '@/components/Icon'
-import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/contexts/ToastContext'
-import { getErrorMessage } from '@/lib/errors'
-import { lazyNamed } from '@/lib/lazy'
-import { subjectIcon } from '@/lib/moduleIcons'
 import type { ModuleFormation } from '@/types'
 
 const ModuleFormDialog = lazyNamed(
@@ -21,70 +18,25 @@ const ModuleFormDialog = lazyNamed(
 )
 
 export function ModulesPage() {
-  const { showToast } = useToast()
-  // La grille des modules se modifie uniquement depuis le super administrateur.
   const { can } = useAuth()
   const canManage = can('modules')
-  const queryClient = useQueryClient()
-  const [dialogVisible, setDialogVisible] = useState(false)
-  const [editing, setEditing] = useState<ModuleFormation | null>(null)
 
-  const { data: modules = [], isLoading, isError, error, refetch, isFetching } =
-    useQuery({
-      queryKey: ['modules-programme'],
-      queryFn: () => modulesApi.list(),
-    })
-
-  const createMutation = useMutation({
-    mutationFn: (payload: ModulePayload) => modulesApi.create(payload),
-  })
-  const updateMutation = useMutation({
-    mutationFn: ({
-      id,
-      payload,
-    }: {
-      id: number
-      payload: Partial<ModulePayload>
-    }) => modulesApi.update(id, payload),
-  })
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => modulesApi.remove(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['modules-programme'] })
-      showToast('success', 'Module supprimé', 'Le module a été retiré de la grille.')
-    },
-    onError: (error) =>
-      showToast('error', 'Suppression impossible', getErrorMessage(error)),
-  })
-
-  async function handleSubmit(payload: ModulePayload) {
-    try {
-      if (editing) {
-        await updateMutation.mutateAsync({ id: editing.id, payload })
-        showToast('success', 'Module modifié', 'Les informations ont été mises à jour.')
-      } else {
-        await createMutation.mutateAsync(payload)
-        showToast('success', 'Module ajouté', 'Le module est maintenant visible.')
-      }
-      await queryClient.invalidateQueries({ queryKey: ['modules-programme'] })
-      setDialogVisible(false)
-      setEditing(null)
-    } catch (err) {
-      showToast('error', 'Enregistrement impossible', getErrorMessage(err))
-    }
-  }
-
-  function confirmDelete(module: ModuleFormation) {
-    confirmDialog({
-      header: 'Supprimer le module',
-      message: `Voulez-vous vraiment supprimer « ${module.titre} » ?`,
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Oui, supprimer',
-      rejectLabel: 'Annuler',
-      acceptClassName: 'p-button-danger',
-      accept: () => deleteMutation.mutate(module.id),
-    })
-  }
+  const {
+    modules,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+    dialogVisible,
+    setDialogVisible,
+    editing,
+    setEditing,
+    handleSubmit,
+    openCreate,
+    openEdit,
+    deleteModule,
+  } = useModules()
 
   if (isLoading) return <ModulesSkeleton />
 
@@ -99,6 +51,18 @@ export function ModulesPage() {
     )
   }
 
+  function confirmDelete(module: ModuleFormation) {
+    confirmDialog({
+      header: 'Supprimer le module',
+      message: `Voulez-vous vraiment supprimer « ${module.titre} » ?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Oui, supprimer',
+      rejectLabel: 'Annuler',
+      acceptClassName: 'p-button-danger',
+      accept: () => deleteModule(module.id),
+    })
+  }
+
   return (
     <div className="space-y-6 animate-fade-in-up">
       <PageHeader
@@ -111,10 +75,7 @@ export function ModulesPage() {
               label="Ajouter un module"
               icon="pi pi-plus"
               className="rounded-full px-5"
-              onClick={() => {
-                setEditing(null)
-                setDialogVisible(true)
-              }}
+              onClick={openCreate}
             />
           ) : undefined
         }
@@ -133,8 +94,6 @@ export function ModulesPage() {
       ) : (
         <div className="grid gap-5 lg:grid-cols-2 2xl:grid-cols-3">
           {modules.map((module) => {
-            // Les logos connus (HTML5, CSS3, JavaScript, Python, POO, Django…)
-            // sont affichés en grand dans la bannière du module.
             const iconSubjects = module.sujets
               .map((sujet) => ({ sujet, icon: subjectIcon(sujet) }))
               .filter(
@@ -148,7 +107,7 @@ export function ModulesPage() {
                 key={module.id}
                 className="group flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
               >
-                <div className="relative h-40 overflow-hidden bg-gradient-to-br from-fongo-900 via-[#13177a] to-[#3730a3]">
+                <div className="relative h-40 overflow-hidden bg-gradient-to-br from-fongo-900 via-fongo-800 to-fongo-700">
                   {module.image ? (
                     <>
                       <img
@@ -161,11 +120,11 @@ export function ModulesPage() {
                   ) : (
                     <>
                       <div
-                        className="absolute -right-10 -top-12 h-40 w-40 rounded-full bg-sky-300/20 blur-2xl"
+                        className="absolute -right-10 -top-12 h-40 w-40 rounded-full bg-fongo-300/20 blur-2xl"
                         aria-hidden
                       />
                       <div
-                        className="absolute -bottom-16 -left-10 h-40 w-40 rounded-full bg-indigo-400/25 blur-2xl"
+                        className="absolute -bottom-16 -left-10 h-40 w-40 rounded-full bg-fongo-400/25 blur-2xl"
                         aria-hidden
                       />
                       <div
@@ -238,10 +197,7 @@ export function ModulesPage() {
                           text
                           severity="info"
                           aria-label={`Modifier ${module.titre}`}
-                          onClick={() => {
-                            setEditing(module)
-                            setDialogVisible(true)
-                          }}
+                          onClick={() => openEdit(module)}
                         />
                         <Button
                           icon="pi pi-trash"
@@ -294,7 +250,7 @@ export function ModulesPage() {
         <ModuleFormDialog
           visible={dialogVisible}
           module={editing}
-          saving={createMutation.isPending || updateMutation.isPending}
+          saving={false}
           onHide={() => {
             setDialogVisible(false)
             setEditing(null)

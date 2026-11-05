@@ -110,13 +110,13 @@ export function Topbar({
               <span className="text-sm font-bold text-white">
                 {user?.full_name || user?.username}
               </span>
-              <span className="text-[11px] font-medium uppercase tracking-wide text-blue-200">
+              <span className="text-[11px] font-medium uppercase tracking-wide text-fongo-200">
                 {roleText}
               </span>
             </div>
             <UserAvatar user={user} size="md" />
             <i
-              className={`pi pi-chevron-down mr-1 hidden text-[10px] text-blue-200 transition-transform sm:block ${
+              className={`pi pi-chevron-down mr-1 hidden text-[10px] text-fongo-200 transition-transform sm:block ${
                 profileMenuOpen ? 'rotate-180' : ''
               }`}
             />
@@ -161,6 +161,16 @@ export function Topbar({
                 <div className="my-1 border-t border-slate-100" />
                 <button type="button"
                   
+                  role="menuitem"
+                  onClick={() => goTo('/')}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
+                >
+                  <Icon className="pi pi-globe text-slate-400" />
+                  <span className="flex-1">Site public</span>
+                  <Icon className="pi pi-external-link text-[10px] text-slate-400" />
+                </button>
+                <div className="my-1 border-t border-slate-100" />
+                <button type="button"
                   role="menuitem"
                   onClick={handleLogout}
                   className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50"

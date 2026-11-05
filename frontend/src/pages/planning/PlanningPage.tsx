@@ -1,19 +1,16 @@
-import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button } from 'primereact/button'
 import { Tag } from 'primereact/tag'
 import { confirmDialog } from 'primereact/confirmdialog'
-import { eventsApi, type EventPayload } from '@/api/events'
+import { useAuth } from '@/contexts/AuthContext'
+import { getErrorMessage } from '@/lib/errors'
+import { formatDateTime } from '@/lib/format'
+import { lazyNamed } from '@/lib/lazy'
+import { usePlanning } from '@/hooks/usePlanning'
 import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
 import { EmptyState, ErrorState } from '@/components/Feedback'
 import { PlanningSkeleton } from '@/components/Skeletons'
 import { PageHeader } from '@/components/PageHeader'
 import { UserAvatar } from '@/components/UserAvatar'
-import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/contexts/ToastContext'
-import { getErrorMessage } from '@/lib/errors'
-import { formatDateTime } from '@/lib/format'
-import { lazyNamed } from '@/lib/lazy'
 import type { EventItem } from '@/types'
 
 const EventFormDialog = lazyNamed(
@@ -22,66 +19,24 @@ const EventFormDialog = lazyNamed(
 )
 
 export function PlanningPage() {
-  // Le planning relève du super administrateur.
   const { isSuperAdmin } = useAuth()
-  const { showToast } = useToast()
-  const queryClient = useQueryClient()
-  const [dialogVisible, setDialogVisible] = useState(false)
-  const [editing, setEditing] = useState<EventItem | null>(null)
 
-  const { data: events = [], isLoading, isError, error, refetch, isFetching } =
-    useQuery({
-      queryKey: ['events'],
-      queryFn: () => eventsApi.list(),
-    })
-
-  const createMutation = useMutation({
-    mutationFn: (payload: EventPayload) => eventsApi.create(payload),
-  })
-  const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: EventPayload }) =>
-      eventsApi.update(id, payload),
-  })
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => eventsApi.remove(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['events'] })
-      void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-      showToast('success', 'Événement supprimé', "L'événement a été retiré du planning.")
-    },
-    onError: (error) =>
-      showToast('error', 'Suppression impossible', getErrorMessage(error)),
-  })
-
-  async function handleSubmit(payload: EventPayload) {
-    try {
-      if (editing) {
-        await updateMutation.mutateAsync({ id: editing.id, payload })
-        showToast('success', 'Événement modifié', "L'événement a été mis à jour.")
-      } else {
-        await createMutation.mutateAsync(payload)
-        showToast('success', 'Événement ajouté', "L'événement est maintenant planifié.")
-      }
-      await queryClient.invalidateQueries({ queryKey: ['events'] })
-      await queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-      setDialogVisible(false)
-      setEditing(null)
-    } catch (error) {
-      showToast('error', 'Enregistrement impossible', getErrorMessage(error))
-    }
-  }
-
-  function confirmDelete(event: EventItem) {
-    confirmDialog({
-      header: "Supprimer l'événement",
-      message: `Voulez-vous vraiment supprimer « ${event.title} » ?`,
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Oui, supprimer',
-      rejectLabel: 'Annuler',
-      acceptClassName: 'p-button-danger',
-      accept: () => deleteMutation.mutate(event.id),
-    })
-  }
+  const {
+    events,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+    dialogVisible,
+    setDialogVisible,
+    editing,
+    setEditing,
+    handleSubmit,
+    openCreate,
+    openEdit,
+    deleteEvent,
+  } = usePlanning()
 
   if (isLoading) return <PlanningSkeleton />
 
@@ -96,6 +51,18 @@ export function PlanningPage() {
     )
   }
 
+  function confirmDelete(event: EventItem) {
+    confirmDialog({
+      header: "Supprimer l'événement",
+      message: `Voulez-vous vraiment supprimer « ${event.title} » ?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Oui, supprimer',
+      rejectLabel: 'Annuler',
+      acceptClassName: 'p-button-danger',
+      accept: () => deleteEvent(event.id),
+    })
+  }
+
   return (
     <div className="space-y-6 animate-fade-in-up">
       <PageHeader
@@ -108,10 +75,7 @@ export function PlanningPage() {
               label="Ajouter un événement"
               icon="pi pi-plus"
               className="rounded-full px-5"
-              onClick={() => {
-                setEditing(null)
-                setDialogVisible(true)
-              }}
+              onClick={openCreate}
             />
           ) : undefined
         }
@@ -180,10 +144,7 @@ export function PlanningPage() {
                       text
                       severity="info"
                       aria-label="Modifier l'événement"
-                      onClick={() => {
-                        setEditing(event)
-                        setDialogVisible(true)
-                      }}
+                      onClick={() => openEdit(event)}
                     />
                     <Button
                       icon="pi pi-trash"
@@ -205,7 +166,7 @@ export function PlanningPage() {
         <EventFormDialog
           visible={dialogVisible}
           event={editing}
-          saving={createMutation.isPending || updateMutation.isPending}
+          saving={false}
           onHide={() => {
             setDialogVisible(false)
             setEditing(null)

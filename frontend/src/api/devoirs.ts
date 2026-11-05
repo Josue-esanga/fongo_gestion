@@ -1,4 +1,4 @@
-import api from '@/api/client'
+import api, { apiDedup, getKey } from '@/api/client'
 import { unwrap } from '@/api/helpers'
 import type { Devoir, Paginated } from '@/types'
 
@@ -10,9 +10,12 @@ export interface DevoirPayload {
 
 export const devoirsApi = {
   async list(search?: string): Promise<Devoir[]> {
-    const { data } = await api.get<Paginated<Devoir> | Devoir[]>('devoirs/', {
-      params: search ? { search } : undefined,
-    })
+    const key = getKey('devoirs/', search ? { search } : undefined)
+    const { data } = await apiDedup(key, () =>
+      api.get<Paginated<Devoir> | Devoir[]>('devoirs/', {
+        params: search ? { search } : undefined,
+      }),
+    )
     return unwrap(data)
   },
 

@@ -1,4 +1,4 @@
-import api from '@/api/client'
+import api, { apiDedup, getKey } from '@/api/client'
 import { buildFormData, unwrap } from '@/api/helpers'
 import type { Paginated, Role, RoleSupplementaire, User } from '@/types'
 
@@ -29,12 +29,16 @@ function toFormData(payload: Partial<UserPayload>, picture?: File | null): FormD
 
 export const usersApi = {
   async list(params?: { role?: Role; search?: string }): Promise<User[]> {
-    const { data } = await api.get<Paginated<User> | User[]>('users/', { params })
+    const key = getKey('users/', params)
+    const { data } = await apiDedup(key, () =>
+      api.get<Paginated<User> | User[]>('users/', { params }),
+    )
     return unwrap(data)
   },
 
   async get(id: number): Promise<User> {
-    const { data } = await api.get<User>(`users/${id}/`)
+    const key = getKey(`users/${id}/`)
+    const { data } = await apiDedup(key, () => api.get<User>(`users/${id}/`))
     return data
   },
 

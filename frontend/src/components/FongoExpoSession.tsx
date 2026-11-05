@@ -65,7 +65,7 @@ export const FongoExpoSession = ({
   minHeight = 'min-h-[500px] sm:min-h-[540px]',
 }: FongoExpoProps) => {
   const fallbackMark = (
-    <span className="text-5xl sm:text-7xl font-extrabold text-[#111827] select-none">
+    <span className="text-5xl sm:text-7xl font-extrabold text-fongo-900 select-none">
       ?
     </span>
   )
@@ -74,7 +74,7 @@ export const FongoExpoSession = ({
   // `sm`, elle reste centrée et limitée à une largeur de carte.
   return (
     <div
-      className={`relative w-full max-w-full sm:max-w-md sm:mx-auto ${minHeight} overflow-hidden bg-gradient-to-b from-[#0077d8] via-[#006bbd] to-[#00559e] text-white flex flex-col justify-between p-6 select-none font-sans ${className}`}
+      className={`relative w-full max-w-full sm:max-w-md sm:mx-auto ${minHeight} overflow-hidden bg-gradient-to-b from-fongo-900 via-fongo-800 to-fongo-950 text-white flex flex-col justify-between p-6 select-none font-sans ${className}`}
     >
       {/* Motif géométrique en bas à gauche */}
       <div
@@ -82,8 +82,8 @@ export const FongoExpoSession = ({
         aria-hidden="true"
       >
         <svg viewBox="0 0 300 260" fill="none" className="w-full h-full">
-          <polygon points="0,260 0,110 160,260" fill="#00a8cc" />
-          <polygon points="0,260 160,260 260,260 0,60" fill="#0092b3" opacity="0.4" />
+          <polygon points="0,260 0,110 160,260" fill="#00c4ff" />
+          <polygon points="0,260 160,260 260,260 0,60" fill="#0284c7" opacity="0.4" />
         </svg>
       </div>
 
@@ -96,7 +96,7 @@ export const FongoExpoSession = ({
           </span>
 
           {/* Badge 'E' stylisé avec motif tech et tag code */}
-          <div className="relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 border-white/90 bg-gradient-to-br from-[#0288d1] to-[#01579b] shadow-inner mx-0.5">
+          <div className="relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 border-white/90 bg-gradient-to-br from-fongo-700 to-fongo-950 shadow-inner mx-0.5">
             {/* Effet grille binaire de fond */}
             <span className="absolute inset-0 flex items-center justify-center text-[7px] text-white/20 font-mono select-none overflow-hidden leading-tight p-1 text-center">
               0101&gt;code
@@ -110,13 +110,13 @@ export const FongoExpoSession = ({
             </span>
 
             {/* Petit badge tag code </> */}
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#0091ea] border border-white flex items-center justify-center text-[8px] font-mono font-bold text-white shadow-sm">
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#00c4ff] border border-white flex items-center justify-center text-[8px] font-mono font-bold text-fongo-950 shadow-sm">
               &lt;/&gt;
             </div>
           </div>
 
           <div className="flex flex-col text-left pl-0.5">
-            <span className="text-3xl sm:text-4xl font-light tracking-tight text-[#4fc3f7]">
+            <span className="text-3xl sm:text-4xl font-light tracking-tight text-cyan-300">
               xpo
             </span>
             <span className="text-xs font-medium tracking-wide text-white/90 -mt-1 pl-0.5">
@@ -130,7 +130,7 @@ export const FongoExpoSession = ({
           <p className="text-sm font-medium leading-snug text-white/95 drop-shadow-sm break-words">
             {dateInfo}
           </p>
-          <p className="text-xs font-normal text-sky-100/85 line-clamp-4 break-words">
+          <p className="text-xs font-normal text-fongo-100/85 line-clamp-4 break-words">
             {subTitle}
           </p>
         </div>
@@ -146,7 +146,7 @@ export const FongoExpoSession = ({
           </span>
 
           {/* Carte de droite (arrière-plan) */}
-          <div className="absolute top-[12.5%] right-0 w-[61%] aspect-[176/224] bg-[#7be5d3] rounded-[36px] shadow-2xl overflow-hidden flex items-center justify-center transform transition-transform duration-300 hover:scale-[1.02]">
+          <div className="absolute top-[12.5%] right-0 w-[61%] aspect-[176/224] bg-cyan-100 rounded-[36px] shadow-2xl overflow-hidden flex items-center justify-center transform transition-transform duration-300 hover:scale-[1.02]">
             <CardContent
               image={imageBack}
               fallback={fallbackMark}
@@ -155,7 +155,7 @@ export const FongoExpoSession = ({
           </div>
 
           {/* Carte de gauche (premier plan, légèrement plus haute) */}
-          <div className="absolute top-0 left-0 w-[61%] aspect-[176/224] bg-[#7be5d3] rounded-[36px] shadow-[0_20px_35px_rgba(0,0,0,0.22)] z-10 overflow-hidden flex items-center justify-center transform transition-transform duration-300 hover:scale-[1.02]">
+          <div className="absolute top-0 left-0 w-[61%] aspect-[176/224] bg-cyan-100 rounded-[36px] shadow-[0_20px_35px_rgba(0,0,0,0.22)] z-10 overflow-hidden flex items-center justify-center transform transition-transform duration-300 hover:scale-[1.02]">
             <CardContent
               image={imageFront}
               fallback={fallbackMark}

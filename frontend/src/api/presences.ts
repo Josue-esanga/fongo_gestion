@@ -1,4 +1,4 @@
-import api from '@/api/client'
+import api, { apiDedup, getKey } from '@/api/client'
 import { unwrap } from '@/api/helpers'
 import type {
   MaPresence,
@@ -14,8 +14,11 @@ export interface ScanResult extends MaPresence {
 export const presencesApi = {
   /** Liste des séances d'appel (option Présences). */
   async seances(): Promise<SeancePresence[]> {
-    const { data } = await api.get<Paginated<SeancePresence> | SeancePresence[]>(
-      'presence/seances/',
+    const key = getKey('presence/seances/')
+    const { data } = await apiDedup(key, () =>
+      api.get<Paginated<SeancePresence> | SeancePresence[]>(
+        'presence/seances/',
+      ),
     )
     return unwrap(data)
   },
@@ -43,8 +46,11 @@ export const presencesApi = {
 
   /** Présents / absents de la séance demandée. */
   async participants(id: number): Promise<ParticipantPresence[]> {
-    const { data } = await api.get<ParticipantPresence[]>(
-      `presence/seances/${id}/participants/`,
+    const key = getKey(`presence/seances/${id}/participants/`)
+    const { data } = await apiDedup(key, () =>
+      api.get<ParticipantPresence[]>(
+        `presence/seances/${id}/participants/`,
+      ),
     )
     return data
   },
@@ -57,7 +63,10 @@ export const presencesApi = {
 
   /** Statut du jour du stagiaire connecté. */
   async maPresence(): Promise<MaPresence> {
-    const { data } = await api.get<MaPresence>('presence/ma-presence/')
+    const key = getKey('presence/ma-presence/')
+    const { data } = await apiDedup(key, () =>
+      api.get<MaPresence>('presence/ma-presence/'),
+    )
     return data
   },
 }

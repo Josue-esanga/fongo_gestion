@@ -105,7 +105,7 @@ export const ROUTE_SEO: Record<string, { title: string; description: string }> =
   '/': {
     title: 'Accueil',
     description:
-      'Bienvenue sur FongoGestion, le système d’information de gestion du club FongoLab. Membres, finances, devoirs, planning et annonces.',
+      'FongoLab, la communauté tech du Burundi : apprenez HTML, CSS, JavaScript, Python, SQL et Django, et pilotez la vie du club avec FongoGestion.',
   },
   '/login': {
     title: 'Connexion',

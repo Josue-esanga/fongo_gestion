@@ -1,18 +1,15 @@
-import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button } from 'primereact/button'
 import { Tag } from 'primereact/tag'
 import { confirmDialog } from 'primereact/confirmdialog'
-import { devoirsApi, type DevoirPayload } from '@/api/devoirs'
+import { useAuth } from '@/contexts/AuthContext'
+import { getErrorMessage } from '@/lib/errors'
+import { formatDateTime } from '@/lib/format'
+import { lazyNamed } from '@/lib/lazy'
+import { useDevoirs } from '@/hooks/useDevoirs'
 import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
 import { EmptyState, ErrorState } from '@/components/Feedback'
 import { DevoirsSkeleton } from '@/components/Skeletons'
 import { PageHeader } from '@/components/PageHeader'
-import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/contexts/ToastContext'
-import { getErrorMessage } from '@/lib/errors'
-import { formatDateTime } from '@/lib/format'
-import { lazyNamed } from '@/lib/lazy'
 import type { Devoir } from '@/types'
 
 const DevoirFormDialog = lazyNamed(
@@ -22,66 +19,24 @@ const DevoirFormDialog = lazyNamed(
 
 export function DevoirsPage() {
   const { can } = useAuth()
-  // Le CRUD des devoirs est réservé au super admin et aux admins formateurs.
   const canEditDevoirs = can('devoirs')
-  const { showToast } = useToast()
-  const queryClient = useQueryClient()
-  const [dialogVisible, setDialogVisible] = useState(false)
-  const [editing, setEditing] = useState<Devoir | null>(null)
 
-  const { data: devoirs = [], isLoading, isError, error, refetch, isFetching } =
-    useQuery({
-      queryKey: ['devoirs'],
-      queryFn: () => devoirsApi.list(),
-    })
-
-  const createMutation = useMutation({
-    mutationFn: (payload: DevoirPayload) => devoirsApi.create(payload),
-  })
-  const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: DevoirPayload }) =>
-      devoirsApi.update(id, payload),
-  })
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => devoirsApi.remove(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['devoirs'] })
-      void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-      showToast('success', 'Devoir supprimé', "Le devoir a été retiré de la liste.")
-    },
-    onError: (error) =>
-      showToast('error', 'Suppression impossible', getErrorMessage(error)),
-  })
-
-  async function handleSubmit(payload: DevoirPayload) {
-    try {
-      if (editing) {
-        await updateMutation.mutateAsync({ id: editing.id, payload })
-        showToast('success', 'Devoir modifié', 'Les consignes ont été mises à jour.')
-      } else {
-        await createMutation.mutateAsync(payload)
-        showToast('success', 'Devoir publié', 'Le devoir est maintenant visible.')
-      }
-      await queryClient.invalidateQueries({ queryKey: ['devoirs'] })
-      await queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-      setDialogVisible(false)
-      setEditing(null)
-    } catch (error) {
-      showToast('error', 'Enregistrement impossible', getErrorMessage(error))
-    }
-  }
-
-  function confirmDelete(devoir: Devoir) {
-    confirmDialog({
-      header: 'Supprimer le devoir',
-      message: `Voulez-vous vraiment supprimer « ${devoir.title} » ?`,
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Oui, supprimer',
-      rejectLabel: 'Annuler',
-      acceptClassName: 'p-button-danger',
-      accept: () => deleteMutation.mutate(devoir.id),
-    })
-  }
+  const {
+    devoirs,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+    dialogVisible,
+    setDialogVisible,
+    editing,
+    setEditing,
+    handleSubmit,
+    openCreate,
+    openEdit,
+    deleteDevoir,
+  } = useDevoirs()
 
   if (isLoading) return <DevoirsSkeleton />
 
@@ -96,6 +51,18 @@ export function DevoirsPage() {
     )
   }
 
+  function confirmDelete(devoir: Devoir) {
+    confirmDialog({
+      header: 'Supprimer le devoir',
+      message: `Voulez-vous vraiment supprimer « ${devoir.title} » ?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Oui, supprimer',
+      rejectLabel: 'Annuler',
+      acceptClassName: 'p-button-danger',
+      accept: () => deleteDevoir(devoir.id),
+    })
+  }
+
   return (
     <div className="space-y-6 animate-fade-in-up">
       <PageHeader
@@ -108,10 +75,7 @@ export function DevoirsPage() {
               label="Ajouter un devoir"
               icon="pi pi-plus"
               className="rounded-full px-5"
-              onClick={() => {
-                setEditing(null)
-                setDialogVisible(true)
-              }}
+              onClick={openCreate}
             />
           ) : undefined
         }
@@ -172,10 +136,7 @@ export function DevoirsPage() {
                         size="small"
                         outlined
                         severity="info"
-                        onClick={() => {
-                          setEditing(devoir)
-                          setDialogVisible(true)
-                        }}
+                        onClick={() => openEdit(devoir)}
                       />
                       <Button
                         label="Supprimer"
@@ -198,7 +159,7 @@ export function DevoirsPage() {
         <DevoirFormDialog
           visible={dialogVisible}
           devoir={editing}
-          saving={createMutation.isPending || updateMutation.isPending}
+          saving={false}
           onHide={() => {
             setDialogVisible(false)
             setEditing(null)

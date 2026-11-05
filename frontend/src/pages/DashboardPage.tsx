@@ -1,8 +1,6 @@
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import { Button } from 'primereact/button'
 import { Tag } from 'primereact/tag'
-import { dashboardApi } from '@/api/dashboard'
 import { ErrorState } from '@/components/Feedback'
 import { DashboardSkeleton } from '@/components/Skeletons'
 import { useAuth } from '@/contexts/AuthContext'
@@ -11,6 +9,7 @@ import { formatDateTime, formatMoney, roleLabel, truncateText } from '@/lib/form
 import { FongoExpoSession } from '@/components/FongoExpoSession'
 import { MaPresenceCard } from '@/pages/presences/MaPresenceCard'
 import { Icon } from '@/components/Icon'
+import { useDashboard } from '@/hooks/useDashboard'
 
 function StatCard({
   label,
@@ -50,10 +49,7 @@ function StatCard({
 export function DashboardPage() {
   const { can, isSuperAdmin, isStagiaire } = useAuth()
   const canManageFinance = can('finance')
-  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
-    queryKey: ['dashboard'],
-    queryFn: dashboardApi.get,
-  })
+  const { data, isLoading, isError, error, refetch, isFetching } = useDashboard()
 
   if (isLoading) return <DashboardSkeleton />
 
@@ -75,7 +71,7 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-7 animate-fade-in-up">
-      <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-br from-white via-blue-50/60 to-indigo-50 p-6 shadow-sm sm:p-9">
+      <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-br from-white via-fongo-50/60 to-fongo-50 p-6 shadow-sm sm:p-9">
         <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
           <div className="min-w-0 space-y-5">
             <span className="inline-flex rounded-full bg-fongo-100 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-fongo-900">
@@ -127,7 +123,7 @@ export function DashboardPage() {
 
           <div className="grid min-w-0 gap-3">
             {(canManageFinance || isStagiaire) && (
-              <div className="rounded-3xl border border-blue-200 bg-white/80 p-5 shadow-sm backdrop-blur">
+              <div className="rounded-3xl border border-fongo-200 bg-white/80 p-5 shadow-sm backdrop-blur">
                 <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-fongo-500">
                   {canManageFinance ? 'Total collecté' : 'Mes versements'}
                 </p>
@@ -182,14 +178,14 @@ export function DashboardPage() {
                 value={data.compteurs.stagiaires}
                 hint="Profils enregistrés"
                 icon="pi pi-user-plus"
-                accent="bg-blue-50 text-fongo-700"
+                accent="bg-fongo-50 text-fongo-700"
               />
               <StatCard
                 label="Membres"
                 value={data.compteurs.membres}
                 hint="Tous rôles confondus"
                 icon="pi pi-users"
-                accent="bg-indigo-50 text-indigo-600"
+                accent="bg-fongo-100 text-fongo-800"
               />
             </>
           )}

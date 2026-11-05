@@ -47,6 +47,8 @@ export function UserAvatar({
           src={imageSrc}
           alt={user?.username ?? 'Photo de profil'}
           className="h-full w-full object-cover"
+          loading="lazy"
+          decoding="async"
           onError={() => setFailed(true)}
         />
       ) : (

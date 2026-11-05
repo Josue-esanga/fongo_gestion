@@ -1,111 +1,59 @@
-import { useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
 import { Tag } from 'primereact/tag'
 import { confirmDialog } from 'primereact/confirmdialog'
-import { formationApi, type FormateurPayload } from '@/api/formation'
-import { modulesApi } from '@/api/modules'
-import { usersApi } from '@/api/users'
+import { useAuth } from '@/contexts/AuthContext'
+import { getErrorMessage } from '@/lib/errors'
+import { useFormateurs } from '@/hooks/useFormateurs'
 import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
 import { EmptyState, ErrorState } from '@/components/Feedback'
 import { FormateursSkeleton } from '@/components/Skeletons'
 import { PageHeader } from '@/components/PageHeader'
 import { UserAvatar } from '@/components/UserAvatar'
 import { Icon } from '@/components/Icon'
-import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/contexts/ToastContext'
-import { getErrorMessage } from '@/lib/errors'
 import { lazyNamed } from '@/lib/lazy'
-import type { Formateur, ModuleFormation, User } from '@/types'
+import type { Formateur, ModuleFormation } from '@/types'
 
 const FormateurFormDialog = lazyNamed(
   () => import('./FormateurFormDialog'),
   'FormateurFormDialog',
 )
 
-/**
- * Un utilisateur est proposable comme formateur s'il porte le rôle
- * supplémentaire « formateur » (le super admin possède tous les rôles).
- */
-function isFormateurCandidate(user: User): boolean {
-  if (user.role === 'stagiaire') return false
-  if (user.role === 'super_admin' || user.is_superuser) return true
-  return (user.roles_supplementaires ?? []).includes('formateur')
-}
-
 export function FormateursPage() {
-  const { showToast } = useToast()
-  // L'écriture reste réservée au super administrateur.
   const { isSuperAdmin } = useAuth()
-  const queryClient = useQueryClient()
-  const [dialogVisible, setDialogVisible] = useState(false)
-  const [editing, setEditing] = useState<Formateur | null>(null)
 
-  const formateursQuery = useQuery({
-    queryKey: ['formateurs'],
-    queryFn: () => formationApi.list(),
-  })
+  const {
+    formateurs,
+    availableUsers,
+    modules,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+    dialogVisible,
+    setDialogVisible,
+    editing,
+    setEditing,
+    handleSubmit,
+    openCreate,
+    openEdit,
+    deleteFormateur,
+    saving,
+  } = useFormateurs()
 
-  const usersQuery = useQuery({
-    queryKey: ['users'],
-    queryFn: () => usersApi.list(),
-  })
+  if (isLoading) return <FormateursSkeleton />
 
-  // Grille pédagogique : utilisée pour l'assignation et l'affichage.
-  const modulesQuery = useQuery({
-    queryKey: ['modules-programme'],
-    queryFn: () => modulesApi.list(),
-  })
-
-  const formateurs = formateursQuery.data ?? []
-  const users = usersQuery.data ?? []
-  const modules = modulesQuery.data ?? []
-
-  const availableUsers = useMemo(() => {
-    const assignedIds = new Set(
-      formateurs
-        .filter((item) => item.id !== editing?.id)
-        .map((item) => item.user.id),
+  if (isError) {
+    return (
+      <ErrorState
+        title="Impossible de charger les formateurs"
+        description={getErrorMessage(error)}
+        onRetry={() => refetch()}
+        retrying={isFetching}
+      />
     )
-    return users.filter(
-      (user) => isFormateurCandidate(user) && !assignedIds.has(user.id),
-    )
-  }, [editing?.id, formateurs, users])
-
-  const createMutation = useMutation({
-    mutationFn: (payload: FormateurPayload) => formationApi.create(payload),
-  })
-  const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: FormateurPayload }) =>
-      formationApi.update(id, payload),
-  })
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => formationApi.remove(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['formateurs'] })
-      showToast('success', 'Formateur retiré', 'Le formateur a été supprimé.')
-    },
-    onError: (error) =>
-      showToast('error', 'Suppression impossible', getErrorMessage(error)),
-  })
-
-  async function handleSubmit(payload: FormateurPayload) {
-    try {
-      if (editing) {
-        await updateMutation.mutateAsync({ id: editing.id, payload })
-        showToast('success', 'Formateur modifié', 'Les informations ont été mises à jour.')
-      } else {
-        await createMutation.mutateAsync(payload)
-        showToast('success', 'Formateur nommé', 'Le formateur a été assigné.')
-      }
-      await queryClient.invalidateQueries({ queryKey: ['formateurs'] })
-      setDialogVisible(false)
-      setEditing(null)
-    } catch (error) {
-      showToast('error', 'Enregistrement impossible', getErrorMessage(error))
-    }
   }
 
   function confirmDelete(formateur: Formateur) {
@@ -116,27 +64,8 @@ export function FormateursPage() {
       acceptLabel: 'Oui, supprimer',
       rejectLabel: 'Annuler',
       acceptClassName: 'p-button-danger',
-      accept: () => deleteMutation.mutate(formateur.id),
+      accept: () => deleteFormateur(formateur.id),
     })
-  }
-
-  if (formateursQuery.isLoading || usersQuery.isLoading) {
-    return <FormateursSkeleton />
-  }
-
-  if (formateursQuery.isError || usersQuery.isError) {
-    const queryError = formateursQuery.error ?? usersQuery.error
-    return (
-      <ErrorState
-        title="Impossible de charger les formateurs"
-        description={getErrorMessage(queryError)}
-        onRetry={() => {
-          void formateursQuery.refetch()
-          void usersQuery.refetch()
-        }}
-        retrying={formateursQuery.isFetching || usersQuery.isFetching}
-      />
-    )
   }
 
   return (
@@ -151,10 +80,7 @@ export function FormateursPage() {
               label="Ajouter un formateur"
               icon="pi pi-plus"
               className="rounded-full px-5"
-              onClick={() => {
-                setEditing(null)
-                setDialogVisible(true)
-              }}
+              onClick={openCreate}
             />
           ) : undefined
         }
@@ -220,7 +146,6 @@ export function FormateursPage() {
                   (module): module is ModuleFormation => module !== undefined,
                 )
               if (modulesAffectes.length !== formateur.modules.length) {
-                // Grille indisponible : on retombe sur le compteur.
                 return (
                   <span className="text-sm text-slate-500">
                     {formateur.modules.length} module
@@ -233,7 +158,7 @@ export function FormateursPage() {
                   {modulesAffectes.map((module) => (
                     <span
                       key={module.id}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-fongo-50 px-2.5 py-1 text-xs font-semibold text-fongo-700"
                     >
                       {module.image ? (
                         <img
@@ -270,10 +195,7 @@ export function FormateursPage() {
                     text
                     severity="info"
                     aria-label="Modifier le formateur"
-                    onClick={() => {
-                      setEditing(formateur)
-                      setDialogVisible(true)
-                    }}
+                    onClick={() => openEdit(formateur)}
                   />
                   <Button
                     icon="pi pi-trash"
@@ -295,7 +217,7 @@ export function FormateursPage() {
           visible={dialogVisible}
           formateur={editing}
           availableUsers={availableUsers}
-          saving={createMutation.isPending || updateMutation.isPending}
+          saving={saving}
           onHide={() => {
             setDialogVisible(false)
             setEditing(null)

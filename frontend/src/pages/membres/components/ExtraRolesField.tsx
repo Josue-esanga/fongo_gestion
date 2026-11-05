@@ -30,7 +30,7 @@ export function ExtraRolesField({
                     key={option.value}
                     className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition ${
                       checked
-                        ? 'border-fongo-700 bg-blue-50'
+                        ? 'border-fongo-700 bg-fongo-50'
                         : 'border-slate-200 bg-white hover:border-slate-300'
                     }`}
                   >

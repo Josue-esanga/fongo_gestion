@@ -1,4 +1,4 @@
-import api from '@/api/client'
+import api, { apiDedup, getKey } from '@/api/client'
 import { unwrap } from '@/api/helpers'
 import type {
   CategoriePaiement,
@@ -36,14 +36,20 @@ export const financeApi = {
    * profils authentifiés (y compris les stagiaires).
    */
   async modulesPaiement(): Promise<ModulePaiement[]> {
-    const { data } = await api.get<ModulePaiement[]>('finance/paiements/modules/')
+    const key = getKey('finance/paiements/modules/')
+    const { data } = await apiDedup(key, () =>
+      api.get<ModulePaiement[]>('finance/paiements/modules/'),
+    )
     return data
   },
 
   async payments(params?: { search?: string; category?: string }): Promise<Paiement[]> {
-    const { data } = await api.get<Paginated<Paiement> | Paiement[]>(
-      'finance/paiements/',
-      { params },
+    const key = getKey('finance/paiements/', params)
+    const { data } = await apiDedup(key, () =>
+      api.get<Paginated<Paiement> | Paiement[]>(
+        'finance/paiements/',
+        { params },
+      ),
     )
     return unwrap(data)
   },
@@ -78,14 +84,20 @@ export const financeApi = {
   },
 
   async students(): Promise<StagiaireFinance[]> {
-    const { data } = await api.get<StagiaireFinance[] | Paginated<StagiaireFinance>>(
-      'finance/students/',
+    const key = getKey('finance/students/')
+    const { data } = await apiDedup(key, () =>
+      api.get<StagiaireFinance[] | Paginated<StagiaireFinance>>(
+        'finance/students/',
+      ),
     )
     return unwrap(data)
   },
 
   async overview(): Promise<FinanceOverview> {
-    const { data } = await api.get<FinanceOverview>('finance/overview/')
+    const key = getKey('finance/overview/')
+    const { data } = await apiDedup(key, () =>
+      api.get<FinanceOverview>('finance/overview/'),
+    )
     return data
   },
 }

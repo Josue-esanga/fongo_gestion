@@ -70,7 +70,7 @@ export function LoginPage() {
               </span>
               <span className="flex flex-col leading-tight">
                 <span className="text-xl font-bold">FongoGestion</span>
-                <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-blue-200">
+                <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-fongo-200">
                   Plateforme de gestion
                 </span>
               </span>
@@ -79,12 +79,12 @@ export function LoginPage() {
             <h1 className="mt-12 max-w-xl text-balance text-5xl font-extrabold leading-[1.1]">
               Pilotez votre club avec clarté.
             </h1>
-            <p className="mt-5 max-w-lg text-base leading-7 text-blue-100">
+            <p className="mt-5 max-w-lg text-base leading-7 text-fongo-100">
               Membres, finances, devoirs, planning et annonces : retrouvez tout
               l’essentiel de la vie du club FongoLab dans un espace unique.
             </p>
 
-            <ul className="mt-8 grid max-w-lg gap-3 text-sm text-blue-50">
+            <ul className="mt-8 grid max-w-lg gap-3 text-sm text-fongo-50">
               {FEATURES.map((feature) => (
                 <li
                   key={feature.label}
@@ -107,7 +107,7 @@ export function LoginPage() {
                 </span>
                 <span className="flex flex-col leading-tight">
                   <span className="text-lg font-bold text-white">FongoGestion</span>
-                  <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-blue-200">
+                  <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-fongo-200">
                     Plateforme de gestion
                   </span>
                 </span>

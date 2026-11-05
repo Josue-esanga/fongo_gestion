@@ -1,17 +1,17 @@
 import type { ReactNode } from 'react'
 import { Button } from 'primereact/button'
-import { ProgressSpinner } from 'primereact/progressspinner'
 import { Icon } from '@/components/Icon'
+import { LoaderDots } from '@/components/LoaderDots'
 
 export function LoadingScreen({ label = 'Chargement…' }: { label?: string }) {
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-slate-500">
-      <ProgressSpinner
-        style={{ width: '44px', height: '44px' }}
-        strokeWidth="4"
-        animationDuration="1s"
-      />
-      <p className="text-sm font-medium">{label}</p>
+    <div
+      className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-slate-500"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="sr-only">{label}</span>
+      <LoaderDots className="text-2xl text-fongo-700" />
     </div>
   )
 }

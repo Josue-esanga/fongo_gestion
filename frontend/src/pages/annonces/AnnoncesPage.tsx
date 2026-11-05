@@ -1,27 +1,19 @@
-import { useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { Tag } from 'primereact/tag'
 import { Button } from 'primereact/button'
 import { InputText } from 'primereact/inputtext'
-import { Tag } from 'primereact/tag'
 import { confirmDialog } from 'primereact/confirmdialog'
-import { annoncesApi, type AnnoncePayload } from '@/api/annonces'
-import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
-import { EmptyState, ErrorState } from '@/components/Feedback'
-import { FongoExpoSession } from '@/components/FongoExpoSession'
-import { AnnoncesSkeleton } from '@/components/Skeletons'
+import { lazyNamed } from '@/lib/lazy'
+import { Icon } from '@/components/Icon'
 import { PageHeader } from '@/components/PageHeader'
 import { UserAvatar } from '@/components/UserAvatar'
-import { Icon } from '@/components/Icon'
+import { FongoExpoSession } from '@/components/FongoExpoSession'
+import { AnnoncesSkeleton } from '@/components/Skeletons'
+import { EmptyState, ErrorState } from '@/components/Feedback'
+import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
+import { useAnnonces } from '@/hooks/useAnnonces'
 import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/contexts/ToastContext'
 import { getErrorMessage } from '@/lib/errors'
-import {
-  formatDateTime,
-  annonceCibleLabel,
-  annonceCibleSeverity,
-  truncateText,
-} from '@/lib/format'
-import { lazyNamed } from '@/lib/lazy'
 import type { Annonce } from '@/types'
 
 const AnnonceFormDialog = lazyNamed(
@@ -30,80 +22,30 @@ const AnnonceFormDialog = lazyNamed(
 )
 
 export function AnnoncesPage() {
-  // La publication relève du super administrateur et des admins «
-  // communication ».
   const { can } = useAuth()
   const canManage = can('annonces')
-  const { showToast } = useToast()
-  const queryClient = useQueryClient()
+
+  const {
+    annonces,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+    search,
+    setSearch,
+    editing,
+    setEditing,
+    handleSubmit,
+    saving,
+    deleteAnnonce,
+    formatDateTime,
+    annonceCibleLabel,
+    annonceCibleSeverity,
+    truncateText,
+  } = useAnnonces()
+
   const [dialogVisible, setDialogVisible] = useState(false)
-  const [editing, setEditing] = useState<Annonce | null>(null)
-  const [search, setSearch] = useState('')
-
-  const { data: annonces = [], isLoading, isError, error, refetch, isFetching } =
-    useQuery({
-      queryKey: ['annonces'],
-      queryFn: () => annoncesApi.list(),
-    })
-
-  const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase()
-    if (!term) return annonces
-    return annonces.filter(
-      (annonce) =>
-        annonce.object.toLowerCase().includes(term) ||
-        annonce.contenu.toLowerCase().includes(term) ||
-        annonce.auteur.full_name.toLowerCase().includes(term),
-    )
-  }, [annonces, search])
-
-  const createMutation = useMutation({
-    mutationFn: (payload: AnnoncePayload) => annoncesApi.create(payload),
-  })
-  const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: AnnoncePayload }) =>
-      annoncesApi.update(id, payload),
-  })
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => annoncesApi.remove(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['annonces'] })
-      void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-      showToast('success', 'Annonce supprimée', "L'annonce a été retirée.")
-    },
-    onError: (error) =>
-      showToast('error', 'Suppression impossible', getErrorMessage(error)),
-  })
-
-  async function handleSubmit(payload: AnnoncePayload) {
-    try {
-      if (editing) {
-        await updateMutation.mutateAsync({ id: editing.id, payload })
-        showToast('success', 'Annonce modifiée', "L'annonce a été mise à jour.")
-      } else {
-        await createMutation.mutateAsync(payload)
-        showToast('success', 'Annonce publiée', "L'annonce est maintenant visible.")
-      }
-      await queryClient.invalidateQueries({ queryKey: ['annonces'] })
-      await queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-      setDialogVisible(false)
-      setEditing(null)
-    } catch (error) {
-      showToast('error', 'Enregistrement impossible', getErrorMessage(error))
-    }
-  }
-
-  function confirmDelete(annonce: Annonce) {
-    confirmDialog({
-      header: "Supprimer l'annonce",
-      message: `Voulez-vous vraiment supprimer « ${annonce.object} » ?`,
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Oui, supprimer',
-      rejectLabel: 'Annuler',
-      acceptClassName: 'p-button-danger',
-      accept: () => deleteMutation.mutate(annonce.id),
-    })
-  }
 
   if (isLoading) return <AnnoncesSkeleton />
 
@@ -116,6 +58,20 @@ export function AnnoncesPage() {
         retrying={isFetching}
       />
     )
+  }
+
+  function confirmDelete(annonce: Annonce) {
+    confirmDialog({
+      header: "Supprimer l'annonce",
+      message: `Voulez-vous vraiment supprimer « ${annonce.object} » ?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Oui, supprimer',
+      rejectLabel: 'Annuler',
+      acceptClassName: 'p-button-danger',
+      accept: () => {
+        deleteAnnonce(annonce.id)
+      },
+    })
   }
 
   return (
@@ -150,7 +106,7 @@ export function AnnoncesPage() {
         }
       />
 
-      {filtered.length === 0 ? (
+      {annonces.length === 0 ? (
         <EmptyState
           icon="pi pi-megaphone"
           title={search ? 'Aucune annonce correspondante' : 'Aucune annonce'}
@@ -164,7 +120,7 @@ export function AnnoncesPage() {
         />
       ) : (
         <div className="space-y-4">
-          {filtered.map((annonce) => (
+          {annonces.map((annonce) => (
             <article
               key={annonce.id}
               className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
@@ -202,10 +158,6 @@ export function AnnoncesPage() {
               </div>
 
               {annonce.template === 'fongo_expo' ? (
-                /* Modèle FongoExpo : l'annonce est rendue en affiche, alimentée
-                   par son contenu (date prévue, objet, extrait du contenu).
-                   Pleine largeur sur mobile (bord à bord de la carte) ;
-                   marge et fond arrondi conservés à partir de `sm`. */
                 <div className="-mx-6 mt-4 overflow-hidden border-y border-slate-100 bg-slate-50 sm:mx-0 sm:rounded-2xl sm:border-0 sm:p-4">
                   <FongoExpoSession
                     dateInfo={`Prévue le ${formatDateTime(annonce.date_prevue)}`}
@@ -254,7 +206,7 @@ export function AnnoncesPage() {
           <AnnonceFormDialog
             visible={dialogVisible}
             annonce={editing}
-            saving={createMutation.isPending || updateMutation.isPending}
+            saving={saving}
             onHide={() => {
               setDialogVisible(false)
               setEditing(null)

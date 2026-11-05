@@ -1,23 +1,19 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
 import { InputText } from 'primereact/inputtext'
 import { Tag } from 'primereact/tag'
 import { confirmDialog } from 'primereact/confirmdialog'
-import { usersApi, type UserPayload } from '@/api/users'
+import { useAuth } from '@/contexts/AuthContext'
+import { getErrorMessage } from '@/lib/errors'
+import { useMembres } from '@/hooks/useMembres'
 import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
 import { EmptyState, ErrorState } from '@/components/Feedback'
 import { MembersSkeleton } from '@/components/Skeletons'
 import { PageHeader } from '@/components/PageHeader'
 import { UserAvatar } from '@/components/UserAvatar'
 import { Icon } from '@/components/Icon'
-import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/contexts/ToastContext'
-import { getErrorMessage } from '@/lib/errors'
-import { extraRoleLabel, formatDate, roleLabel } from '@/lib/format'
 import { lazyNamed } from '@/lib/lazy'
 import type { User } from '@/types'
 
@@ -26,137 +22,44 @@ const MemberFormDialog = lazyNamed(
   'MemberFormDialog',
 )
 
-type Filter = 'all' | 'stagiaire' | 'admin'
-
-const FILTERS: Array<{ key: Filter; label: string }> = [
-  { key: 'all', label: 'Tous' },
-  { key: 'stagiaire', label: 'Stagiaires' },
-  { key: 'admin', label: 'Administrateurs' },
-]
-
-function roleSeverity(role: User['role']) {
-  if (role === 'super_admin') return 'warning'
-  if (role === 'admin') return 'info'
-  return 'success'
-}
-
 export function MembersPage() {
-  const queryClient = useQueryClient()
-  const { showToast } = useToast()
-  // Le CRUD des membres est réservé au super administrateur.
   const { isSuperAdmin } = useAuth()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const [filter, setFilter] = useState<Filter>('all')
-  const [search, setSearch] = useState('')
-  const [dialogVisible, setDialogVisible] = useState(false)
-  const [editing, setEditing] = useState<User | null>(null)
 
-  const { data: users = [], isLoading, isError, error, refetch, isFetching } =
-    useQuery({
-      queryKey: ['users'],
-      queryFn: () => usersApi.list(),
-    })
+  const {
+    users: filteredUsers,
+    counts,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+    filter,
+    setFilter,
+    search,
+    setSearch,
+    dialogVisible,
+    setDialogVisible,
+    editing,
+    setEditing,
+    handleSubmit,
+    openCreate,
+    openEdit,
+    deleteUser,
+    deleteMutation,
+    FILTERS,
+    roleSeverity,
+    roleLabel,
+    extraRoleLabel,
+    formatDate,
+  } = useMembres()
 
   useEffect(() => {
-    if (searchParams.get('action') === 'create') {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('action') === 'create') {
       setEditing(null)
       setDialogVisible(true)
-      setSearchParams({}, { replace: true })
     }
-  }, [searchParams, setSearchParams])
-
-  const filteredUsers = useMemo(() => {
-    if (filter === 'all') return users
-    if (filter === 'admin') {
-      return users.filter((user) => user.role === 'admin' || user.role === 'super_admin')
-    }
-    return users.filter((user) => user.role === 'stagiaire')
-  }, [filter, users])
-
-  const counts = useMemo(
-    () => ({
-      all: users.length,
-      stagiaire: users.filter((user) => user.role === 'stagiaire').length,
-      admin: users.filter(
-        (user) => user.role === 'admin' || user.role === 'super_admin',
-      ).length,
-    }),
-    [users],
-  )
-
-  const createMutation = useMutation({
-    mutationFn: ({
-      payload,
-      picture,
-    }: {
-      payload: UserPayload
-      picture: File | null
-    }) => usersApi.create(payload, picture),
-  })
-
-  const updateMutation = useMutation({
-    mutationFn: ({
-      id,
-      payload,
-      picture,
-    }: {
-      id: number
-      payload: UserPayload
-      picture: File | null
-    }) => usersApi.update(id, payload, picture),
-  })
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => usersApi.remove(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['users'] })
-      void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-      showToast('success', 'Membre supprimé', 'Le compte a été supprimé avec succès.')
-    },
-    onError: (error) => {
-      showToast('error', 'Suppression impossible', getErrorMessage(error))
-    },
-  })
-
-  async function handleSubmit(payload: UserPayload, picture: File | null) {
-    try {
-      if (editing) {
-        await updateMutation.mutateAsync({ id: editing.id, payload, picture })
-        showToast('success', 'Membre modifié', 'Les informations ont été mises à jour.')
-      } else {
-        await createMutation.mutateAsync({ payload, picture })
-        showToast('success', 'Membre ajouté', 'Le nouveau compte a été créé.')
-      }
-      await queryClient.invalidateQueries({ queryKey: ['users'] })
-      await queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-      setDialogVisible(false)
-      setEditing(null)
-    } catch (error) {
-      showToast('error', 'Enregistrement impossible', getErrorMessage(error))
-    }
-  }
-
-  function openCreate() {
-    setEditing(null)
-    setDialogVisible(true)
-  }
-
-  function openEdit(user: User) {
-    setEditing(user)
-    setDialogVisible(true)
-  }
-
-  function confirmDelete(user: User) {
-    confirmDialog({
-      header: 'Supprimer le membre',
-      message: `Voulez-vous vraiment supprimer « ${user.username} » ? Cette action est irréversible.`,
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Oui, supprimer',
-      rejectLabel: 'Annuler',
-      acceptClassName: 'p-button-danger',
-      accept: () => deleteMutation.mutate(user.id),
-    })
-  }
+  }, [])
 
   if (isLoading) return <MembersSkeleton />
 
@@ -169,6 +72,18 @@ export function MembersPage() {
         retrying={isFetching}
       />
     )
+  }
+
+  function confirmDelete(user: User) {
+    confirmDialog({
+      header: 'Supprimer le membre',
+      message: `Voulez-vous vraiment supprimer « ${user.username} » ? Cette action est irréversible.`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Oui, supprimer',
+      rejectLabel: 'Annuler',
+      acceptClassName: 'p-button-danger',
+      accept: () => deleteUser(user.id),
+    })
   }
 
   return (
@@ -198,7 +113,6 @@ export function MembersPage() {
           {FILTERS.map((item) => (
             <button type="button"
               key={item.key}
-              
               onClick={() => setFilter(item.key)}
               className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                 filter === item.key
@@ -352,7 +266,7 @@ export function MembersPage() {
         <MemberFormDialog
           visible={dialogVisible}
           member={editing}
-          saving={createMutation.isPending || updateMutation.isPending}
+          saving={deleteMutation.isPending}
           onHide={() => {
             setDialogVisible(false)
             setEditing(null)

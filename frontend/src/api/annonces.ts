@@ -1,4 +1,4 @@
-import api from '@/api/client'
+import api, { apiDedup, getKey } from '@/api/client'
 import { unwrap } from '@/api/helpers'
 import type { Annonce, AnnonceCible, AnnonceTemplate, Paginated } from '@/types'
 
@@ -38,9 +38,12 @@ function toFormData(payload: AnnoncePayload): FormData {
 
 export const annoncesApi = {
   async list(search?: string): Promise<Annonce[]> {
-    const { data } = await api.get<Paginated<Annonce> | Annonce[]>('annonces/', {
-      params: search ? { search } : undefined,
-    })
+    const key = getKey('annonces/', search ? { search } : undefined)
+    const { data } = await apiDedup(key, () =>
+      api.get<Paginated<Annonce> | Annonce[]>('annonces/', {
+        params: search ? { search } : undefined,
+      }),
+    )
     return unwrap(data)
   },
 

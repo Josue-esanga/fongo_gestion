@@ -16,7 +16,7 @@ export function FinanceStats({
       label: 'Total collecté',
       value: formatMoney(totals.total),
       icon: 'pi pi-wallet',
-      accent: 'bg-blue-50 text-fongo-700',
+      accent: 'bg-fongo-50 text-fongo-700',
     },
     {
       label: 'Paiements',
@@ -28,7 +28,7 @@ export function FinanceStats({
       label: 'Stagiaires',
       value: studentCount,
       icon: 'pi pi-users',
-      accent: 'bg-indigo-50 text-indigo-600',
+      accent: 'bg-fongo-100 text-fongo-800',
     },
     {
       label: 'Paiement moyen',

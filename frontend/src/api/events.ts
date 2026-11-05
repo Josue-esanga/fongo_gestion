@@ -1,4 +1,4 @@
-import api from '@/api/client'
+import api, { apiDedup, getKey } from '@/api/client'
 import { unwrap } from '@/api/helpers'
 import type { EventItem, Paginated } from '@/types'
 
@@ -10,9 +10,12 @@ export interface EventPayload {
 
 export const eventsApi = {
   async list(search?: string): Promise<EventItem[]> {
-    const { data } = await api.get<Paginated<EventItem> | EventItem[]>(
-      'planning/events/',
-      { params: search ? { search } : undefined },
+    const key = getKey('planning/events/', search ? { search } : undefined)
+    const { data } = await apiDedup(key, () =>
+      api.get<Paginated<EventItem> | EventItem[]>(
+        'planning/events/',
+        { params: search ? { search } : undefined },
+      ),
     )
     return unwrap(data)
   },

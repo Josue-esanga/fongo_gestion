@@ -106,7 +106,7 @@ export function LumicashPayCard() {
   return (
     <section
       id="lumicash"
-      className="overflow-hidden rounded-3xl border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-indigo-50 shadow-sm scroll-mt-24"
+      className="overflow-hidden rounded-3xl border border-fongo-200 bg-gradient-to-br from-fongo-50 via-white to-fongo-50 shadow-sm scroll-mt-24"
     >
       <div className="grid gap-6 p-6 lg:grid-cols-[1.15fr_1fr] lg:items-center">
         <div className="min-w-0 space-y-3">
@@ -123,7 +123,7 @@ export function LumicashPayCard() {
             validation d'un caissier. Aucune donnée bancaire n'est demandée.
           </p>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-fongo-200 bg-white p-4 shadow-sm">
             <div className="min-w-0">
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
                 Numéro {LUMICASH_LABEL} du club

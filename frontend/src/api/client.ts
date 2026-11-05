@@ -1,5 +1,6 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { tokenStorage } from '@/lib/storage'
+import { dedupRequest, getKey, writeKey } from '@/lib/requestDedup'
 
 // `VITE_API_URL` peut être défini mais vide (cf. `.env.example`) : dans ce cas
 // on retombe sur le proxy Vite `/api` au lieu d'envoyer les requêtes à la racine
@@ -86,5 +87,21 @@ api.interceptors.response.use(
     return Promise.reject(error)
   },
 )
+
+/**
+ * Exécute un appel axios avec déduplication par clé de requête.
+ *
+ * Si une requête avec la même clé est déjà en cours, la promesse existante
+ * est réutilisée au lieu d'en lancer une nouvelle. Cela évite les appels
+ * API en double quand plusieurs composants montent simultanément.
+ *
+ * @param key - Clé unique de la requête (générée avec getKey / writeKey)
+ * @param fn - Fonction qui exécute l'appel axios
+ */
+export async function apiDedup<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  return dedupRequest(key, fn)
+}
+
+export { getKey, writeKey }
 
 export default api

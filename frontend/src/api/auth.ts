@@ -1,4 +1,4 @@
-import api from '@/api/client'
+import api, { apiDedup, getKey } from '@/api/client'
 import type { AuthTokens, User } from '@/types'
 
 export const authApi = {
@@ -8,7 +8,8 @@ export const authApi = {
   },
 
   async me(): Promise<User> {
-    const { data } = await api.get<User>('auth/me/')
+    const key = getKey('auth/me/')
+    const { data } = await apiDedup(key, () => api.get<User>('auth/me/'))
     return data
   },
 

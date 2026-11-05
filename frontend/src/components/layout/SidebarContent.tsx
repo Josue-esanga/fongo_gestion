@@ -29,7 +29,7 @@ export function SidebarContent({
     // tiroir mobile (remplit la place restante sous l'en-tête) : la liste
     // défile et « Se déconnecter » reste épinglé en bas.
     <div className="flex h-full min-h-0 flex-1 flex-col">
-      <nav className="flex-1 space-y-1 overflow-y-auto py-5">
+      <nav className="sidebar-nav flex-1 space-y-1 overflow-y-auto pb-5 pt-8">
         {items.map((item) => {
           const count = item.badge ? (counts[item.badge] ?? 0) : 0
           const isActive =
@@ -48,11 +48,13 @@ export function SidebarContent({
               title={collapsed ? item.label : undefined}
               className={({ isActive: active }) =>
                 [
-                  'group relative mx-3 flex items-center gap-4 rounded-2xl px-4 py-3 text-sm font-semibold transition',
+                  'group relative flex items-center gap-4 px-4 py-3 text-sm font-semibold transition',
                   collapsed ? 'justify-center px-0' : '',
                   active
-                    ? 'bg-white text-fongo-900 shadow-sm'
-                    : 'text-blue-100 hover:bg-white/10 hover:text-white',
+                    ? // Onglet actif : il touche le bord droit de la sidebar pour
+                      // se fondre dans le contenu clair (coins inversés en CSS).
+                      'sidebar-tab z-10 ml-3 rounded-l-full bg-white text-fongo-900'
+                    : 'mx-3 rounded-2xl text-blue-100 hover:bg-white/10 hover:text-white',
                 ].join(' ')
               }
             >

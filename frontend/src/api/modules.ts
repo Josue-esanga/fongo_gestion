@@ -1,4 +1,4 @@
-import api from '@/api/client'
+import api, { apiDedup, getKey } from '@/api/client'
 import { unwrap } from '@/api/helpers'
 import type { ModuleFormation, Paginated } from '@/types'
 
@@ -45,8 +45,11 @@ function requiresMultipart(payload: Partial<ModulePayload>): boolean {
 
 export const modulesApi = {
   async list(): Promise<ModuleFormation[]> {
-    const { data } = await api.get<Paginated<ModuleFormation> | ModuleFormation[]>(
-      'formation/modules/',
+    const key = getKey('formation/modules/')
+    const { data } = await apiDedup(key, () =>
+      api.get<Paginated<ModuleFormation> | ModuleFormation[]>(
+        'formation/modules/',
+      ),
     )
     return unwrap(data)
   },
