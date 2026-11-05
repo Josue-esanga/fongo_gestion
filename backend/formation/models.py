@@ -19,6 +19,9 @@ class Formateur(models.Model):
     matiere = models.CharField(max_length=50)
     bio = models.TextField(max_length=500)
 
+    class Meta:
+        ordering = ("user__username", "id")
+
     def __str__(self):
         return f"Formateur: {self.user.username}"
 

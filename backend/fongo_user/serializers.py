@@ -8,7 +8,26 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 User = get_user_model()
 
 
-class UserCompactSerializer(serializers.ModelSerializer):
+class ExistingPictureMixin:
+    """N'expose pas une photo dont le fichier a disparu du stockage.
+
+    Cela évite que le frontend tente de charger une URL média inexistante
+    (404) et retombe proprement sur les initiales de l'utilisateur.
+    """
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        picture = getattr(instance, "pictures", None)
+        if data.get("pictures") and picture:
+            try:
+                if not picture.storage.exists(picture.name):
+                    data["pictures"] = None
+            except (OSError, ValueError):
+                data["pictures"] = None
+        return data
+
+
+class UserCompactSerializer(ExistingPictureMixin, serializers.ModelSerializer):
     """Représentation légère d'un utilisateur, réutilisée par les autres apps."""
 
     full_name = serializers.SerializerMethodField()
@@ -32,7 +51,7 @@ class UserCompactSerializer(serializers.ModelSerializer):
         return obj.get_full_name() or obj.username
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(ExistingPictureMixin, serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True,
         required=False,
@@ -131,7 +150,7 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
-class ProfileSerializer(serializers.ModelSerializer):
+class ProfileSerializer(ExistingPictureMixin, serializers.ModelSerializer):
     """Mise à jour du profil de l'utilisateur connecté."""
 
     full_name = serializers.SerializerMethodField()
