@@ -86,7 +86,7 @@ export function OptimizedImage({
   }
 
   return (
-    <picture>
+    <picture className="contents">
       {avifSrc && <source srcSet={avifSrc} type="image/avif" />}
       {webpSrc && <source srcSet={webpSrc} type="image/webp" />}
       <img
