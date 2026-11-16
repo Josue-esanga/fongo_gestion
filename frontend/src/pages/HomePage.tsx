@@ -857,8 +857,8 @@ export function HomePage() {
       {/* ------------------------------------------------------------------ */}
       <footer className="mx-1.5 mb-1.5 rounded-[26px] bg-fongo-950 text-fongo-200 sm:mx-2 sm:mb-2 sm:rounded-[34px]">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="sm:col-span-2">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:gap-x-10 lg:grid-cols-4">
+            <div className="col-span-2">
               <Link
                 to="/"
                 className="flex w-fit items-center text-3xl font-black tracking-[-0.045em] text-white"
@@ -905,7 +905,7 @@ export function HomePage() {
                 <li>
                   <a
                     href="mailto:contact@fongolab.com"
-                    className="inline-flex items-center gap-2 transition hover:text-cyan-300"
+                    className="inline-flex min-w-0 items-center gap-2 break-words transition hover:text-cyan-300"
                   >
                     <Icon className="pi pi-envelope text-xs" />
                     contact@fongolab.com
@@ -916,7 +916,7 @@ export function HomePage() {
                     href="https://www.fongolab.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 transition hover:text-cyan-300"
+                    className="inline-flex min-w-0 items-center gap-2 break-words transition hover:text-cyan-300"
                   >
                     <Icon className="pi pi-globe text-xs" />
                     www.fongolab.com

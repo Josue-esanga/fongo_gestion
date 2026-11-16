@@ -29,6 +29,8 @@ env/
 *.log
 db.sqlite3
 staticfiles/
+# Dumps de transfert de base (Supabase)
+backend/.dumps/
 
 # Node / Frontend
 node_modules/
@@ -46,3 +48,9 @@ dist-ssr
 *.swp
 *.swo
 *~
+
+# Base PostgreSQL locale du projet
+.pgdata/
+
+# Logs de développement
+.logs/

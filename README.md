@@ -13,22 +13,60 @@ projet/
 
 ## Démarrage rapide
 
-### 1. Backend
+Le projet fonctionne **uniquement en local** (aucun Docker). Un script démarre
+PostgreSQL, le backend et le frontend en une seule commande :
+
+```bash
+./dev.sh
+```
+
+- Frontend : <http://127.0.0.1:5173>
+- API : <http://127.0.0.1:8000/api/>
+- Swagger : <http://127.0.0.1:8000/api/docs/>
+
+Le script utilise le PostgreSQL déjà démarré sur `127.0.0.1:5432` s'il est
+accessible ; sinon il initialise et démarre un cluster local dans
+`backend/.pgdata`. La base `Fongo_gestion_db` et son rôle sont créés
+automatiquement si besoin.
+`Ctrl+C` arrête le backend et le frontend ; PostgreSQL reste démarré.
+
+La configuration de la base peut être surchargée par variables d'environnement
+(voir `backend/Fongo_Gestion/settings.py`) :
+
+| Variable      | Valeur par défaut | Description                          |
+| ------------- | ----------------- | ------------------------------------ |
+| `DB_NAME`     | `Fongo_gestion_db`| Nom de la base                        |
+| `DB_USER`     | `postgres`        | Utilisateur PostgreSQL                |
+| `DB_PASSWORD` | `josue@esanga1`   | Mot de passe                          |
+| `DB_HOST`     | `127.0.0.1`       | Hôte                                  |
+| `DB_PORT`     | `5432`            | Port                                  |
+| `PGDATA`      | `backend/.pgdata` | Cluster local utilisé en secours      |
+| `DJANGO_TIME_ZONE` | `Africa/Bujumbura` | Fuseau horaire Django             |
+
+### Démarrage manuel
+
+**1. PostgreSQL** (une seule fois)
+
+```bash
+# Variante cluster local au projet
+cd backend
+/usr/lib/postgresql/*/bin/initdb -D .pgdata -U postgres --auth-local=trust --auth-host=trust
+mkdir -p /tmp/fongo-pg
+/usr/lib/postgresql/*/bin/pg_ctl -D .pgdata -l .pgdata/postgres.log \
+  -o "-p 5432 -c listen_addresses=127.0.0.1 -c unix_socket_directories=/tmp/fongo-pg" start
+psql -h 127.0.0.1 -U postgres -d postgres -c "CREATE DATABASE Fongo_gestion_db OWNER postgres;"
+```
+
+**2. Backend**
 
 ```bash
 cd backend
-source .venv/bin/activate
+source env/bin/activate
+python manage.py migrate
 python manage.py runserver 127.0.0.1:8000
 ```
 
-API : <http://127.0.0.1:8000/api/>
-Swagger : <http://127.0.0.1:8000/api/docs/>
-
-Installation complète : [`backend/README.md`](backend/README.md)
-
-### 2. Frontend
-
-Dans un second terminal :
+**3. Frontend**
 
 ```bash
 cd frontend
@@ -36,9 +74,8 @@ npm install
 npm run dev
 ```
 
-Application : <http://127.0.0.1:5173>
-
-Installation complète : [`frontend/README.md`](frontend/README.md)
+Installation complète : [`backend/README.md`](backend/README.md) et
+[`frontend/README.md`](frontend/README.md).
 
 ## Fonctionnalités
 
@@ -93,15 +130,34 @@ Côté interface :
 
 ## Communication frontend ↔ backend
 
-En développement, Vite redirige `/api`, `/media` et `/static` vers
-`http://127.0.0.1:8000` (voir `frontend/vite.config.ts`). Aucune configuration
-supplémentaire n'est nécessaire.
-
-En production, buildez le frontend (`npm run build`) et servez `frontend/dist`
-via un serveur statique, en définissant `VITE_API_URL` vers l'API déployée.
+Vite redirige `/api`, `/media` et `/static` vers `http://127.0.0.1:8000`
+(voir `frontend/vite.config.ts`). Aucune configuration supplémentaire n'est
+nécessaire : l'application est prévue pour tourner en local.
 
 ## Prérequis
 
 - Python 3.12+
 - Node.js 20+
-- PostgreSQL (configuration dans `backend/Fongo_Gestion/settings.py`)
+- PostgreSQL (binaires installés ; la base locale du projet est gérée par
+  `dev.sh`, aucune configuration système n'est nécessaire)
+
+## Déploiement
+
+Base de données sur **Supabase**, backend et frontend sur **Vercel** :
+le guide complet (connexion, transfert des données, variables
+d'environnement, pièges courants) est dans [`DEPLOY.md`](DEPLOY.md).
+
+Trois outils sont fournis pour les étapes sensibles :
+
+```bash
+cd backend
+
+# Diagnostique étape par étape une connexion (DNS, TCP, SSL, authentification)
+python scripts/check_db.py --url "postgresql://postgres.<ref>:<mdp>@…:5432/postgres?sslmode=require"
+
+# Transfère la base locale vers Supabase (dump SQL portable, vérifié après)
+./scripts/migrate_to_supabase.sh "postgresql://…"
+
+# Transfère les images (avatars, annonces, modules) vers Supabase Storage
+python scripts/upload_media.py
+```

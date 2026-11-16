@@ -31,3 +31,12 @@ djangorestframework-simplejwt==5.5.1
 django-cors-headers==4.9.0
 django-filter==26.2
 drf-spectacular==0.30.0
+
+# --- Production (Vercel / Supabase) ---
+# whitenoise : sert les fichiers collectés (fonctionne aussi en `vercel dev`).
+# python-dotenv : lit `backend/.env` en local (ignoré par git).
+# django-storages + boto3 : uploads vers Supabase Storage (API S3 compatible).
+whitenoise==6.12.0
+python-dotenv==1.2.4
+django-storages==1.14.6
+boto3==1.43.127

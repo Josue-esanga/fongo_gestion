@@ -12,21 +12,67 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 from pathlib import Path
+from urllib.parse import parse_qs, unquote, urlparse
+
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Charge les variables locales (fichiers ignorés par git) : les secrets
+# restent hors dépôt tout en étant lisibles en local. `.env.local` est celui
+# qu'écrit `vercel env pull` — lu en premier, il prime donc sur `.env`. Une
+# variable déjà présente dans l'environnement n'est jamais écrasée : `dev.sh`
+# exporte `DB_*`, ces valeurs restent prioritaires sur les fichiers.
+load_dotenv(BASE_DIR / '.env.local')
+load_dotenv(BASE_DIR / '.env')
+
+
+def _env_bool(name, default=False):
+    """Lit un booléen depuis l'environnement (1 / true / yes / on)."""
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in ('1', 'true', 'yes', 'on')
+
+
+def _env_list(name, default=''):
+    """Lit une liste séparée par des virgules depuis l'environnement."""
+    value = os.environ.get(name, default)
+    return [item.strip() for item in value.split(',') if item.strip()]
+
+
+def _env_int(name, default=0):
+    """Lit un entier depuis l'environnement (valeur invalide = défaut)."""
+    try:
+        return int(os.environ.get(name, default))
+    except (TypeError, ValueError):
+        return default
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-egy%z6*zz75pxo-896*4@&c2fo&9jz-=*h9+w60u+dv8524i6t'
+# La clé ci-dessous sert uniquement au développement local. En production
+# (Vercel), définir SECRET_KEY dans les variables d'environnement du projet.
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-egy%z6*zz75pxo-896*4@&c2fo&9jz-=*h9+w60u+dv8524i6t',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Local : True par défaut. Sur Vercel : définir DEBUG=False.
+DEBUG = _env_bool('DEBUG', True)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+# Hôtes autorisés, séparés par des virgules (variable ALLOWED_HOSTS sur Vercel).
+ALLOWED_HOSTS = _env_list('ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1]')
+
+# Vercel définit `VERCEL=1` pendant l'exécution de la fonction : on autorise
+# alors les sous-domaines *.vercel.app du projet (le préfixe '.' matche tous
+# les sous-domaines, cf. validate_host de Django).
+if os.environ.get('VERCEL'):
+    ALLOWED_HOSTS += ['.vercel.app']
 
 
 # Application definition
@@ -38,6 +84,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Générateur de stockage distant (Supabase Storage via l'API S3) —
+    # n'intervient que si SUPABASE_S3_* est renseigné (cf. MEDIA_ROOT).
+    'storages',
     # --- API REST ---
     'rest_framework',
     'rest_framework_simplejwt',
@@ -56,7 +105,11 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # WhiteNoise doit suivre immédiatement SecurityMiddleware (doc) : il sert
+    # les fichiers collectés par `collectstatic` — Vercel lance celui-ci
+    # automatiquement au build et diffuse ensuite le tout depuis son CDN.
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -95,16 +148,85 @@ WSGI_APPLICATION = 'Fongo_Gestion.wsgi.application'
 # Toutes les valeurs peuvent être surchargées par variables d'environnement
 # (voir `../dev.sh`), ce qui permet de lancer le projet sur une autre machine
 # sans modifier ce fichier.
-DATABASES = {
-    'default': {
+#
+# Deux modes de configuration :
+#   1. `DATABASE_URL` — chaîne de connexion Postgres, format Supabase.
+#      C'est la variable que Vercel injecte automatiquement dès qu'une base de
+#      données est connectée au projet (`vercel env pull` la récupère en local).
+#   2. `DB_NAME` / `DB_USER` / `DB_PASSWORD` / `DB_HOST` / `DB_PORT` —
+#      variables séparées, utilisées en local (exportées par `dev.sh`).
+#
+# Variables complémentaires :
+#   DB_SSLMODE      sslmode imposé (defaut : `require` dès que l'hôte n'est pas
+#                   local, `prefer` sinon — Supabase impose le chiffrement).
+#   DB_CONN_MAX_AGE durée de vie d'une connexion réutilisée, en secondes
+#                   (defaut 0 : recommandé côté serveurless Vercel).
+
+# Hôtes PostgreSQL considérés comme « local » (aucun SSL imposé).
+_LOCAL_DB_HOSTS = {'127.0.0.1', 'localhost', '::1', ''}
+
+
+def _database_from_url(url):
+    """Traduit une URL Postgres (ex. Supabase) en configuration Django."""
+    parsed = urlparse(url)
+    query = parse_qs(parsed.query)
+    options = {}
+
+    sslmode = query.get('sslmode', [None])[0] or os.environ.get('DB_SSLMODE')
+    if sslmode:
+        options['sslmode'] = sslmode
+    channel_binding = query.get('channel_binding', [None])[0]
+    if channel_binding:
+        options['channel_binding'] = channel_binding
+
+    port = parsed.port or 5432
+    config = {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'Fongo_gestion_db'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'josue@esanga1'),
-        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+        'NAME': unquote(parsed.path.lstrip('/')) or 'postgres',
+        # `unquote` est indispensable : un mot de passe comme `josue@esanga1`
+        # doit être encodé `%40` dans l'URL, sinon urlparse le restitue cru et
+        # PostgreSQL rejette l'authentification.
+        'USER': unquote(parsed.username or '') or 'postgres',
+        'PASSWORD': unquote(parsed.password or ''),
+        'HOST': parsed.hostname or '',
+        'PORT': port,
+        'CONN_MAX_AGE': _env_int('DB_CONN_MAX_AGE', 0),
+        'OPTIONS': options,
     }
-}
+    # Port 6543 = « transaction pooler » Supabase (pgbouncer) : les curseurs
+    # côté serveur n'existent pas dans ce mode, Django doit les désactiver.
+    if port == 6543:
+        config['DISABLE_SERVER_SIDE_CURSORS'] = True
+    return {'default': config}
+
+
+def _database_from_env():
+    """Configuration par variables séparées (développement local)."""
+    host = os.environ.get('DB_HOST', '127.0.0.1')
+    options = {}
+    # Dès que l'hôte sort du local, on exige SSL : c'est le cas de Supabase.
+    sslmode = os.environ.get('DB_SSLMODE') or (
+        None if host in _LOCAL_DB_HOSTS else 'require'
+    )
+    if sslmode:
+        options['sslmode'] = sslmode
+
+    return {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME', 'Fongo_gestion_db'),
+            'USER': os.environ.get('DB_USER', 'postgres'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', 'josue@esanga1'),
+            'HOST': host,
+            'PORT': os.environ.get('DB_PORT', '5432'),
+            'CONN_MAX_AGE': _env_int('DB_CONN_MAX_AGE', 0),
+            'OPTIONS': options,
+        }
+    }
+
+
+DATABASE_URL = os.environ.get('DATABASE_URL', '').strip()
+DATABASES = _database_from_url(DATABASE_URL) if DATABASE_URL else _database_from_env()
 
 
 # Password validation
@@ -152,7 +274,70 @@ AUTH_USER_MODEL = 'fongo_user.User'
 # Le chemin d'accès vers le dossier static (où les fichiers statiques seront stockés)
 MEDIA_URL = '/media/'
 # Le chemin d'accès vers le dossier media (où les fichiers téléchargés seront stockés)
+# ⚠ Production : le disque de Vercel est en lecture seule et éphémère — un
+# upload (photos de membres, annonces, modules, logo de club) y serait perdu
+# au déploiement suivant. La configuration Supabase Storage ci-dessous bascule
+# ces fichiers sur l'API S3 compatible de Supabase Storage.
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+# ---------------------------------------------------------------------------
+# Stockage des fichiers téléversés — Supabase Storage (API S3 compatible)
+# ---------------------------------------------------------------------------
+# Local : disque classique (MEDIA_ROOT), tant que SUPABASE_S3_* n'est pas
+# renseigné. Sur Vercel : dès que les cinq variables ci-dessous sont présentes,
+# les images partent vers Supabase Storage et sont servies en URL publique
+# stable (pas d'URL signée expirante — indispensable car le frontend ajoute
+# un paramètre `?v=` de cache-busting aux avatars).
+#
+#   SUPABASE_S3_ENDPOINT   https://<ref>.supabase.co/storage/v1/s3
+#   SUPABASE_S3_BUCKET     ex. fongogestion (bucket PUBLIC à créer)
+#   SUPABASE_S3_REGION     région affichée dans Supabase Storage → Settings
+#   SUPABASE_S3_ACCESS_KEY Storage → Settings → S3 compatible API
+#   SUPABASE_S3_SECRET_KEY idem
+#
+# Le domaine public est déduit de l'endpoint (<ref>.supabase.co) ; se
+# surcharge avec SUPABASE_S3_PUBLIC_DOMAIN si le bucket est servi ailleurs.
+
+_s3_endpoint = os.environ.get('SUPABASE_S3_ENDPOINT', '').strip().rstrip('/')
+_s3_bucket = os.environ.get('SUPABASE_S3_BUCKET', '').strip()
+_s3_region = os.environ.get('SUPABASE_S3_REGION', '').strip()
+_s3_access_key = os.environ.get('SUPABASE_S3_ACCESS_KEY', '').strip()
+_s3_secret_key = os.environ.get('SUPABASE_S3_SECRET_KEY', '').strip()
+
+# Activation : configuration complète uniquement (une variable manquante
+# laisserait le stockage sur disque — silencieusement invalide en production).
+if all((_s3_endpoint, _s3_bucket, _s3_region, _s3_access_key, _s3_secret_key)):
+    _s3_public = os.environ.get('SUPABASE_S3_PUBLIC_DOMAIN', '').strip().rstrip('/')
+    if not _s3_public:
+        # https://<ref>.supabase.co/storage/v1/s3 → <ref>.supabase.co
+        _s3_host = _s3_endpoint.split('://', 1)[-1].split('/', 1)[0]
+        _s3_public = f'{_s3_host}/storage/v1/object/public/{_s3_bucket}'
+
+    AWS_S3_ENDPOINT_URL = _s3_endpoint
+    AWS_S3_REGION_NAME = _s3_region
+    AWS_STORAGE_BUCKET_NAME = _s3_bucket
+    AWS_ACCESS_KEY_ID = _s3_access_key
+    AWS_SECRET_ACCESS_KEY = _s3_secret_key
+    AWS_S3_SIGNATURE_VERSION = 's3v4'
+    # Supabase n'accepte que le addressing « path » (…/s3/<bucket>/<clé>).
+    AWS_S3_ADDRESSING_STYLE = 'path'
+    # Pas d'ACL côté Supabase Storage : Django ne doit pas envoyer x-amz-acl.
+    AWS_DEFAULT_ACL = None
+    # N'écrase pas un fichier homonyme (suffixe aléatoire, comme sur disque).
+    AWS_S3_FILE_OVERWRITE = False
+    # URL publiques et stables : le domaine public ci-dessous contourne la
+    # génération d'URL signée (cf. django-storages, branche custom_domain).
+    AWS_QUERYSTRING_AUTH = False
+    AWS_S3_CUSTOM_DOMAIN = _s3_public
+    AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+
+    STORAGES = {
+        'default': {'BACKEND': 'storages.backends.s3.S3Storage'},
+        'staticfiles': {
+            'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+        },
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -200,25 +385,47 @@ SPECTACULAR_SETTINGS = {
     'COMPONENT_SPLIT_REQUEST': True,
 }
 
-# Autorise le serveur de développement React (Vite)
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    'http://localhost:4173',
-    'http://127.0.0.1:4173',
-]
+# Autorise le serveur de développement React (Vite) et, en production, le
+# frontend hébergé sur Vercel. Variable séparée par des virgules, ex. :
+#   CORS_ALLOWED_ORIGINS=https://mon-projet.vercel.app
+CORS_ALLOWED_ORIGINS = _env_list(
+    'CORS_ALLOWED_ORIGINS',
+    'http://localhost:5173,http://127.0.0.1:5173,'
+    'http://localhost:4173,http://127.0.0.1:4173',
+)
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-]
+CSRF_TRUSTED_ORIGINS = _env_list(
+    'CSRF_TRUSTED_ORIGINS',
+    'http://localhost:5173,http://127.0.0.1:5173',
+)
 
 # Force la suppression du cookie de session dès que le navigateur est fermé
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Supprime la session en base de données dès que l'utilisateur se déconnecte (par défaut à True)
 SESSION_SAVE_EVERY_REQUEST = True
+
+# ---------------------------------------------------------------------------
+# Production (Vercel)
+# ---------------------------------------------------------------------------
+# Vercel termine les requêtes en HTTPS puis les relaie en HTTP vers la
+# fonction : sans cet en-tête, Django croirait être en HTTP et refuserait les
+# cookies sécurisés (admin, CSRF).
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+if not DEBUG:
+    # Cookies « Secure » seulement là où HTTPS est réellement garanti : sur
+    # Vercel (`VERCEL=1`), sinon un test local en `DEBUG=False` sur http
+    # resterait utilisable. Surchargeables par variable d'environnement.
+    _on_vercel = bool(os.environ.get('VERCEL'))
+    SESSION_COOKIE_SECURE = _env_bool('SESSION_COOKIE_SECURE', _on_vercel)
+    CSRF_COOKIE_SECURE = _env_bool('CSRF_COOKIE_SECURE', _on_vercel)
+    # HSTS off par defaut : à actiquer après vérification du domaine
+    # personnalisé, ex. SECURE_HSTS_SECONDS=31536000.
+    SECURE_HSTS_SECONDS = _env_int('SECURE_HSTS_SECONDS', 0)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
+    SECURE_HSTS_PRELOAD = SECURE_HSTS_SECONDS > 0
 
 # STATICFILES_DIRS = [
 #     BASE_DIR / "static",
