@@ -72,7 +72,7 @@ ALLOWED_HOSTS = _env_list('ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1]')
 # alors les sous-domaines *.vercel.app du projet (le préfixe '.' matche tous
 # les sous-domaines, cf. validate_host de Django).
 if os.environ.get('VERCEL'):
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.vercel.app']
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'fongo-gestion.vercel.app']
 
 
 # Application definition
