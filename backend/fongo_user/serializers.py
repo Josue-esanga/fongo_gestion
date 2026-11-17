@@ -1,5 +1,7 @@
 """Serializers de l'application utilisateurs (authentification incluse)."""
 
+import json
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
@@ -94,6 +96,13 @@ class UserSerializer(ExistingPictureMixin, serializers.ModelSerializer):
         return obj.get_full_name() or obj.username
 
     def validate_roles_supplementaires(self, value):
+        if isinstance(value, str):
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError as exc:
+                raise serializers.ValidationError(
+                    "Les rôles supplémentaires doivent être une liste."
+                ) from exc
         allowed = {"formateur", "caissier", "communication"}
         if not isinstance(value, list):
             raise serializers.ValidationError(
