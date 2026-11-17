@@ -14,6 +14,7 @@ import type { User } from '@/types'
 import { ExtraRolesField } from './components/ExtraRolesField'
 import {
   ROLE_OPTIONS,
+  extraRoleOptionsFor,
   memberSchema,
   type MemberFormValues,
 } from './components/memberFormConfig'
@@ -40,6 +41,8 @@ export function MemberFormDialog({
     handleSubmit,
     reset,
     setError,
+    getValues,
+    setValue,
     formState: { errors },
   } = useForm<MemberFormValues>({
     resolver: zodResolver(memberSchema),
@@ -47,7 +50,6 @@ export function MemberFormDialog({
       first_name: '',
       last_name: '',
       username: '',
-      email: '',
       role: 'stagiaire',
       roles_supplementaires: [],
       password: '',
@@ -64,7 +66,6 @@ export function MemberFormDialog({
         first_name: member.first_name ?? '',
         last_name: member.last_name ?? '',
         username: member.username,
-        email: member.email ?? '',
         role: member.role,
         roles_supplementaires: member.roles_supplementaires ?? [],
         password: '',
@@ -74,7 +75,6 @@ export function MemberFormDialog({
         first_name: '',
         last_name: '',
         username: '',
-        email: '',
         role: 'stagiaire',
         roles_supplementaires: [],
         password: '',
@@ -102,13 +102,15 @@ export function MemberFormDialog({
       username: values.username.trim(),
       first_name: values.first_name.trim(),
       last_name: values.last_name.trim(),
-      email: values.email?.trim() || '',
       role: values.role,
     }
     if (isSuperAdmin) {
-      // Les rôles supplémentaires ne valent que pour un admin.
+      // Les rôles supplémentaires ne valent que pour un admin ou un
+      // stagiaire (frontend / backend) ; les autres rôles n'en ont pas.
       payload.roles_supplementaires =
-        values.role === 'admin' ? (values.roles_supplementaires ?? []) : []
+        values.role === 'admin' || values.role === 'stagiaire'
+          ? (values.roles_supplementaires ?? [])
+          : []
     }
     if (values.password) payload.password = values.password
 
@@ -211,43 +213,23 @@ export function MemberFormDialog({
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="mb-1.5 block text-sm font-semibold text-slate-700">
-              Nom d'utilisateur
-            </label>
-            <Controller
-              control={control}
-              name="username"
-              render={({ field }) => (
-                <InputText
-                  {...field}
-                  placeholder="j.muteba"
-                  autoComplete="off"
-                  className={`w-full ${errors.username ? 'p-invalid' : ''}`}
-                />
-              )}
-            />
-            <FieldError message={errors.username?.message} />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-sm font-semibold text-slate-700">
-              Adresse e-mail
-            </label>
-            <Controller
-              control={control}
-              name="email"
-              render={({ field }) => (
-                <InputText
-                  {...field}
-                  type="email"
-                  placeholder="nom@fongolab.com"
-                  className={`w-full ${errors.email ? 'p-invalid' : ''}`}
-                />
-              )}
-            />
-            <FieldError message={errors.email?.message} />
-          </div>
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+            Nom d'utilisateur
+          </label>
+          <Controller
+            control={control}
+            name="username"
+            render={({ field }) => (
+              <InputText
+                {...field}
+                placeholder="j.muteba"
+                autoComplete="off"
+                className={`w-full ${errors.username ? 'p-invalid' : ''}`}
+              />
+            )}
+          />
+          <FieldError message={errors.username?.message} />
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -262,7 +244,20 @@ export function MemberFormDialog({
                 <Dropdown
                   value={field.value}
                   options={ROLE_OPTIONS}
-                  onChange={(event) => field.onChange(event.value)}
+                  onChange={(event) => {
+                    const nextRole = event.value
+                    // On retire les rôles supplémentaires qui ne sont pas
+                    // attribuables au nouveau rôle principal.
+                    const allowed = extraRoleOptionsFor(nextRole).map(
+                      (option) => option.value,
+                    )
+                    const current = getValues('roles_supplementaires') ?? []
+                    setValue(
+                      'roles_supplementaires',
+                      current.filter((value) => allowed.includes(value)),
+                    )
+                    field.onChange(nextRole)
+                  }}
                   className="w-full"
                 />
               )}
@@ -294,9 +289,7 @@ export function MemberFormDialog({
           </div>
         </div>
 
-        {isSuperAdmin && selectedRole === 'admin' && (
-          <ExtraRolesField control={control} />
-        )}
+        {isSuperAdmin && <ExtraRolesField control={control} role={selectedRole} />}
 
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-slate-700">

@@ -1,29 +1,43 @@
 import { Controller, type Control } from 'react-hook-form'
 import { Checkbox } from 'primereact/checkbox'
-import { EXTRA_ROLE_OPTIONS, type MemberFormValues } from './memberFormConfig'
+import {
+  extraRoleOptionsFor,
+  type MemberFormValues,
+} from './memberFormConfig'
 
 export function ExtraRolesField({
   control,
+  role,
 }: {
   control: Control<MemberFormValues>
+  role: MemberFormValues['role']
 }) {
+  const options = extraRoleOptionsFor(role)
+
+  // Super admin : aucun rôle supplémentaire attribuable.
+  if (options.length === 0) return null
+
+  const hint =
+    role === 'stagiaire'
+      ? 'Un stagiaire peut cumuler un rôle technique qui détermine les devoirs qu’il pourra voir (frontend ou backend).'
+      : 'Un admin peut cumuler un second rôle qui détermine les seules sections qu’il pourra gérer.'
+
   return (
     <div>
       <label className="mb-1.5 block text-sm font-semibold text-slate-700">
         Rôles supplémentaires
       </label>
-      <p className="mb-2 text-xs text-slate-500">
-        Un admin peut cumuler un second rôle qui détermine les seules sections
-        qu'il pourra gérer.
-      </p>
+      <p className="mb-2 text-xs text-slate-500">{hint}</p>
       <Controller
         control={control}
         name="roles_supplementaires"
         render={({ field }) => {
           const selected = field.value ?? []
           return (
-            <div className="grid gap-2 sm:grid-cols-3">
-              {EXTRA_ROLE_OPTIONS.map((option) => {
+            <div
+              className={`grid gap-2 ${options.length > 1 ? 'sm:grid-cols-3' : ''}`}
+            >
+              {options.map((option) => {
                 const checked = selected.includes(option.value)
                 return (
                   <label

@@ -114,7 +114,7 @@ export function FormateursPage() {
                     {formateur.user.full_name}
                   </p>
                   <p className="text-xs text-slate-500">
-                    {formateur.email || "Pas d'email"} · @{formateur.username}
+                    @{formateur.username}
                   </p>
                 </div>
               </div>

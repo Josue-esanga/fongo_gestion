@@ -47,9 +47,6 @@ export function StudentsTable({
                 <p className="font-semibold text-slate-900">
                   {student.full_name}
                 </p>
-                <p className="text-xs text-slate-500">
-                  {student.email || "Pas d'email"}
-                </p>
               </div>
             </div>
           )}

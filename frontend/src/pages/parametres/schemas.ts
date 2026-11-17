@@ -3,7 +3,6 @@ import { z } from 'zod'
 export const profileSchema = z.object({
   first_name: z.string().min(1, 'Le prénom est obligatoire.'),
   last_name: z.string().min(1, 'Le nom est obligatoire.'),
-  email: z.string().email('Adresse e-mail invalide.').or(z.literal('')),
 })
 
 export const passwordSchema = z

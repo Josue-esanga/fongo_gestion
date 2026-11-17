@@ -48,6 +48,10 @@ export function extraRoleLabel(code?: string): string {
       return 'Caissier'
     case 'communication':
       return 'Communication'
+    case 'frontend':
+      return 'Frontend'
+    case 'backend':
+      return 'Backend'
     default:
       return code ? String(code) : ''
   }

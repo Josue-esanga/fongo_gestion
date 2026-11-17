@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import dayjs from 'dayjs'
@@ -8,8 +8,9 @@ import { Calendar } from 'primereact/calendar'
 import { Dialog } from 'primereact/dialog'
 import { InputText } from 'primereact/inputtext'
 import { InputTextarea } from 'primereact/inputtextarea'
+import { SelectButton } from 'primereact/selectbutton'
 import type { DevoirPayload } from '@/api/devoirs'
-import type { Devoir } from '@/types'
+import type { Devoir, DevoirCible } from '@/types'
 
 const devoirSchema = z.object({
   title: z.string().min(3, 'Le titre doit contenir au moins 3 caractères.'),
@@ -17,9 +18,17 @@ const devoirSchema = z.object({
     .string()
     .min(5, 'La description doit contenir au moins 5 caractères.'),
   limit_date: z.date({ message: 'La date limite est obligatoire.' }),
+  cible: z.enum(['tous', 'frontend', 'backend']),
 })
 
 type DevoirFormValues = z.infer<typeof devoirSchema>
+
+/** Publics visibles dans le formulaire de création / modification. */
+const CIBLE_OPTIONS: Array<{ label: string; value: DevoirCible }> = [
+  { label: 'Tous les stagiaires', value: 'tous' },
+  { label: 'Frontend', value: 'frontend' },
+  { label: 'Backend', value: 'backend' },
+]
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null
@@ -50,8 +59,10 @@ export function DevoirFormDialog({
       title: '',
       description: '',
       limit_date: dayjs().add(7, 'day').toDate(),
+      cible: 'tous',
     },
   })
+  const watchCible = useWatch({ control, name: 'cible' })
 
   useEffect(() => {
     if (!visible) return
@@ -61,6 +72,7 @@ export function DevoirFormDialog({
       limit_date: devoir?.limit_date
         ? dayjs(devoir.limit_date).toDate()
         : dayjs().add(7, 'day').toDate(),
+      cible: devoir?.cible ?? 'tous',
     })
   }, [devoir, reset, visible])
 
@@ -69,6 +81,7 @@ export function DevoirFormDialog({
       title: values.title.trim(),
       description: values.description.trim(),
       limit_date: values.limit_date.toISOString(),
+      cible: values.cible,
     })
   }
 
@@ -162,6 +175,33 @@ export function DevoirFormDialog({
             )}
           />
           <FieldError message={errors.limit_date?.message} />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+            Destinataires
+          </label>
+          <Controller
+            control={control}
+            name="cible"
+            render={({ field }) => (
+              <SelectButton
+                value={field.value}
+                options={CIBLE_OPTIONS}
+                onChange={(event) =>
+                  field.onChange(event.value ?? 'tous')
+                }
+                allowEmpty={false}
+                className="w-full"
+              />
+            )}
+          />
+          <p className="mt-1.5 text-xs text-slate-500">
+            {watchCible === 'tous'
+              ? 'Le devoir apparaît chez tous les stagiaires.'
+              : `Seuls les stagiaires dont le rôle supplémentaire est « ${watchCible} » verront ce devoir.`}
+          </p>
+          <FieldError message={errors.cible?.message} />
         </div>
       </form>
     </Dialog>

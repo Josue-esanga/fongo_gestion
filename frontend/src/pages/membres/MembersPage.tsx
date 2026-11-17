@@ -155,7 +155,6 @@ export function MembersPage() {
             'username',
             'first_name',
             'last_name',
-            'email',
             'role',
           ]}
           emptyMessage={
@@ -181,7 +180,7 @@ export function MembersPage() {
                     {user.full_name || user.username}
                   </p>
                   <p className="text-xs text-slate-500">
-                    {user.email || "Pas d'email"} · @{user.username}
+                    @{user.username}
                   </p>
                 </div>
               </div>

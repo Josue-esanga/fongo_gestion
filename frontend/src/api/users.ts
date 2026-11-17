@@ -7,7 +7,6 @@ export interface UserPayload {
   password?: string
   first_name?: string
   last_name?: string
-  email?: string
   role?: Role
   /** Rôles supplémentaires d'un admin (super admin uniquement). */
   roles_supplementaires?: RoleSupplementaire[]

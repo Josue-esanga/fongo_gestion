@@ -105,6 +105,12 @@ export function DevoirsPage() {
                       value={devoir.is_expired ? 'Échéance dépassée' : 'En cours'}
                       severity={devoir.is_expired ? 'danger' : 'success'}
                     />
+                    <Tag
+                      value={devoir.cible_display ?? 'Tous les stagiaires'}
+                      severity={
+                        devoir.cible === 'tous' ? 'secondary' : 'info'
+                      }
+                    />
                     <span className="text-xs text-slate-500">
                       Publié le {formatDateTime(devoir.created_at)}
                     </span>

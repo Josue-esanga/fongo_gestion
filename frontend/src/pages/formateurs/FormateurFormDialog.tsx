@@ -56,7 +56,7 @@ export function FormateurFormDialog({
 
   const options = useMemo(() => {
     const list = availableUsers.map((user) => ({
-      label: `${user.full_name || user.username} (${user.email || user.username})`,
+      label: user.full_name || user.username,
       value: user.id,
     }))
     if (
@@ -64,7 +64,7 @@ export function FormateurFormDialog({
       !list.some((option) => option.value === formateur.user.id)
     ) {
       list.unshift({
-        label: `${formateur.user.full_name} (${formateur.user.email || formateur.user.username})`,
+        label: formateur.user.full_name || formateur.user.username,
         value: formateur.user.id,
       })
     }

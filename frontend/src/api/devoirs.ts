@@ -1,11 +1,13 @@
 import api, { apiDedup, getKey } from '@/api/client'
 import { unwrap } from '@/api/helpers'
-import type { Devoir, Paginated } from '@/types'
+import type { Devoir, DevoirCible, Paginated } from '@/types'
 
 export interface DevoirPayload {
   title: string
   description: string
   limit_date: string
+  /** Public visé : tous les stagiaires, frontend ou backend. */
+  cible: DevoirCible
 }
 
 export const devoirsApi = {

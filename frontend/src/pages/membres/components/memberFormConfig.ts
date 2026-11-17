@@ -7,14 +7,17 @@ export const memberSchema = z.object({
   username: z
     .string()
     .min(3, "Le nom d'utilisateur doit contenir au moins 3 caractères."),
-  email: z
-    .string()
-    .email('Adresse e-mail invalide.')
-    .or(z.literal(''))
-    .optional(),
   role: z.enum(['super_admin', 'admin', 'stagiaire']),
   roles_supplementaires: z
-    .array(z.enum(['formateur', 'caissier', 'communication']))
+    .array(
+      z.enum([
+        'formateur',
+        'caissier',
+        'communication',
+        'frontend',
+        'backend',
+      ]),
+    )
     .optional(),
   password: z.string().optional(),
 })
@@ -41,3 +44,29 @@ export const EXTRA_ROLE_OPTIONS: Array<{
     hint: 'Publication des annonces',
   },
 ]
+
+// Rôles attribuables à un stagiaire : ils déterminent les devoirs visibles
+// (un devoir ciblé « backend » n'apparaît pas chez un stagiaire frontend).
+export const STAGIAIRE_EXTRA_ROLE_OPTIONS: Array<{
+  label: string
+  value: RoleSupplementaire
+  hint: string
+}> = [
+  {
+    label: 'Frontend',
+    value: 'frontend',
+    hint: 'Devoirs réservés aux stagiaires frontend',
+  },
+  {
+    label: 'Backend',
+    value: 'backend',
+    hint: 'Devoirs réservés aux stagiaires backend',
+  },
+]
+
+/** Options de rôles supplémentaires selon le rôle principal choisi. */
+export function extraRoleOptionsFor(role: Role): typeof EXTRA_ROLE_OPTIONS {
+  if (role === 'admin') return EXTRA_ROLE_OPTIONS
+  if (role === 'stagiaire') return STAGIAIRE_EXTRA_ROLE_OPTIONS
+  return []
+}

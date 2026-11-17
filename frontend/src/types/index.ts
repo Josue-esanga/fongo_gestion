@@ -1,7 +1,20 @@
 export type Role = 'super_admin' | 'admin' | 'stagiaire'
 
-/** Rôles supplémentaires attribuables à un admin par le super administrateur. */
-export type RoleSupplementaire = 'formateur' | 'caissier' | 'communication'
+/**
+ * Rôles supplémentaires attribuables :
+ * - à un admin : formateur (devoirs), caissier (finance), communication
+ *   (annonces) ;
+ * - à un stagiaire : frontend ou backend (détermine les devoirs visibles).
+ */
+export type RoleSupplementaire =
+  | 'formateur'
+  | 'caissier'
+  | 'communication'
+  | 'frontend'
+  | 'backend'
+
+/** Public visé par un devoir. */
+export type DevoirCible = 'tous' | 'frontend' | 'backend'
 
 export interface UserLite {
   id: number
@@ -9,7 +22,6 @@ export interface UserLite {
   first_name: string
   last_name: string
   full_name: string
-  email: string
   role: Role
   roles_supplementaires?: RoleSupplementaire[]
   pictures: string | null
@@ -68,6 +80,9 @@ export interface Devoir {
   title: string
   description: string
   limit_date: string
+  cible: DevoirCible
+  /** Libellé lisible du public visé, renvoyé par l'API. */
+  cible_display?: string
   created_at: string
   is_expired: boolean
 }
@@ -191,7 +206,6 @@ export interface Formateur {
   id: number
   user: UserLite
   username: string
-  email: string
   pictures: string | null
   matiere: string
   bio: string

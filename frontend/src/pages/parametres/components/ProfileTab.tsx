@@ -34,7 +34,6 @@ export function ProfileTab({
     defaultValues: {
       first_name: user.first_name ?? '',
       last_name: user.last_name ?? '',
-      email: user.email ?? '',
     },
   })
 
@@ -42,7 +41,6 @@ export function ProfileTab({
     form.reset({
       first_name: user.first_name ?? '',
       last_name: user.last_name ?? '',
-      email: user.email ?? '',
     })
   }, [form, user])
 
@@ -86,7 +84,6 @@ export function ProfileTab({
             {
               first_name: values?.first_name.trim() ?? '',
               last_name: values?.last_name.trim() ?? '',
-              email: values?.email.trim() ?? '',
             },
             picture,
           )
@@ -241,25 +238,6 @@ export function ProfileTab({
           />
           <FieldError message={form.formState.errors.last_name?.message} />
         </div>
-      </div>
-
-      <div>
-        <label className="mb-1.5 block text-sm font-semibold text-slate-700">
-          Adresse e-mail
-        </label>
-        <Controller
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <InputText
-              {...field}
-              type="email"
-              disabled={isStagiaire}
-              className={`w-full ${form.formState.errors.email ? 'p-invalid' : ''}`}
-            />
-          )}
-        />
-        <FieldError message={form.formState.errors.email?.message} />
       </div>
 
       <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
