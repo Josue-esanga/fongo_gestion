@@ -24,15 +24,28 @@ export function useDevoirs() {
 
   const createMutation = useMutation({
     mutationFn: (payload: DevoirPayload) => devoirsApi.create(payload),
+    onSuccess: (created) => {
+      queryClient.setQueryData<Devoir[]>(['devoirs'], (current = []) => [
+        created,
+        ...current,
+      ])
+    },
   })
   const updateMutation = useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: DevoirPayload }) =>
       devoirsApi.update(id, payload),
+    onSuccess: (updated) => {
+      queryClient.setQueryData<Devoir[]>(['devoirs'], (current = []) =>
+        current.map((devoir) => (devoir.id === updated.id ? updated : devoir)),
+      )
+    },
   })
   const deleteMutation = useMutation({
     mutationFn: (id: number) => devoirsApi.remove(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['devoirs'] })
+    onSuccess: (_data, id) => {
+      queryClient.setQueryData<Devoir[]>(['devoirs'], (current = []) =>
+        current.filter((devoir) => devoir.id !== id),
+      )
       void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       showToast('success', 'Devoir supprimé', "Le devoir a été retiré de la liste.")
     },
@@ -49,8 +62,7 @@ export function useDevoirs() {
         await createMutation.mutateAsync(payload)
         showToast('success', 'Devoir publié', 'Le devoir est maintenant visible.')
       }
-      await queryClient.invalidateQueries({ queryKey: ['devoirs'] })
-      await queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       setDialogVisible(false)
       setEditing(null)
     } catch (error) {
@@ -87,6 +99,10 @@ export function useDevoirs() {
     createMutation,
     updateMutation,
     deleteDevoir,
+    saving:
+      createMutation.isPending ||
+      updateMutation.isPending ||
+      deleteMutation.isPending,
     openCreate,
     openEdit,
     handleSubmit,

@@ -36,6 +36,7 @@ export function DevoirsPage() {
     openCreate,
     openEdit,
     deleteDevoir,
+    saving,
   } = useDevoirs()
 
   if (isLoading) return <DevoirsSkeleton />
@@ -165,7 +166,7 @@ export function DevoirsPage() {
         <DevoirFormDialog
           visible={dialogVisible}
           devoir={editing}
-          saving={false}
+          saving={saving}
           onHide={() => {
             setDialogVisible(false)
             setEditing(null)
