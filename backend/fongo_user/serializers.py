@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from botocore.exceptions import ClientError
 
 User = get_user_model()
 
@@ -22,7 +23,7 @@ class ExistingPictureMixin:
             try:
                 if not picture.storage.exists(picture.name):
                     data["pictures"] = None
-            except (OSError, ValueError):
+            except (ClientError, OSError, ValueError):
                 data["pictures"] = None
         return data
 
