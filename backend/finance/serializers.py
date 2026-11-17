@@ -123,7 +123,6 @@ class StagiaireFinanceSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "full_name",
-            "email",
             "pictures",
             "total_paye",
             "dernier_paiement",

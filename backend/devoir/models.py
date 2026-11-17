@@ -1,11 +1,46 @@
 from django.db import models
 
-# Create your models here.
+
 class Devoir(models.Model):
+    # Public visé par le devoir : « tous » reste visible par tout le monde,
+    # « frontend » / « backend » ne s'affichent que pour les stagiaires dont
+    # le rôle supplémentaire correspond (voir `devoirs_visibles`).
+    CIBLES = [
+        ("tous", "Tous les stagiaires"),
+        ("frontend", "Stagiaires Frontend"),
+        ("backend", "Stagiaires Backend"),
+    ]
+
     title = models.CharField(max_length=100)
     description = models.TextField()
     limit_date = models.DateTimeField()
+    cible = models.CharField(
+        max_length=20,
+        choices=CIBLES,
+        default="tous",
+        verbose_name="Public visé",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
+
+
+def devoirs_visibles(user):
+    """Devoirs accessibles à l'utilisateur connecté.
+
+    - Administrateurs et super administrateurs : tous les devoirs ;
+    - stagiaires : les devoirs « tous » + ceux correspondant à leurs rôles
+      supplémentaires (frontend / backend) ;
+    - autres utilisateurs : tous les devoirs (lecture ouverte).
+    """
+    queryset = Devoir.objects.all()
+    if not user or not user.is_authenticated:
+        return queryset.none()
+    if user.is_superuser or user.role in ("admin", "super_admin"):
+        return queryset
+    if user.role != "stagiaire":
+        return queryset
+    extras = set(user.roles_supplementaires or [])
+    visibles = {"tous"} | (extras & {"frontend", "backend"})
+    return queryset.filter(cible__in=visibles)

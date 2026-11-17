@@ -43,7 +43,6 @@ class UserCompactSerializer(ExistingPictureMixin, serializers.ModelSerializer):
             "first_name",
             "last_name",
             "full_name",
-            "email",
             "role",
             "roles_supplementaires",
             "pictures",
@@ -76,7 +75,6 @@ class UserSerializer(ExistingPictureMixin, serializers.ModelSerializer):
             "first_name",
             "last_name",
             "full_name",
-            "email",
             "role",
             "role_display",
             "roles_supplementaires",
@@ -87,7 +85,6 @@ class UserSerializer(ExistingPictureMixin, serializers.ModelSerializer):
         )
         read_only_fields = ("id", "date_joined", "role_display", "full_name")
         extra_kwargs = {
-            "email": {"required": False, "allow_blank": True},
             "first_name": {"required": False, "allow_blank": True},
             "last_name": {"required": False, "allow_blank": True},
         }
@@ -103,7 +100,16 @@ class UserSerializer(ExistingPictureMixin, serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "Les rôles supplémentaires doivent être une liste."
                 ) from exc
-        allowed = {"formateur", "caissier", "communication"}
+        # Union des rôles attribuables : admin (formateur/caissier/
+        # communication) et stagiaire (frontend/backend). Le filtrage selon le
+        # rôle principal est fait dans validate().
+        allowed = {
+            "formateur",
+            "caissier",
+            "communication",
+            "frontend",
+            "backend",
+        }
         if not isinstance(value, list):
             raise serializers.ValidationError(
                 "Les rôles supplémentaires doivent être une liste."
@@ -134,9 +140,23 @@ class UserSerializer(ExistingPictureMixin, serializers.ModelSerializer):
                         {protected: "Vous ne pouvez pas modifier ce champ."}
                     )
 
-        # Les rôles supplémentaires ne concernent que les administrateurs.
+        # Les rôles supplémentaires dépendent du rôle principal : un admin
+        # reçoit formateur / caissier / communication, un stagiaire
+        # frontend / backend ; les autres rôles n'en ont pas. Les valeurs
+        # incompatibles avec le rôle sont retirées silencieusement.
         role = attrs.get("role", getattr(self.instance, "role", None))
-        if role != "admin":
+        if "roles_supplementaires" in attrs:
+            value = attrs["roles_supplementaires"] or []
+            if role == "admin":
+                allowed = {"formateur", "caissier", "communication"}
+            elif role == "stagiaire":
+                allowed = {"frontend", "backend"}
+            else:
+                allowed = set()
+            attrs["roles_supplementaires"] = [
+                item for item in value if item in allowed
+            ]
+        elif role not in ("admin", "stagiaire"):
             attrs["roles_supplementaires"] = []
         return attrs
 
@@ -173,7 +193,6 @@ class ProfileSerializer(ExistingPictureMixin, serializers.ModelSerializer):
             "first_name",
             "last_name",
             "full_name",
-            "email",
             "role",
             "roles_supplementaires",
             "pictures",

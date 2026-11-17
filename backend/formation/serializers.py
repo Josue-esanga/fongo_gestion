@@ -96,7 +96,6 @@ class FormateurSerializer(serializers.ModelSerializer):
         required=False,
     )
     username = serializers.CharField(source="user.username", read_only=True)
-    email = serializers.EmailField(source="user.email", read_only=True)
     pictures = serializers.ImageField(source="user.pictures", read_only=True)
 
     class Meta:
@@ -106,7 +105,6 @@ class FormateurSerializer(serializers.ModelSerializer):
             "user",
             "user_id",
             "username",
-            "email",
             "pictures",
             "matiere",
             "bio",

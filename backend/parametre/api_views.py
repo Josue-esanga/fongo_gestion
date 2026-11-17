@@ -12,7 +12,7 @@ from drf_spectacular.utils import extend_schema
 from Fongo_Gestion.permissions import IsAdminOrSuperAdmin
 from Planning.models import Event
 from annonce.models import Annonce
-from devoir.models import Devoir
+from devoir.models import devoirs_visibles
 from finance.models import Ajout_Argent
 from fongo_user.models import User
 
@@ -77,7 +77,9 @@ class DashboardView(APIView):
             },
             "activite": {
                 "annonces": Annonce.objects.count(),
-                "devoirs": Devoir.objects.count(),
+                # Même filtrage que l'API des devoirs : un stagiaire ne voit
+                # que les devoirs qui le concernent (tous / frontend / backend).
+                "devoirs": devoirs_visibles(user).count(),
                 "evenements": Event.objects.count(),
             },
             "dernieres_annonces": [

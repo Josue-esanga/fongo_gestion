@@ -65,13 +65,13 @@ class UserViewSet(viewsets.ModelViewSet):
     """CRUD des utilisateurs.
 
     - `?role=stagiaire|admin|super_admin` filtre par rôle ;
-    - `?search=` recherche par nom / prénom / email / username.
+    - `?search=` recherche par nom / prénom / username.
     """
 
     serializer_class = UserSerializer
     queryset = User.objects.all().order_by("username")
     filterset_fields = ("role", "is_active")
-    search_fields = ("username", "first_name", "last_name", "email")
+    search_fields = ("username", "first_name", "last_name")
     ordering_fields = ("username", "date_joined", "role")
 
     def get_permissions(self):
