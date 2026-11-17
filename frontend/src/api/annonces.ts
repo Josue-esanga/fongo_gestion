@@ -9,9 +9,9 @@ export interface AnnoncePayload {
   cible: AnnonceCible
   /** Date et heure prévues, au format ISO 8601. */
   date_prevue: string
-  /** Modèle d'affichage (« standard » ou « fongo_expo »). */
+  /** Modèle d'affichage (« standard », « fongo_expo » ou « visual »). */
   template: AnnonceTemplate
-  /** Nouvelle image de la carte avant (modèle FongoExpo). */
+  /** Nouvelle image principale ou carte avant (FongoExpo). */
   image1?: File | null
   /** Nouvelle image de la carte arrière (modèle FongoExpo). */
   image2?: File | null

@@ -5,7 +5,7 @@ from fongo_user.models import User
 
 
 class Annonce(models.Model):
-    """Annonce du club, affichée en carte texte ou en affiche FongoExpo."""
+    """Annonce du club, affichée en carte, affiche ou visuel simple."""
 
     CIBLE_CHOICES = [
         ('tous', 'Tout le monde'),
@@ -16,6 +16,7 @@ class Annonce(models.Model):
     TEMPLATE_CHOICES = [
         ('standard', 'Standard (carte texte)'),
         ('fongo_expo', 'FongoExpo session (affiche)'),
+        ('visual', 'Annonce visuelle (image)'),
     ]
 
     object = models.CharField(max_length=100)

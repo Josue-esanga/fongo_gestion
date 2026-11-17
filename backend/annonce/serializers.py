@@ -48,6 +48,19 @@ class AnnonceSerializer(serializers.ModelSerializer):
             "date_prevue": {"required": False},
         }
 
+    def validate(self, attrs):
+        template = attrs.get(
+            "template",
+            getattr(self.instance, "template", "standard"),
+        )
+        image1 = attrs.get("image1", getattr(self.instance, "image1", None))
+        image1_clear = attrs.get("image1_clear", False)
+        if template == "visual" and (not image1 or image1_clear):
+            raise serializers.ValidationError(
+                {"image1": "Une image est obligatoire pour une annonce visuelle."}
+            )
+        return attrs
+
     def _apply_image_clear(self, validated_data):
         """Supprime les images marquées comme retirées par le frontend."""
         for field in ("image1", "image2"):

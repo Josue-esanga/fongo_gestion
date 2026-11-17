@@ -167,6 +167,20 @@ export function AnnoncesPage() {
                     imageBack={annonce.image2}
                   />
                 </div>
+              ) : annonce.template === 'visual' ? (
+                <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                  {annonce.image1 ? (
+                    <img
+                      src={annonce.image1}
+                      alt={annonce.object}
+                      className="max-h-[560px] w-full object-contain"
+                    />
+                  ) : (
+                    <div className="p-6 text-center text-sm text-slate-500">
+                      Image indisponible.
+                    </div>
+                  )}
+                </div>
               ) : (
                 <p className="mt-4 whitespace-pre-line break-words text-sm leading-7 text-slate-600">
                   {annonce.contenu}

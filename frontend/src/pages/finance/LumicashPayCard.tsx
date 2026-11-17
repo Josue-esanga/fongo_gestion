@@ -1,16 +1,20 @@
-import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Button } from 'primereact/button'
-import { Dropdown } from 'primereact/dropdown'
-import { InputNumber } from 'primereact/inputnumber'
-import { InputText } from 'primereact/inputtext'
-import { financeApi } from '@/api/finance'
-import { useToast } from '@/contexts/ToastContext'
-import { getErrorMessage } from '@/lib/errors'
-import { formatMoney } from '@/lib/format'
-import { copyLumicashNumber, LUMICASH_LABEL, LUMICASH_NUMBER } from '@/lib/payment'
-import type { CategoriePaiement } from '@/types'
-import { Icon } from '@/components/Icon'
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button } from "primereact/button";
+import { Dropdown } from "primereact/dropdown";
+import { InputNumber } from "primereact/inputnumber";
+import { InputText } from "primereact/inputtext";
+import { financeApi } from "@/api/finance";
+import { useToast } from "@/contexts/ToastContext";
+import { getErrorMessage } from "@/lib/errors";
+import { formatMoney } from "@/lib/format";
+import {
+  copyLumicashNumber,
+  LUMICASH_LABEL,
+  LUMICASH_NUMBER,
+} from "@/lib/payment";
+import type { CategoriePaiement } from "@/types";
+import { Icon } from "@/components/Icon";
 
 /**
  * Carte « Payer par Lumicash » du stagiaire : le numéro du club s'affiche
@@ -19,81 +23,85 @@ import { Icon } from '@/components/Icon'
  * par un caissier.
  */
 export function LumicashPayCard() {
-  const { showToast } = useToast()
-  const queryClient = useQueryClient()
-  const [montant, setMontant] = useState<number | null>(null)
+  const { showToast } = useToast();
+  const queryClient = useQueryClient();
+  const [montant, setMontant] = useState<number | null>(null);
   // Module choisi (identifiant) ou « autres » pour un frais hors module.
-  const [cible, setCible] = useState<number | 'autres' | null>(null)
-  const [motif, setMotif] = useState('')
+  const [cible, setCible] = useState<number | "autres" | null>(null);
+  const [motif, setMotif] = useState("");
 
   // Même requête (et même cache) que le formulaire du caissier.
   const modulesQuery = useQuery({
-    queryKey: ['paiement-modules'],
+    queryKey: ["paiement-modules"],
     queryFn: financeApi.modulesPaiement,
     staleTime: 5 * 60_000,
-  })
-  const modules = modulesQuery.data ?? []
+  });
+  const modules = modulesQuery.data ?? [];
   const selectedModule =
-    typeof cible === 'number'
+    typeof cible === "number"
       ? modules.find((item) => item.id === cible)
-      : undefined
-  const estAutreFrais = cible === 'autres'
+      : undefined;
+  const estAutreFrais = cible === "autres";
 
   // Les modules sont listés en premier, puis « Autre frais » en dernier.
   const cibleOptions = [
     ...modules,
     {
-      id: 'autres' as const,
-      titre: 'Autre frais',
+      id: "autres" as const,
+      titre: "Autre frais",
       duree: 0,
       ordre: Number.MAX_SAFE_INTEGER,
       image: null,
     },
-  ]
+  ];
 
   const mutation = useMutation({
     mutationFn: () => {
       const category: CategoriePaiement =
-        cible === 'autres' ? 'autres' : 'module'
+        cible === "autres" ? "autres" : "module";
       return financeApi.lumicash({
         montant: montant ?? 0,
         category,
-        module: typeof cible === 'number' ? cible : null,
+        module: typeof cible === "number" ? cible : null,
         description:
-          category === 'module'
+          category === "module"
             ? selectedModule
               ? `Paiement Lumicash - ${selectedModule.titre}`
-              : 'Paiement Lumicash - Module'
+              : "Paiement Lumicash - Module"
             : motif.trim(),
-      })
+      });
     },
     onSuccess: async (paiement) => {
-      setMontant(null)
-      setCible(null)
-      setMotif('')
-      await queryClient.invalidateQueries({ queryKey: ['payments'] })
-      await queryClient.invalidateQueries({ queryKey: ['finance-students'] })
-      await queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      setMontant(null);
+      setCible(null);
+      setMotif("");
+      await queryClient.invalidateQueries({ queryKey: ["payments"] });
+      await queryClient.invalidateQueries({ queryKey: ["finance-students"] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       showToast(
-        'success',
-        'Demande envoyée',
+        "success",
+        "Demande envoyée",
         `Votre versement de ${formatMoney(paiement.montant)} par ${LUMICASH_LABEL} attend la validation du caissier.`,
-      )
+      );
     },
     onError: (error) =>
-      showToast('error', "Envoi de la demande impossible", getErrorMessage(error)),
-  })
+      showToast(
+        "error",
+        "Envoi de la demande impossible",
+        getErrorMessage(error),
+      ),
+  });
 
   async function handleCopy() {
-    const copied = await copyLumicashNumber()
+    const copied = await copyLumicashNumber();
     if (copied) {
       showToast(
-        'info',
-        'Numéro copié',
+        "info",
+        "Numéro copié",
         `${LUMICASH_NUMBER} est dans votre presse-papiers.`,
-      )
+      );
     } else {
-      showToast('info', 'Numéro Lumicash', LUMICASH_NUMBER)
+      showToast("info", "Numéro Lumicash", LUMICASH_NUMBER);
     }
   }
 
@@ -101,14 +109,17 @@ export function LumicashPayCard() {
     Boolean(montant && montant > 0) &&
     cible !== null &&
     (estAutreFrais ? motif.trim().length >= 2 : true) &&
-    !mutation.isPending
+    !mutation.isPending;
 
   return (
     <section
       id="lumicash"
       className="overflow-hidden rounded-3xl border border-fongo-200 bg-gradient-to-br from-fongo-50 via-white to-fongo-50 shadow-sm scroll-mt-24"
     >
-      <div className="grid gap-6 p-6 lg:grid-cols-[1.15fr_1fr] lg:items-center">
+      {/* grid-cols-1 = minmax(0, 1fr) : la colonne ne déborde jamais, même
+          si un contenu (libellé du dropdown) a un min-content plus large que
+          l'écran. min-w-0 sur chaque colonne autorise le rétrécissement. */}
+      <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-center">
         <div className="min-w-0 space-y-3">
           <span className="inline-flex items-center gap-2 rounded-full bg-fongo-900 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-white">
             <Icon className="pi pi-mobile" />
@@ -144,7 +155,7 @@ export function LumicashPayCard() {
           </div>
         </div>
 
-        <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="min-w-0 space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div>
             <label
               htmlFor="lumicash-montant"
@@ -182,20 +193,20 @@ export function LumicashPayCard() {
               filter
               loading={modulesQuery.isLoading}
               onChange={(event) =>
-                setCible((event.value as number | 'autres') ?? null)
+                setCible((event.value as number | "autres") ?? null)
               }
               className="w-full"
               placeholder={
                 modulesQuery.isLoading
-                  ? 'Chargement…'
-                  : 'Choisir un module ou « Autre frais »'
+                  ? "Chargement…"
+                  : "Choisir un module ou « Autre frais »"
               }
               itemTemplate={(option) => {
-                const autreFrais = option.id === 'autres'
+                const autreFrais = option.id === "autres";
                 return (
                   <div
                     className={`flex items-center gap-2 ${
-                      autreFrais ? 'mt-1 border-t border-slate-100 pt-2' : ''
+                      autreFrais ? "mt-1 border-t border-slate-100 pt-2" : ""
                     }`}
                   >
                     {autreFrais ? (
@@ -221,14 +232,14 @@ export function LumicashPayCard() {
                       </p>
                       <p className="text-[11px] text-slate-400">
                         {autreFrais
-                          ? 'Inscription, cotisation, matériel…'
+                          ? "Inscription, cotisation, matériel…"
                           : option.duree > 0
                             ? `${option.duree} h`
-                            : 'Durée à définir'}
+                            : "Durée à définir"}
                       </p>
                     </div>
                   </div>
-                )
+                );
               }}
             />
             <p className="mt-1 text-xs text-slate-400">
@@ -237,8 +248,8 @@ export function LumicashPayCard() {
             </p>
             {modulesQuery.isError && (
               <p className="mt-1 text-xs font-medium text-amber-600">
-                Impossible de charger les modules. Vous pouvez choisir
-                « Autre frais ».
+                Impossible de charger les modules. Vous pouvez choisir « Autre
+                frais ».
               </p>
             )}
           </div>
@@ -276,5 +287,5 @@ export function LumicashPayCard() {
         </div>
       </div>
     </section>
-  )
+  );
 }

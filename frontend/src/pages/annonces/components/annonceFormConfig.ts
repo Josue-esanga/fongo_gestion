@@ -5,7 +5,7 @@ export const annonceSchema = z.object({
   object: z.string().min(3, "L'objet doit contenir au moins 3 caractères."),
   contenu: z.string().min(5, 'Le contenu doit contenir au moins 5 caractères.'),
   cible: z.enum(['tous', 'admins', 'stagiaires']),
-  template: z.enum(['standard', 'fongo_expo']),
+  template: z.enum(['standard', 'fongo_expo', 'visual']),
   date_prevue: z.date({ message: 'La date de prévision est obligatoire.' }),
 })
 
@@ -36,5 +36,11 @@ export const TEMPLATE_OPTIONS: Array<{
     value: 'fongo_expo',
     icon: 'pi pi-images',
     description: "L'affiche bleue avec les cartes mystère.",
+  },
+  {
+    label: 'Annonce visuelle',
+    value: 'visual',
+    icon: 'pi pi-image',
+    description: 'Une image seule, affichée comme visuel principal.',
   },
 ]

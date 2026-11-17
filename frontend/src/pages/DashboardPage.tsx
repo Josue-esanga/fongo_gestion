@@ -244,6 +244,29 @@ export function DashboardPage() {
                         imageBack={annonce.image2}
                       />
                     </>
+                  ) : annonce.template === 'visual' ? (
+                    <>
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                          Annonce visuelle
+                        </span>
+                        <span className="break-words text-xs text-slate-500">
+                          {annonce.auteur__username} ·{' '}
+                          {formatDateTime(annonce.poster_a)}
+                        </span>
+                      </div>
+                      {annonce.image1 ? (
+                        <img
+                          src={annonce.image1}
+                          alt={annonce.object}
+                          className="max-h-96 w-full rounded-xl object-contain"
+                        />
+                      ) : (
+                        <p className="text-sm text-slate-500">
+                          Image indisponible.
+                        </p>
+                      )}
+                    </>
                   ) : (
                     <>
                       <p className="break-words font-semibold text-slate-800">

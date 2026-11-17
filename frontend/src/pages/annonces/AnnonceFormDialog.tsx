@@ -34,6 +34,7 @@ export function AnnonceFormDialog({
   const {
     control,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<AnnonceFormValues>({
     resolver: zodResolver(annonceSchema),
@@ -72,7 +73,19 @@ export function AnnonceFormDialog({
       date_prevue: values.date_prevue.toISOString(),
     }
 
-    if (values.template === 'fongo_expo') {
+    if (values.template === 'fongo_expo' || values.template === 'visual') {
+      if (
+        values.template === 'visual' &&
+        !image1File &&
+        !annonce?.image1 &&
+        !image1Clear
+      ) {
+        setError('template', {
+          type: 'manual',
+          message: "Une image est obligatoire pour une annonce visuelle.",
+        })
+        return
+      }
       payload.image1 = image1File
       payload.image2 = image2File
       if (image1Clear) payload.image1_clear = true

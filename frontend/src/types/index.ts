@@ -38,8 +38,8 @@ export interface AuthTokens {
 /** Public visé par une annonce. */
 export type AnnonceCible = 'tous' | 'admins' | 'stagiaires'
 
-/** Modèle d'affichage d'une annonce (carte texte ou affiche FongoExpo). */
-export type AnnonceTemplate = 'standard' | 'fongo_expo'
+/** Modèle d'affichage d'une annonce. */
+export type AnnonceTemplate = 'standard' | 'fongo_expo' | 'visual'
 
 export interface Annonce {
   id: number
@@ -55,7 +55,7 @@ export interface Annonce {
   template_display?: string
   /** Date et heure auxquelles l'annonce est prévue (ISO 8601). */
   date_prevue: string
-  /** Image de la carte avant de l'affiche FongoExpo (URL). */
+  /** Image principale de l'annonce ou carte avant FongoExpo (URL). */
   image1?: string | null
   /** Image de la carte arrière de l'affiche FongoExpo (URL). */
   image2?: string | null

@@ -55,7 +55,11 @@ export function AnnoncePreview({
           </p>
         </div>
         <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-500 shadow-sm">
-          {template === 'fongo_expo' ? 'Affiche' : 'Carte'}
+          {template === 'fongo_expo'
+            ? 'Affiche'
+            : template === 'visual'
+              ? 'Visuel'
+              : 'Carte'}
         </span>
       </div>
 
@@ -69,6 +73,20 @@ export function AnnoncePreview({
             imageBack={image2Preview}
             minHeight="min-h-[450px]"
           />
+        </div>
+      ) : template === 'visual' ? (
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          {image1Preview ? (
+            <img
+              src={image1Preview}
+              alt={previewObject}
+              className="max-h-[450px] w-full object-contain"
+            />
+          ) : (
+            <div className="flex min-h-[260px] items-center justify-center bg-slate-100 px-6 text-center text-sm text-slate-400">
+              Sélectionnez une image pour prévisualiser votre annonce.
+            </div>
+          )}
         </div>
       ) : (
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">

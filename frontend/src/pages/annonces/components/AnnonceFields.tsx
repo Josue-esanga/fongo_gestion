@@ -142,7 +142,7 @@ export function AnnonceFields({
           control={control}
           name="template"
           render={({ field }) => (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
               {TEMPLATE_OPTIONS.map((option) => {
                 const selected = field.value === option.value
                 return (
@@ -255,6 +255,37 @@ export function AnnonceFields({
               file={image2File}
               onSelect={onSelectImage2}
               onRemove={onRemoveImage2}
+            />
+          </div>
+        </div>
+      )}
+
+      {template === 'visual' && (
+        <div className="rounded-2xl border border-fongo-100 bg-fongo-50/50 p-4">
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-fongo-700 shadow-sm">
+              <Icon className="pi pi-image" />
+            </span>
+            <div>
+              <p className="text-sm font-bold text-slate-800">
+                Image de l'annonce
+              </p>
+              <p className="mt-0.5 text-xs leading-5 text-slate-500">
+                Cette image sera affichée seule dans le fil des annonces.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-3">
+            <AnnonceImageField
+              inputId="annonce-visual-image"
+              label="Visuel principal"
+              hint="Sélectionnez une image pour publier l'annonce."
+              currentUrl={annonce?.image1}
+              cleared={image1Clear}
+              file={image1File}
+              onSelect={onSelectImage1}
+              onRemove={onRemoveImage1}
             />
           </div>
         </div>
