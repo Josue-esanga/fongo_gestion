@@ -20,6 +20,14 @@ const NAV_LINKS = [
   { href: '#communaute', label: 'Communauté' },
 ]
 
+// Le bandeau « inscriptions ouvertes » ne s'affiche que pendant la
+// période de la session : décembre, janvier, février et mars de chaque
+// année (getMonth() est 0-indexé → janvier = 0, décembre = 11).
+const MOIS_BANDEAU_SESSION = [12, 1, 2, 3]
+const BANDEAU_SESSION_VISIBLE = MOIS_BANDEAU_SESSION.includes(
+  new Date().getMonth() + 1,
+)
+
 const STATS = [
   {
     value: '6',
@@ -189,13 +197,15 @@ export function HomePage() {
       {/* ------------------------------------------------------------------ */}
       {/* Navigation                                                          */}
       {/* ------------------------------------------------------------------ */}
-      {/* Bandeau d'annonce */}
-      <div className="px-1.5 pt-1.5 sm:px-2 sm:pt-2">
-        <div className="mx-auto flex h-10 max-w-[1400px] items-center justify-center gap-3 rounded-full bg-fongo-950 px-4 text-center text-[10px] font-semibold text-white sm:text-[11px]">
-          <span className="text-lg leading-none text-cyan-300">✦</span>
-          <p>Nouvelle session · Les inscriptions sont ouvertes chez FongoLab</p>
+      {/* Bandeau d'annonce — visible de décembre à mars inclus */}
+      {BANDEAU_SESSION_VISIBLE && (
+        <div className="px-1.5 pt-1.5 sm:px-2 sm:pt-2">
+          <div className="mx-auto flex h-10 max-w-[1400px] items-center justify-center gap-3 rounded-full bg-fongo-950 px-4 text-center text-[10px] font-semibold text-white sm:text-[11px]">
+            <span className="text-lg leading-none text-cyan-300">✦</span>
+            <p>Nouvelle session · Les inscriptions sont ouvertes chez FongoLab</p>
+          </div>
         </div>
-      </div>
+      )}
 
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl">
         <div className="relative mx-auto flex h-20 max-w-[1400px] items-center justify-between px-4 sm:h-24 sm:px-6">
