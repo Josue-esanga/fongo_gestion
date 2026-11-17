@@ -106,6 +106,18 @@ reçoit que les rôles supplémentaires que le super admin lui attribue (champ
 | Admin sans rôle supplémentaire | lecture | lecture | lecture | lecture | CRUD |
 | Stagiaire | masqué | lecture | lecture | ses propres versements | scan + son statut |
 
+Rôles supplémentaires (champ `roles_supplementaires`, attribués par le super
+admin depuis l'écran « Membres ») :
+
+- **admin** → `formateur` (devoirs), `caissier` (finance), `communication`
+  (annonces) ;
+- **stagiaire** → `frontend` ou `backend` : ces rôles déterminent les devoirs
+  visibles. À la création d'un devoir, on choisit son public (**Tous les
+  stagiaires**, **Frontend** ou **Backend**) ; un devoir ciblé « backend »
+  n'apparaît que chez les stagiaires dont le rôle supplémentaire est
+  `backend` (et réciproquement pour `frontend`), le filtrage étant appliqué
+  côté serveur (API et compteur du tableau de bord).
+
 Côté interface :
 
 - les menus **Membres**, **Planning**, **Formateurs**, **Modules** et
