@@ -104,6 +104,28 @@ export function MaPresenceCard() {
         {badge}
       </div>
 
+      {/* Historique du stagiaire : nombre de présences et d'absences. */}
+      {presence && (
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:max-w-md">
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/80 p-4">
+            <p className="text-2xl font-extrabold leading-none text-emerald-600">
+              {presence.presences ?? 0}
+            </p>
+            <p className="mt-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-700/80">
+              {(presence.presences ?? 0) > 1 ? 'Présences' : 'Présence'}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-rose-100 bg-rose-50/80 p-4">
+            <p className="text-2xl font-extrabold leading-none text-rose-600">
+              {presence.absences ?? 0}
+            </p>
+            <p className="mt-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-rose-700/80">
+              {(presence.absences ?? 0) > 1 ? 'Absences' : 'Absence'}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
         <p className="max-w-2xl text-sm leading-6 text-slate-600">
           {present

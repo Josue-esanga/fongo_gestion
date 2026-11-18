@@ -191,6 +191,19 @@ class MaPresenceView(RetrieveAPIView):
         else:
             libelle = None
 
+        # Historique du stagiaire : nombre de pointages et d'appels manqués.
+        # On ne compte comme absence que les séances à partir de la date
+        # d'inscription (impossible d'être absent avant de s'être inscrit).
+        seances = SeancePresence.objects.filter(date__lte=today)
+        if request.user.date_joined:
+            seances = seances.filter(date__gte=request.user.date_joined.date())
+        presences_total = Presence.objects.filter(
+            stagiaire=request.user
+        ).count()
+        absences_total = seances.exclude(
+            presences__stagiaire=request.user
+        ).count()
+
         payload = {
             'present': presence is not None,
             'horodatage': presence.horodatage if presence else None,
@@ -198,6 +211,8 @@ class MaPresenceView(RetrieveAPIView):
                 seance_ouverte is not None and utils.est_jour_formation()
             ),
             'libelle': libelle,
+            'presences': presences_total,
+            'absences': absences_total,
         }
 
         return Response(MaPresenceSerializer(payload).data)

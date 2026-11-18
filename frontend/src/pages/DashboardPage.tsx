@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import { Button } from 'primereact/button'
-import { Tag } from 'primereact/tag'
 import { ErrorState } from '@/components/Feedback'
 import { DashboardSkeleton } from '@/components/Skeletons'
 import { useAuth } from '@/contexts/AuthContext'
@@ -201,7 +200,7 @@ export function DashboardPage() {
         </section>
       )}
 
-      <section className="grid gap-5 lg:grid-cols-2">
+      <section className="grid gap-5">
         <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-lg font-bold text-slate-900">Dernières annonces</h2>
@@ -282,44 +281,6 @@ export function DashboardPage() {
                       </p>
                     </>
                   )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-900">Prochains événements</h2>
-            {isSuperAdmin && (
-              <Link
-                to="/planning"
-                className="text-xs font-semibold text-fongo-700 hover:underline"
-              >
-                Gérer
-              </Link>
-            )}
-          </div>
-          {data.prochains_evenements.length === 0 ? (
-            <p className="rounded-2xl bg-slate-50 p-5 text-sm text-slate-500">
-              Aucun événement planifié.
-            </p>
-          ) : (
-            <ul className="space-y-3">
-              {data.prochains_evenements.map((event) => (
-                <li
-                  key={event.id}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50/70 p-4"
-                >
-                  <div className="min-w-0">
-                    <p className="break-words font-semibold text-slate-800">
-                      {event.title}
-                    </p>
-                    <p className="mt-1 break-words text-xs text-slate-500">
-                      {formatDateTime(event.date)} · {event.dirigent__username}
-                    </p>
-                  </div>
-                  <Tag value="À venir" severity="info" />
                 </li>
               ))}
             </ul>

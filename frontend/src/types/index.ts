@@ -200,6 +200,10 @@ export interface MaPresence {
   horodatage: string | null
   appel_ouvert: boolean
   libelle: string | null
+  /** Nombre total de pointages du stagiaire (historique). */
+  presences?: number
+  /** Nombre d'appels manqués depuis l'inscription (historique). */
+  absences?: number
 }
 
 export interface Formateur {
@@ -256,12 +260,6 @@ export interface DashboardData {
     /** Image de la carte arrière de l'affiche (URL). */
     image2?: string | null
     auteur__username: string
-  }>
-  prochains_evenements: Array<{
-    id: number
-    title: string
-    date: string
-    dirigent__username: string
   }>
   repartition_roles: Array<{ role: Role; nombre: number }>
 }

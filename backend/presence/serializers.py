@@ -118,9 +118,12 @@ class ScanPresenceSerializer(serializers.Serializer):
 
 
 class MaPresenceSerializer(serializers.Serializer):
-    """Statut du jour pour le stagiaire connecté."""
+    """Statut du jour et historique du stagiaire connecté."""
 
     present = serializers.BooleanField()
     horodatage = serializers.DateTimeField(allow_null=True)
     appel_ouvert = serializers.BooleanField()
     libelle = serializers.CharField(allow_null=True)
+    # Historique : nombre total de pointages et d'appels manqués.
+    presences = serializers.IntegerField()
+    absences = serializers.IntegerField()

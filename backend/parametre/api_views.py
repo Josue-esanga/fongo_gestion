@@ -97,11 +97,6 @@ class DashboardView(APIView):
                 }
                 for annonce in annonces
             ],
-            "prochains_evenements": list(
-                Event.objects.order_by("date").values(
-                    "id", "title", "date", "dirigent__username"
-                )[:3]
-            ),
             "repartition_roles": list(
                 User.objects.values("role").annotate(nombre=Count("id"))
             ),
