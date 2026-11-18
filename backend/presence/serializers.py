@@ -127,3 +127,13 @@ class MaPresenceSerializer(serializers.Serializer):
     # Historique : nombre total de pointages et d'appels manqués.
     presences = serializers.IntegerField()
     absences = serializers.IntegerField()
+
+
+class HistoriquePresenceSerializer(serializers.Serializer):
+    """Une séance d'appel du point de vue du stagiaire connecté."""
+
+    id = serializers.IntegerField()
+    date = serializers.DateField()
+    libelle = serializers.CharField()
+    present = serializers.BooleanField()
+    horodatage = serializers.DateTimeField(allow_null=True)

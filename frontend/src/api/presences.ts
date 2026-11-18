@@ -5,6 +5,7 @@ import type {
   Paginated,
   ParticipantPresence,
   SeancePresence,
+  SeancePresenceStagiaire,
 } from '@/types'
 
 export interface ScanResult extends MaPresence {
@@ -66,6 +67,15 @@ export const presencesApi = {
     const key = getKey('presence/ma-presence/')
     const { data } = await apiDedup(key, () =>
       api.get<MaPresence>('presence/ma-presence/'),
+    )
+    return data
+  },
+
+  /** Historique personnel : ses appels, présenté ou absent. */
+  async historique(): Promise<SeancePresenceStagiaire[]> {
+    const key = getKey('presence/historique/')
+    const { data } = await apiDedup(key, () =>
+      api.get<SeancePresenceStagiaire[]>('presence/historique/'),
     )
     return data
   },

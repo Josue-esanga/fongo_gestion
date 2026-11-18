@@ -25,6 +25,7 @@ from fongo_user.api_views import (
 )
 from parametre.api_views import ConfigurationViewSet, DashboardView
 from presence.api_views import (
+    HistoriquePresenceView,
     MaPresenceView,
     ScannerPresenceView,
     SeancePresenceViewSet,
@@ -53,6 +54,11 @@ urlpatterns = [
         "presence/ma-presence/",
         MaPresenceView.as_view(),
         name="ma_presence",
+    ),
+    path(
+        "presence/historique/",
+        HistoriquePresenceView.as_view(),
+        name="presence_historique",
     ),
     # --- Endpoints transverses ---
     path("dashboard/", DashboardView.as_view(), name="dashboard"),

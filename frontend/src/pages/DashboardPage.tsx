@@ -6,7 +6,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { getErrorMessage } from '@/lib/errors'
 import { formatDateTime, formatMoney, roleLabel, truncateText } from '@/lib/format'
 import { FongoExpoSession } from '@/components/FongoExpoSession'
-import { MaPresenceCard } from '@/pages/presences/MaPresenceCard'
 import { Icon } from '@/components/Icon'
 import { useDashboard } from '@/hooks/useDashboard'
 
@@ -164,9 +163,6 @@ export function DashboardPage() {
           </div>
         </div>
       </section>
-
-      {/* Stagiaire : statut de présence + scan du QR code d'appel. */}
-      {isStagiaire && <MaPresenceCard />}
 
       {(isSuperAdmin || canManageFinance) && (
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

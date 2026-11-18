@@ -9,6 +9,8 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import CreateAPIView, RetrieveAPIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema
 
 from Fongo_Gestion.permissions import IsNonStagiaire, IsStagiaire, IsSuperAdmin
 from fongo_user.models import User
@@ -16,6 +18,7 @@ from fongo_user.models import User
 from . import utils
 from .models import Presence, SeancePresence
 from .serializers import (
+    HistoriquePresenceSerializer,
     MaPresenceSerializer,
     ParticipantPresenceSerializer,
     ScanPresenceSerializer,
@@ -216,3 +219,44 @@ class MaPresenceView(RetrieveAPIView):
         }
 
         return Response(MaPresenceSerializer(payload).data)
+
+
+class HistoriquePresenceView(APIView):
+    """Historique personnel des appels du stagiaire connecté.
+
+    Liste ses séances d'appel depuis sa date d'inscription (jusqu'à
+    aujourd'hui) : pour chacune, le stagiaire est marqué présent (avec
+    l'horodatage du scan) ou absent. Même périmètre que les compteurs
+    ``presences`` / ``absences`` de la carte « Ma présence ».
+    """
+
+    permission_classes = [IsStagiaire]
+
+    @extend_schema(responses=HistoriquePresenceSerializer(many=True))
+    def get(self, request, *args, **kwargs):
+        today = utils.date_du_jour()
+        seances = SeancePresence.objects.filter(date__lte=today)
+        if request.user.date_joined:
+            seances = seances.filter(date__gte=request.user.date_joined.date())
+        seances = seances.order_by('-date', '-id')
+
+        pointages = {
+            pointage.seance_id: pointage
+            for pointage in Presence.objects.filter(stagiaire=request.user)
+        }
+
+        data = [
+            {
+                'id': seance.id,
+                'date': seance.date,
+                'libelle': seance.libelle,
+                'present': seance.id in pointages,
+                'horodatage': (
+                    pointages[seance.id].horodatage
+                    if seance.id in pointages
+                    else None
+                ),
+            }
+            for seance in seances
+        ]
+        return Response(HistoriquePresenceSerializer(data, many=True).data)

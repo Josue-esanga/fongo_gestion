@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { RequireAuth, RequireSection } from '@/components/guards'
+import { RequireAuth, RequireRole, RequireSection } from '@/components/guards'
 import { Layout } from '@/components/layout/Layout'
 import { lazyNamed } from '@/lib/lazy'
 import { registerPrefetch } from '@/lib/routePrefetch'
@@ -54,6 +54,10 @@ registerPrefetch('/modules', loadModulesPage)
 const loadPresencesPage = () => import('@/pages/presences/PresencesPage')
 const PresencesPage = lazyNamed(loadPresencesPage, 'PresencesPage')
 registerPrefetch('/presences', loadPresencesPage)
+
+const loadMesPresencesPage = () => import('@/pages/presences/MesPresencesPage')
+const MesPresencesPage = lazyNamed(loadMesPresencesPage, 'MesPresencesPage')
+registerPrefetch('/mes-presences', loadMesPresencesPage)
 
 const loadParametresPage = () => import('@/pages/parametres/ParametresPage')
 const ParametresPage = lazyNamed(loadParametresPage, 'ParametresPage')
@@ -114,6 +118,14 @@ export function AppRoutes() {
             <RequireSection section="presences">
               <PresencesPage />
             </RequireSection>
+          }
+        />
+        <Route
+          path="/mes-presences"
+          element={
+            <RequireRole roles={['stagiaire']}>
+              <MesPresencesPage />
+            </RequireRole>
           }
         />
         <Route path="/parametres" element={<ParametresPage />} />

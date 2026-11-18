@@ -3,6 +3,8 @@ import type { Capability } from '@/contexts/AuthContext'
 /** Sous-ensemble du contexte utilisé pour filtrer le menu latéral. */
 export interface NavAccess {
   canSee: (capability: Capability) => boolean
+  /** Le profil courant est un stagiaire (options personnelles). */
+  isStagiaire: boolean
 }
 
 /** Compteurs affichés en pastille dans le menu. */
@@ -33,6 +35,12 @@ export const NAV_ITEMS: NavItem[] = [
     visible: ({ canSee }) => canSee('finance'),
   },
   { label: 'Devoirs', to: '/devoirs', icon: 'pi pi-file-edit', badge: 'devoirs' },
+  {
+    label: 'Mes présences',
+    to: '/mes-presences',
+    icon: 'pi pi-calendar-check',
+    visible: ({ isStagiaire }) => isStagiaire,
+  },
   {
     label: 'Planning',
     to: '/planning',

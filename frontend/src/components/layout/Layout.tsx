@@ -15,7 +15,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useSEO } from '@/hooks/useSEO'
 
 export function Layout() {
-  const { canSee, logout } = useAuth()
+  const { canSee, isStagiaire, logout } = useAuth()
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -23,7 +23,10 @@ export function Layout() {
   // Balises SEO dynamiques selon la route (title, description, Open Graph…)
   useSEO()
 
-  const access = useMemo<NavAccess>(() => ({ canSee }), [canSee])
+  const access = useMemo<NavAccess>(
+    () => ({ canSee, isStagiaire }),
+    [canSee, isStagiaire],
+  )
   // Compteurs affichés en pastille dans le menu : même requête (et même cache
   // React Query) que le tableau de bord.
   const { data: dashboard } = useQuery({

@@ -206,6 +206,15 @@ export interface MaPresence {
   absences?: number
 }
 
+/** Une séance d'appel vue par le stagiaire connecté (historique personnel). */
+export interface SeancePresenceStagiaire {
+  id: number
+  date: string
+  libelle: string
+  present: boolean
+  horodatage: string | null
+}
+
 export interface Formateur {
   id: number
   user: UserLite
