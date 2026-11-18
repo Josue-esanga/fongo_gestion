@@ -21,6 +21,7 @@ export function PresencesPage() {
     jours,
     optionsSeances,
     ouverte,
+    appelDuJour,
     seance,
     participants,
     presents,
@@ -87,7 +88,7 @@ export function PresencesPage() {
                 label="Nouvel appel"
                 icon="pi pi-refresh"
                 loading={demarrerMutation.isPending}
-                disabled={estWeekend}
+                disabled={estWeekend || Boolean(appelDuJour)}
                 onClick={() => demarrerMutation.mutate()}
               />
             </div>
@@ -96,7 +97,7 @@ export function PresencesPage() {
               label="Démarrer l'appel"
               icon="pi pi-play"
               loading={demarrerMutation.isPending}
-              disabled={estWeekend}
+              disabled={estWeekend || Boolean(appelDuJour)}
               onClick={() => demarrerMutation.mutate()}
             />
           )
@@ -110,6 +111,17 @@ export function PresencesPage() {
             <strong>Week-end :</strong> la formation a lieu du lundi au vendredi.
             Aucun appel ne peut être démarré et les QR codes ne sont pas
             fonctionnels jusqu'au lundi.
+          </p>
+        </div>
+      )}
+
+      {!estWeekend && appelDuJour && (
+        <div className="flex items-start gap-3 rounded-3xl border border-fongo-200 bg-fongo-50 px-5 py-4 text-sm leading-6 text-fongo-900">
+          <Icon className="pi pi-info-circle mt-0.5 shrink-0" />
+          <p>
+            <strong>Un seul appel par jour :</strong> l'appel d'aujourd'hui («{' '}
+            {appelDuJour.libelle} ») a déjà été lancé. Un nouvel appel sera
+            possible demain.
           </p>
         </div>
       )}
@@ -139,7 +151,7 @@ export function PresencesPage() {
               label="Démarrer l'appel"
               icon="pi pi-play"
               loading={demarrerMutation.isPending}
-              disabled={estWeekend}
+              disabled={estWeekend || Boolean(appelDuJour)}
               onClick={() => demarrerMutation.mutate()}
             />
           }

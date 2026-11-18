@@ -38,7 +38,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     label: 'Mes présences',
     to: '/mes-presences',
-    icon: 'pi pi-calendar-check',
+    icon: 'pi pi-check-circle',
     visible: ({ isStagiaire }) => isStagiaire,
   },
   {

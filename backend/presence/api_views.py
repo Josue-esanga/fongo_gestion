@@ -72,6 +72,19 @@ class SeancePresenceViewSet(viewsets.ModelViewSet):
         # Pas d'appel le week-end.
         if not utils.est_jour_formation():
             raise ValidationError({'detail': utils.message_hors_formation()})
+        # Un seul appel par jour : la journée n'est lancée qu'une fois (pas
+        # de relance qui invaliderait le QR code affiché en classe).
+        aujourd_hui = utils.date_du_jour()
+        deja_lance = SeancePresence.objects.filter(date=aujourd_hui).first()
+        if deja_lance is not None:
+            raise ValidationError(
+                {
+                    'detail': (
+                        "Un seul appel est possible par jour : l'appel du "
+                        f"jour (« {deja_lance.libelle} ») a déjà été lancé."
+                    )
+                }
+            )
         # Un nouvel appel invalide le QR code de l'appel précédent.
         SeancePresence.objects.filter(ouverte=True).update(ouverte=False)
         libelle = (serializer.validated_data.get('libelle') or '').strip()
@@ -82,7 +95,7 @@ class SeancePresenceViewSet(viewsets.ModelViewSet):
         serializer.save(
             libelle=libelle,
             creee_par=self.request.user,
-            date=utils.date_du_jour(),
+            date=aujourd_hui,
         )
 
     @action(detail=True, methods=['post'])

@@ -83,6 +83,10 @@ export function usePresences() {
   const jourActuel = dayjs().day()
   const estWeekend = jourActuel === 0 || jourActuel === 6
 
+  // Règle « un seul appel par jour » : séance déjà lancée aujourd'hui.
+  const appelDuJour =
+    seances.find((item) => dayjs(item.date).isSame(dayjs(), 'day')) ?? null
+
   const seance: SeancePresence | null =
     seancesVisibles.find((s) => s.id === selectedId) ??
     seancesVisibles.find((s) => s.ouverte) ??
@@ -178,6 +182,7 @@ export function usePresences() {
     jours,
     optionsSeances,
     ouverte,
+    appelDuJour,
     seance,
     participants,
     presents,
