@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery } from '@tanstack/react-query'
@@ -9,6 +9,7 @@ import { Dropdown } from 'primereact/dropdown'
 import { InputNumber } from 'primereact/inputnumber'
 import { InputText } from 'primereact/inputtext'
 import { financeApi, type PaiementPayload } from '@/api/finance'
+import { equipesDe } from '@/lib/equipes'
 import type { CategoriePaiement, Paiement, StagiaireFinance } from '@/types'
 import { Icon } from '@/components/Icon'
 
@@ -100,6 +101,47 @@ export function PaymentFormDialog({
     },
   ]
 
+  // Sélection du stagiaire groupée par équipe : Frontend, Backend, puis
+  // Sans équipe (listes bien alignées par équipe).
+  const optionsStagiaires = useMemo(() => {
+    const frontend: StagiaireFinance[] = []
+    const backend: StagiaireFinance[] = []
+    const sans: StagiaireFinance[] = []
+    for (const stagiaire of stagiaires) {
+      const equipes = equipesDe(stagiaire)
+      if (equipes.includes('frontend')) frontend.push(stagiaire)
+      if (equipes.includes('backend')) backend.push(stagiaire)
+      if (equipes.length === 0) sans.push(stagiaire)
+    }
+    return [
+      { label: 'Frontend', items: frontend },
+      { label: 'Backend', items: backend },
+      { label: 'Sans équipe', items: sans },
+    ].filter((groupe) => groupe.items.length > 0)
+  }, [stagiaires])
+
+  /** En-tête de groupe : pastille colorée + compteur (design moderne). */
+  const templateGroupe = (groupe: {
+    label: string
+    items: StagiaireFinance[]
+  }) => (
+    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500">
+      <span
+        className={`h-2 w-2 rounded-full ${
+          groupe.label === 'Frontend'
+            ? 'bg-blue-500'
+            : groupe.label === 'Backend'
+              ? 'bg-amber-500'
+              : 'bg-slate-300'
+        }`}
+      />
+      {groupe.label}
+      <span className="ml-auto rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">
+        {groupe.items.length}
+      </span>
+    </div>
+  )
+
   useEffect(() => {
     if (!visible) return
     if (payment) {
@@ -183,10 +225,14 @@ export function PaymentFormDialog({
               <Dropdown
                 inputId="payment-stagiaire"
                 value={field.value || null}
-                options={stagiaires}
+                options={optionsStagiaires}
+                optionGroupLabel="label"
+                optionGroupChildren="items"
+                optionGroupTemplate={templateGroupe}
                 optionLabel="full_name"
                 optionValue="id"
                 filter
+                filterPlaceholder="Filtrer un stagiaire"
                 placeholder="Sélectionner un stagiaire"
                 onChange={(event) => field.onChange(event.value ?? 0)}
                 className={`w-full ${errors.id_stagiaire ? 'p-invalid' : ''}`}

@@ -5,7 +5,8 @@ import { Tag } from 'primereact/tag'
 import { EmptyState } from '@/components/Feedback'
 import { UserAvatar } from '@/components/UserAvatar'
 import { formatDate, formatMoney } from '@/lib/format'
-import type { RoleSupplementaire, StagiaireFinance } from '@/types'
+import { equipesDe } from '@/lib/equipes'
+import type { StagiaireFinance } from '@/types'
 
 /** Filtre d'équipe : chaque équipe se consulte de son côté. */
 type EquipeFiltre = 'tous' | 'frontend' | 'backend' | 'sans'
@@ -21,14 +22,6 @@ function studentStatus(total: number, target: number) {
   if (total >= target) return { label: 'Complet', severity: 'info' as const }
   if (total > 0) return { label: 'À jour', severity: 'success' as const }
   return { label: 'En retard', severity: 'danger' as const }
-}
-
-/** Équipes du stagiaire : « frontend » et/ou « backend », sinon aucune. */
-function equipesDe(student: StagiaireFinance): RoleSupplementaire[] {
-  const extras = student.roles_supplementaires ?? []
-  return (['frontend', 'backend'] as const).filter((equipe) =>
-    extras.includes(equipe),
-  )
 }
 
 function correspond(student: StagiaireFinance, filtre: EquipeFiltre): boolean {
