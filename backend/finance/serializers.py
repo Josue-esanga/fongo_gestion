@@ -124,6 +124,7 @@ class StagiaireFinanceSerializer(serializers.ModelSerializer):
             "last_name",
             "full_name",
             "pictures",
+            "roles_supplementaires",
             "total_paye",
             "dernier_paiement",
         )
