@@ -46,7 +46,9 @@ async function refreshAccessToken(): Promise<string | null> {
 }
 
 api.interceptors.request.use(async (config) => {
-  const isAuthEndpoint = config.url?.includes('/auth/token')
+  // Relatif (« auth/token/ ») : pas de slash initial, sinon la connexion
+  // serait traitée comme une requête ordinaire.
+  const isAuthEndpoint = (config.url ?? '').includes('auth/token')
   let token = tokenStorage.getAccess()
 
   // Si le jeton d'accès a disparu mais que le refresh token est encore là,
@@ -66,7 +68,7 @@ api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const original = error.config as RetryableConfig | undefined
-    const isAuthEndpoint = original?.url?.includes('/auth/token')
+    const isAuthEndpoint = (original?.url ?? '').includes('auth/token')
 
     if (
       error.response?.status === 401 &&

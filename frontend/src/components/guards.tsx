@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { LoadingScreen } from '@/components/Feedback'
 import { useAuth, type Capability } from '@/contexts/AuthContext'
+import { useToast } from '@/contexts/ToastContext'
 import type { Role } from '@/types'
 
 export function RequireAuth({ children }: { children: ReactNode }) {
@@ -23,6 +24,29 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+/**
+ * Section ouverte à un autre profil : on signale simplement que la page est
+ * indisponible, puis on renvoie vers le tableau de bord. Aucun détail sur les
+ * rôles n'est affiché.
+ */
+function PageUnavailableRedirect() {
+  const { showToast } = useToast()
+  // StrictMode exécute deux fois l'effet : on n'affiche le bandeau qu'une fois.
+  const announced = useRef(false)
+
+  useEffect(() => {
+    if (announced.current) return
+    announced.current = true
+    showToast(
+      'warn',
+      'Page indisponible',
+      "Cette page n'est pas disponible pour votre compte.",
+    )
+  }, [showToast])
+
+  return <Navigate to="/dashboard" replace />
+}
+
 export function RequireRole({
   roles,
   children,
@@ -33,7 +57,7 @@ export function RequireRole({
   const { user } = useAuth()
 
   if (!user || !roles.includes(user.role)) {
-    return <Navigate to="/dashboard" replace />
+    return <PageUnavailableRedirect />
   }
 
   return <>{children}</>
@@ -54,7 +78,7 @@ export function RequireSection({
   const { canSee } = useAuth()
 
   if (!canSee(section)) {
-    return <Navigate to="/dashboard" replace />
+    return <PageUnavailableRedirect />
   }
 
   return <>{children}</>

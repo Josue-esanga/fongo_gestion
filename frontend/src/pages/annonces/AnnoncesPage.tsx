@@ -79,7 +79,11 @@ export function AnnoncesPage() {
       <PageHeader
         eyebrow="Communication"
         title="Annonces"
-        subtitle="Les annonces du club, affichées selon le public visé : tout le monde, les administrateurs ou les stagiaires."
+        subtitle={
+          canManage
+            ? "Rédigez les annonces du club et choisissez le public visé : tout le monde, les administrateurs ou les stagiaires."
+            : "Toutes les annonces du club : informations pratiques, échéances et activités à connaître."
+        }
         actions={
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="relative w-full sm:w-64">

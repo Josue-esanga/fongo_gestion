@@ -68,7 +68,11 @@ export function PlanningPage() {
       <PageHeader
         eyebrow="Vie du club"
         title="Planning"
-        subtitle="Organisez les événements et activités du comité FongoLab, et partagez-les avec les membres."
+        subtitle={
+          isSuperAdmin
+            ? "Organisez les événements et activités du comité FongoLab, et partagez-les avec les membres."
+            : "Consultez les événements et activités du comité FongoLab prévus pour les membres du club."
+        }
         actions={
           isSuperAdmin ? (
             <Button

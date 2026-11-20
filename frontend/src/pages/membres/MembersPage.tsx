@@ -94,7 +94,7 @@ export function MembersPage() {
         subtitle={
           isSuperAdmin
             ? "Créez, filtrez et mettez à jour les comptes des stagiaires et administrateurs du club."
-            : "Consultez les comptes des stagiaires et administrateurs du club."
+            : "Consultez en lecture seule les comptes des stagiaires et administrateurs du club."
         }
         actions={
           isSuperAdmin ? (
@@ -161,7 +161,11 @@ export function MembersPage() {
             <EmptyState
               icon="pi pi-users"
               title="Aucun membre trouvé"
-              description="Modifiez votre recherche ou ajoutez un nouveau membre."
+              description={
+                isSuperAdmin
+                  ? 'Modifiez votre recherche ou ajoutez un nouveau membre.'
+                  : 'Modifiez votre recherche ou vos filtres pour élargir les résultats.'
+              }
             />
           }
           className="text-sm"

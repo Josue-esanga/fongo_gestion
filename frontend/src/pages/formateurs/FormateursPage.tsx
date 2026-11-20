@@ -73,7 +73,11 @@ export function FormateursPage() {
       <PageHeader
         eyebrow="Pédagogie"
         title="Gestion des formateurs"
-        subtitle="Affectez les utilisateurs enregistrés comme formateur aux matières et aux modules enseignés au club."
+        subtitle={
+          isSuperAdmin
+            ? "Affectez les utilisateurs enregistrés comme formateur aux matières et aux modules enseignés au club."
+            : "Consultez les formateurs du club, les matières qu'ils enseignent et les modules qu'ils encadrent."
+        }
         actions={
           isSuperAdmin ? (
             <Button
@@ -97,7 +101,11 @@ export function FormateursPage() {
             <EmptyState
               icon="pi pi-id-card"
               title="Aucun formateur"
-              description="Nommez un premier formateur pour commencer."
+              description={
+                isSuperAdmin
+                  ? 'Nommez un premier formateur pour commencer.'
+                  : "Aucun formateur n'a encore été affecté à une matière ou à un module."
+              }
             />
           }
           scrollable

@@ -3,7 +3,7 @@ import { Tag } from 'primereact/tag'
 import { confirmDialog } from 'primereact/confirmdialog'
 import { useAuth } from '@/contexts/AuthContext'
 import { getErrorMessage } from '@/lib/errors'
-import { formatDateTime } from '@/lib/format'
+import { extraRoleLabel, formatDateTime } from '@/lib/format'
 import { lazyNamed } from '@/lib/lazy'
 import { useDevoirs } from '@/hooks/useDevoirs'
 import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
@@ -18,8 +18,13 @@ const DevoirFormDialog = lazyNamed(
 )
 
 export function DevoirsPage() {
-  const { can } = useAuth()
+  const { can, user } = useAuth()
   const canEditDevoirs = can('devoirs')
+  // Équipe du stagiaire (frontend / backend) : elle détermine les devoirs
+  // qui lui sont destinés.
+  const equipes = (user?.roles_supplementaires ?? []).filter(
+    (code) => code === 'frontend' || code === 'backend',
+  )
 
   const {
     devoirs,
@@ -69,7 +74,11 @@ export function DevoirsPage() {
       <PageHeader
         eyebrow="Pédagogie"
         title="Devoirs"
-        subtitle="Retrouvez les travaux envoyés par les formateurs, leurs consignes et les échéances à respecter."
+        subtitle={
+          canEditDevoirs
+            ? "Rédigez les consignes, publiez les travaux demandés aux stagiaires et suivez les échéances de rendu."
+            : "Retrouvez les travaux demandés par les formateurs, leurs consignes et les échéances à respecter."
+        }
         actions={
           canEditDevoirs ? (
             <Button
@@ -89,7 +98,11 @@ export function DevoirsPage() {
           description={
             canEditDevoirs
               ? 'Publiez un premier devoir pour vos stagiaires.'
-              : "Aucun devoir n'a encore été publié par un formateur."
+              : equipes.length > 0
+                ? `Aucun devoir n'a encore été publié pour votre équipe (${equipes
+                    .map(extraRoleLabel)
+                    .join(' · ')}).`
+                : "Aucun devoir n'a encore été publié par un formateur."
           }
         />
       ) : (
@@ -131,8 +144,12 @@ export function DevoirsPage() {
                   </p>
                   <p className="mt-2 text-xs leading-5 text-slate-500">
                     {devoir.is_expired
-                      ? "La date limite est dépassée. Contactez votre formateur si nécessaire."
-                      : 'Le travail doit être rendu avant cette date.'}
+                      ? canEditDevoirs
+                        ? 'Échéance dépassée : les stagiaires ne peuvent plus rendre ce travail.'
+                        : "La date limite est dépassée. Contactez votre formateur si nécessaire."
+                      : canEditDevoirs
+                        ? 'Date à laquelle le rendu sera fermé pour les stagiaires.'
+                        : 'Le travail doit être rendu avant cette date.'}
                   </p>
 
                   {canEditDevoirs && (

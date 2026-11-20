@@ -7,12 +7,12 @@ export function FinanceAccessDenied() {
       <PageHeader
         eyebrow="Gestion financière"
         title="Finance"
-        subtitle="Suivez les versements des stagiaires, analysez les recettes et gardez une vision claire de la trésorerie du club."
+        subtitle="Les finances du club : versements des stagiaires et suivi de la trésorerie."
       />
       <EmptyState
         icon="pi pi-lock"
-        title="Accès réservé"
-        description="La section Finance est réservée aux caissiers et au super administrateur. Demandez le rôle caissier pour y accéder."
+        title="Page indisponible"
+        description="Cette section n'est pas disponible pour votre compte. Contactez un administrateur si vous pensez qu'il s'agit d'une erreur."
       />
     </div>
   )

@@ -41,7 +41,7 @@ export function describeCameraError(error: unknown): ScanFailure {
     default:
       return {
         message: "Impossible d'activer la caméra.",
-        hint: error instanceof Error ? error.message : undefined,
+        hint: "Vérifiez qu'aucune autre application n'utilise la caméra, autorisez son accès pour ce site, puis réessayez.",
       }
   }
 }

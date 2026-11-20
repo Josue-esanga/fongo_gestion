@@ -47,6 +47,8 @@ function StatCard({
 export function DashboardPage() {
   const { can, isSuperAdmin, isStagiaire } = useAuth()
   const canManageFinance = can('finance')
+  const canManageDevoirs = can('devoirs')
+  const canManageAnnonces = can('annonces')
   const { data, isLoading, isError, error, refetch, isFetching } = useDashboard()
 
   if (isLoading) return <DashboardSkeleton />
@@ -67,6 +69,16 @@ export function DashboardPage() {
     0,
   )
 
+  // Un admin ne gère que les sections couvertes par ses rôles
+  // supplémentaires : on lui annonce précisément ce qu'il peut faire.
+  const adminPrivileges: string[] = []
+  if (canManageDevoirs) adminPrivileges.push('publier et modifier les devoirs')
+  if (canManageFinance) adminPrivileges.push('enregistrer et valider les versements')
+  if (canManageAnnonces) adminPrivileges.push('publier les annonces du club')
+  const adminParagraph = adminPrivileges.length
+    ? ` Vous pouvez ${adminPrivileges.join(', et ')}.`
+    : ' La modification de ces sections reste réservée au super administrateur.'
+
   return (
     <div className="space-y-7 animate-fade-in-up">
       <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-br from-white via-fongo-50/60 to-fongo-50 p-6 shadow-sm sm:p-9">
@@ -83,7 +95,9 @@ export function DashboardPage() {
             <p className="max-w-2xl break-words text-sm leading-7 text-slate-600 sm:text-base">
               {isSuperAdmin
                 ? "Gérez vos stagiaires, vos finances et l'ensemble des activités du comité FongoLab avec une interface claire et moderne."
-                : 'Consultez vos paiements, vos devoirs, le planning et les annonces du club FongoLab en toute simplicité.'}
+                : isStagiaire
+                  ? 'Consultez vos devoirs, vos versements, les annonces du club et votre suivi de présence en toute simplicité.'
+                  : `Parcourez les membres, le planning, les annonces et les devoirs du club, et lancez l'appel en salle depuis l'espace Présences.${adminParagraph}`}
             </p>
             <div className="flex flex-wrap gap-3">
               {isSuperAdmin ? (
@@ -105,17 +119,58 @@ export function DashboardPage() {
                     />
                   </Link>
                 </>
-              ) : canManageFinance || isStagiaire ? (
+              ) : isStagiaire ? (
+                <>
+                  <Link to="/finance">
+                    <Button
+                      label="Voir mes paiements"
+                      icon="pi pi-wallet"
+                      className="rounded-full px-6"
+                    />
+                  </Link>
+                  <Link to="/mes-presences">
+                    <Button
+                      label="Mes présences"
+                      icon="pi pi-check-circle"
+                      outlined
+                      severity="secondary"
+                      className="rounded-full px-6"
+                    />
+                  </Link>
+                </>
+              ) : canManageFinance ? (
                 <Link to="/finance">
                   <Button
-                    label={
-                      isStagiaire ? 'Voir mes paiements' : 'Voir la finance'
-                    }
+                    label="Voir la finance"
                     icon="pi pi-wallet"
                     className="rounded-full px-6"
                   />
                 </Link>
-              ) : null}
+              ) : canManageDevoirs ? (
+                <Link to="/devoirs">
+                  <Button
+                    label="Voir les devoirs"
+                    icon="pi pi-file-edit"
+                    className="rounded-full px-6"
+                  />
+                </Link>
+              ) : canManageAnnonces ? (
+                <Link to="/annonces">
+                  <Button
+                    label="Gérer les annonces"
+                    icon="pi pi-megaphone"
+                    className="rounded-full px-6"
+                  />
+                </Link>
+              ) : (
+                <Link to="/annonces">
+                  <Button
+                    label="Consulter les annonces"
+                    icon="pi pi-megaphone"
+                    className="rounded-full px-6"
+                  />
+                </Link>
+              )}
             </div>
           </div>
 

@@ -36,12 +36,20 @@ export const EXTRA_ROLE_OPTIONS: Array<{
   value: RoleSupplementaire
   hint: string
 }> = [
-  { label: 'Formateur', value: 'formateur', hint: 'CRUD des devoirs' },
-  { label: 'Caissier', value: 'caissier', hint: 'CRUD de la finance' },
+  {
+    label: 'Formateur',
+    value: 'formateur',
+    hint: 'Créer, modifier et supprimer les devoirs',
+  },
+  {
+    label: 'Caissier',
+    value: 'caissier',
+    hint: 'Enregistrer, valider et supprimer les versements',
+  },
   {
     label: 'Communication',
     value: 'communication',
-    hint: 'Publication des annonces',
+    hint: 'Publier, modifier et supprimer les annonces',
   },
 ]
 
@@ -55,12 +63,12 @@ export const STAGIAIRE_EXTRA_ROLE_OPTIONS: Array<{
   {
     label: 'Frontend',
     value: 'frontend',
-    hint: 'Devoirs réservés aux stagiaires frontend',
+    hint: 'Voir les devoirs réservés aux stagiaires frontend',
   },
   {
     label: 'Backend',
     value: 'backend',
-    hint: 'Devoirs réservés aux stagiaires backend',
+    hint: 'Voir les devoirs réservés aux stagiaires backend',
   },
 ]
 

@@ -89,7 +89,11 @@ export function FinancePage() {
       <PageHeader
         eyebrow="Gestion financière"
         title="Finance"
-        subtitle="Suivez les versements des stagiaires, analysez les recettes et gardez une vision claire de la trésorerie du club."
+        subtitle={
+          canManageFinance
+            ? "Suivez les versements des stagiaires, analysez les recettes et gardez une vision claire de la trésorerie du club."
+            : "Consultez vos versements enregistrés, l'état de vos demandes Lumicash et réglez votre formation depuis cette page."
+        }
         actions={
           canManageFinance ? (
             <Button

@@ -20,7 +20,7 @@ export function ExtraRolesField({
   const hint =
     role === 'stagiaire'
       ? 'Un stagiaire peut cumuler un rôle technique qui détermine les devoirs qu’il pourra voir (frontend ou backend).'
-      : 'Un admin peut cumuler un second rôle qui détermine les seules sections qu’il pourra gérer.'
+      : 'Un administrateur peut cumuler un second rôle : il ne pourra gérer que les sections liées à ce rôle.'
 
   return (
     <div>
