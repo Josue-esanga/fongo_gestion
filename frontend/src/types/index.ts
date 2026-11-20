@@ -32,6 +32,17 @@ export interface User extends UserLite {
   is_active: boolean
   is_superuser?: boolean
   date_joined: string
+  /**
+   * Dernière requête authentifiée (ISO) — `null` si l'utilisateur n'a jamais
+   * été connecté. Repli sur la date de connexion côté API.
+   */
+  last_seen?: string | null
+  /**
+   * Statut de session dynamique : `true` si le compte est actif **et** si
+   * l'utilisateur a émis une requête récemment. Absent des anciennes réponses
+   * → le front retombe sur `is_active`.
+   */
+  session_active?: boolean
 }
 
 export interface Paginated<T> {

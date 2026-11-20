@@ -8,6 +8,8 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from botocore.exceptions import ClientError
 
+from .activity import session_is_active
+
 User = get_user_model()
 
 
@@ -66,6 +68,10 @@ class UserSerializer(ExistingPictureMixin, serializers.ModelSerializer):
     is_active = serializers.BooleanField(required=False, default=True)
     full_name = serializers.SerializerMethodField()
     role_display = serializers.CharField(source="get_role_display", read_only=True)
+    # Statut de session dynamique (voir `fongo_user.activity`) : la liste des
+    # membres affiche « Actif » quand la session vit encore, « Inactif » sinon.
+    last_seen = serializers.SerializerMethodField()
+    session_active = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -80,10 +86,19 @@ class UserSerializer(ExistingPictureMixin, serializers.ModelSerializer):
             "roles_supplementaires",
             "pictures",
             "is_active",
+            "last_seen",
+            "session_active",
             "date_joined",
             "password",
         )
-        read_only_fields = ("id", "date_joined", "role_display", "full_name")
+        read_only_fields = (
+            "id",
+            "date_joined",
+            "role_display",
+            "full_name",
+            "last_seen",
+            "session_active",
+        )
         extra_kwargs = {
             "first_name": {"required": False, "allow_blank": True},
             "last_name": {"required": False, "allow_blank": True},
@@ -91,6 +106,15 @@ class UserSerializer(ExistingPictureMixin, serializers.ModelSerializer):
 
     def get_full_name(self, obj) -> str:
         return obj.get_full_name() or obj.username
+
+    def get_last_seen(self, obj):
+        """Dernière activité (ISO), repli sur la date de connexion."""
+        value = obj.last_seen or obj.last_login
+        return value.isoformat() if value else None
+
+    def get_session_active(self, obj) -> bool:
+        """Vrai si la session de l'utilisateur est encore active."""
+        return session_is_active(obj)
 
     def validate_roles_supplementaires(self, value):
         if isinstance(value, str):

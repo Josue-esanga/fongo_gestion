@@ -51,6 +51,7 @@ export function MembersPage() {
     roleLabel,
     extraRoleLabel,
     formatDate,
+    formatLastSeen,
   } = useMembres()
 
   useEffect(() => {
@@ -212,20 +213,33 @@ export function MembersPage() {
           />
           <Column
             header="Statut"
-            body={(user: User) => (
-              <span
-                className={`inline-flex items-center gap-2 text-sm font-medium ${
-                  user.is_active ? 'text-emerald-600' : 'text-red-600'
-                }`}
-              >
-                <span
-                  className={`h-2 w-2 rounded-full ${
-                    user.is_active ? 'bg-emerald-500' : 'bg-red-500'
-                  }`}
-                />
-                {user.is_active ? 'Actif' : 'Inactif'}
-              </span>
-            )}
+            body={(user: User) => {
+              // Statut de session dynamique : le backend calcule
+              // `session_active` (activité récente + compte actif) à chaque
+              // liste. Repli sur `is_active` si le champ n'est pas présent.
+              const actif = user.session_active ?? user.is_active
+              return (
+                <div className="space-y-0.5">
+                  <span
+                    className={`inline-flex items-center gap-2 text-sm font-medium ${
+                      actif ? 'text-emerald-600' : 'text-red-600'
+                    }`}
+                  >
+                    <span
+                      className={`h-2 w-2 rounded-full ${
+                        actif ? 'bg-emerald-500' : 'bg-red-500'
+                      }`}
+                    />
+                    {actif ? 'Actif' : 'Inactif'}
+                  </span>
+                  <span className="block text-xs text-slate-400">
+                    {!user.is_active
+                      ? 'Compte désactivé'
+                      : formatLastSeen(user.last_seen)}
+                  </span>
+                </div>
+              )
+            }}
           />
           <Column
             header="Inscription"

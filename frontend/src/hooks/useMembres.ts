@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { usersApi, type UserPayload } from '@/api/users'
 import { useToast } from '@/contexts/ToastContext'
 import { getErrorMessage } from '@/lib/errors'
-import { extraRoleLabel, formatDate, roleLabel } from '@/lib/format'
+import { extraRoleLabel, formatDate, formatLastSeen, roleLabel } from '@/lib/format'
 import type { User } from '@/types'
 
 type Filter = 'all' | 'stagiaire' | 'admin'
@@ -39,6 +39,9 @@ export function useMembres() {
     useQuery({
       queryKey: ['users'],
       queryFn: () => usersApi.list(),
+      // Statut de session dynamique : la colonne Statut reflète l'activité
+      // réelle, on recharge donc la liste régulièrement (onglet actif seul).
+      refetchInterval: 60_000,
     })
 
   useEffect(() => {
@@ -168,5 +171,6 @@ export function useMembres() {
     roleLabel,
     extraRoleLabel,
     formatDate,
+    formatLastSeen,
   }
 }

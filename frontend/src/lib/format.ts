@@ -1,11 +1,25 @@
 import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/fr'
 
 dayjs.locale('fr')
+dayjs.extend(relativeTime)
 
 export function formatDate(value?: string | null): string {
   if (!value) return '—'
   return dayjs(value).format('DD/MM/YYYY')
+}
+
+/**
+ * Dernière activité d'un compte (« Vu il y a 4 minutes »), pour la colonne
+ * Statut de la liste des membres.
+ */
+export function formatLastSeen(value?: string | null): string {
+  if (!value) return 'Jamais connecté'
+  const date = dayjs(value)
+  if (!date.isValid()) return 'Jamais connecté'
+  if (date.isSame(dayjs(), 'day')) return `Vu ${date.fromNow()}`
+  return `Vu le ${date.format('DD/MM/YYYY à HH:mm')}`
 }
 
 export function formatDateTime(value?: string | null): string {

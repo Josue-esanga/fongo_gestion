@@ -27,6 +27,15 @@ class User(AbstractUser):
         null=True, #les champs peut être vide (NULL)
         blank=True # l'utilisateur n'est pas obligé de mettre une photo
     )
+    # Dernière requête authentifiée émise par l'utilisateur. Permet d'afficher
+    # un statut de session dynamique (« Actif » / « Inactif ») dans la liste
+    # des membres, au lieu du seul drapeau de compte `is_active`.
+    last_seen = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Dernière activité",
+        help_text="Dernière requête authentifiée de l'utilisateur.",
+    )
 
     def __str__(self):
         return f"{self.username} - {self.role}"
