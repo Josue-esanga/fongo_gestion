@@ -84,8 +84,9 @@ Installation complète : [`backend/README.md`](backend/README.md) et
 - Tableau de bord et statistiques.
 - Gestion des membres (CRUD, filtres, recherche, photo).
 - Gestion financière : paiements, stagiaires, rapport cumulatif.
-- Devoirs, planning, annonces, formateurs et modules (avec les logos des
-  langages : HTML5, CSS3, JavaScript, Python, Django…).
+- Devoirs (consignes **et pièce jointe** : PDF, Word ou image), planning,
+  annonces, formateurs et modules (avec les logos des langages : HTML5, CSS3,
+  JavaScript, Python, Django…).
 - Présences / absences des stagiaires par QR code (appel côté admin, scan
   côté stagiaire).
 - Paramètres du compte : profil et mot de passe.
@@ -101,9 +102,9 @@ reçoit que les rôles supplémentaires que le super admin lui attribue (champ
 | Profil | Membres · Planning · Formateurs · Modules | Annonces · Paramètres | Devoirs | Finance | Présences (appel) |
 | --- | --- | --- | --- | --- | --- |
 | Super admin | CRUD | CRUD | CRUD | CRUD | CRUD |
-| Admin + `formateur` | lecture | lecture | **CRUD** | lecture | CRUD |
+| Admin + `formateur` | lecture | lecture | **CRUD** | noms + % | CRUD |
 | Admin + `caissier` | lecture | lecture | lecture | **CRUD** | CRUD |
-| Admin sans rôle supplémentaire | lecture | lecture | lecture | lecture | CRUD |
+| Admin sans rôle supplémentaire | lecture | lecture | lecture | noms + % | CRUD |
 | Stagiaire | masqué | lecture | lecture | ses propres versements | scan + son statut |
 
 Rôles supplémentaires (champ `roles_supplementaires`, attribués par le super
@@ -124,8 +125,14 @@ Côté interface :
   **Présences** sont visibles par tous les utilisateurs sauf les stagiaires
   (lecture seule pour les admins, CRUD réservé au super admin, sauf la
   gestion des présences qui reste opérationnelle pour tous) ;
-- le menu **Finance** n'apparaît que pour les caissiers, les stagiaires et le
-  super admin ;
+- le menu **Finance** s'affiche pour les caissiers, les stagiaires, tous les
+  admins et le super admin ; un admin non caissier y accède en **lecture
+  restreinte** : il ne voit que le **nom** des stagiaires et le **pourcentage**
+  de la formation réglé (onglet unique, sans montants, sans statistiques ni
+  gestion des paiements). L'endpoint dédié `GET /api/finance/progress/` ne
+  renvoie aucun montant, et les autres endpoints finance (`paiements/`,
+  `students/`, `overview/`, `stats/`, `dashboard/`) se limitent aux propres
+  versements de l'utilisateur dès qu'il n'est pas caissier ;
 - le menu **Audit** (journal d'activité) n'apparaît que pour le **super
   admin** : il trace automatiquement qui a fait quoi dans toute l'application
   (créations, modifications, suppressions, connexions, changements de mot de
@@ -135,6 +142,14 @@ Côté interface :
   14 derniers jours, comptes les plus actifs) sont protégées par la même
   règle côté serveur ; le journal est conservé sans purge et reste consultable
   en lecture seule dans l'admin Django ;
+- sur un **devoir**, l'auteur (formateur ou super admin) peut joindre un
+  document en plus des consignes écrites : **PDF, Word (.doc / .docx) ou
+  image** (jpg, png, webp, gif), **10 Mo** maximum. Le fichier est validé
+  côté serveur (extension + poids, `devoir/serializers.py`), stocké sur
+  Supabase Storage (ou en local hors production) et présenté aux stagiaires
+  avec un aperçu et un bouton « Ouvrir le document » ; il peut être remplacé
+  ou retiré depuis le formulaire d'édition (`file`, `file_name`, `file_size`,
+  `file_clear` sur `GET|POST|PATCH /api/devoirs/`) ;
 - l'écran **Modules** présente la grille pédagogique avec les logos précis des
   langages (Premier module : HTML5 et CSS3 ; Deuxième module : JavaScript ;
   Troisième module : Python, bases de données, programmation orientée objet et

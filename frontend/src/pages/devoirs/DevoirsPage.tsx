@@ -10,6 +10,13 @@ import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
 import { EmptyState, ErrorState } from '@/components/Feedback'
 import { DevoirsSkeleton } from '@/components/Skeletons'
 import { PageHeader } from '@/components/PageHeader'
+import { Icon } from '@/components/Icon'
+import {
+  fileKind,
+  fileKindIcon,
+  fileKindLabel,
+  formatFileSize,
+} from '@/lib/files'
 import type { Devoir } from '@/types'
 
 const DevoirFormDialog = lazyNamed(
@@ -133,6 +140,47 @@ export function DevoirsPage() {
                   <p className="mt-3 whitespace-pre-line break-words text-sm leading-7 text-slate-600">
                     {devoir.description}
                   </p>
+
+                  {devoir.file && (
+                    <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                      {fileKind(devoir.file_name) === 'image' ? (
+                        <img
+                          src={devoir.file}
+                          alt={devoir.file_name ?? 'Document joint'}
+                          loading="lazy"
+                          className="h-16 w-16 shrink-0 rounded-xl border border-slate-200 bg-white object-cover"
+                        />
+                      ) : (
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-xl text-fongo-700">
+                          <Icon className={fileKindIcon(devoir.file_name)} />
+                        </span>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-slate-800">
+                          {devoir.file_name || 'Document joint'}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {fileKindLabel(devoir.file_name)} ·{' '}
+                          {formatFileSize(devoir.file_size)} · ajouté par le
+                          formateur
+                        </p>
+                      </div>
+                      <a
+                        href={devoir.file}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download={devoir.file_name ?? undefined}
+                      >
+                        <Button
+                          label="Ouvrir le document"
+                          icon="pi pi-external-link"
+                          size="small"
+                          outlined
+                          severity="info"
+                        />
+                      </a>
+                    </div>
+                  )}
                 </div>
 
                 <div className="w-full shrink-0 rounded-2xl border border-slate-200 bg-slate-50 p-4 lg:w-72">

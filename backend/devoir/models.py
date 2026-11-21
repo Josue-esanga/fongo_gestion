@@ -13,6 +13,27 @@ class Devoir(models.Model):
 
     title = models.CharField(max_length=100)
     description = models.TextField()
+    # Document joint au devoir (énoncé illustré, corrigé, ressources…) :
+    # PDF, Word ou image. Vérifié côté serializer (extension + poids).
+    file = models.FileField(
+        upload_to="devoirs/",
+        null=True,
+        blank=True,
+        verbose_name="Fichier joint",
+    )
+    # Nom d'origine et poids du fichier : conservés en base pour éviter une
+    # requête de stockage à chaque affichage (et pour afficher un nom lisible,
+    # le stockage ajoutant un suffixe aléatoire en cas d'homonymie).
+    file_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        verbose_name="Nom du fichier",
+    )
+    file_size = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Poids du fichier (octets)",
+    )
     limit_date = models.DateTimeField()
     cible = models.CharField(
         max_length=20,

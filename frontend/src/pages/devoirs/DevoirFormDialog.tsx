@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -11,6 +11,14 @@ import { InputTextarea } from 'primereact/inputtextarea'
 import { SelectButton } from 'primereact/selectbutton'
 import type { DevoirPayload } from '@/api/devoirs'
 import type { Devoir, DevoirCible } from '@/types'
+import { Icon } from '@/components/Icon'
+import {
+  DEVOIR_FILE_ACCEPT,
+  fileKindIcon,
+  fileKindLabel,
+  formatFileSize,
+  validateDevoirFile,
+} from '@/lib/files'
 
 const devoirSchema = z.object({
   title: z.string().min(3, 'Le titre doit contenir au moins 3 caractères.'),
@@ -64,8 +72,47 @@ export function DevoirFormDialog({
   })
   const watchCible = useWatch({ control, name: 'cible' })
 
+  // Document joint : fichier choisi pour l'envoi / retrait de celui en base.
+  const [file, setFile] = useState<File | null>(null)
+  const [fileCleared, setFileCleared] = useState(false)
+  const [fileError, setFileError] = useState<string | null>(null)
+  const inputId = 'devoir-file-input'
+
+  /** Fichier déjà enregistré en base, affiché tant qu'il n'est pas retiré. */
+  const storedFile =
+    devoir?.file && !fileCleared && !file ? devoir : null
+  const currentName = file?.name ?? storedFile?.file_name ?? null
+  const currentSize = file?.size ?? storedFile?.file_size ?? null
+
+  function selectFile(chosen: File | null) {
+    if (!chosen) return
+    const message = validateDevoirFile(chosen)
+    if (message) {
+      setFile(null)
+      setFileError(message)
+      return
+    }
+    setFile(chosen)
+    setFileError(null)
+    // Un nouveau fichier remplace celui en base : inutile de le retirer.
+    setFileCleared(false)
+  }
+
+  function removeFile() {
+    if (file) {
+      // Annule la nouvelle sélection : le fichier en base réapparaît.
+      setFile(null)
+    } else {
+      setFileCleared(true)
+    }
+    setFileError(null)
+  }
+
   useEffect(() => {
     if (!visible) return
+    setFile(null)
+    setFileCleared(false)
+    setFileError(null)
     reset({
       title: devoir?.title ?? '',
       description: devoir?.description ?? '',
@@ -77,12 +124,16 @@ export function DevoirFormDialog({
   }, [devoir, reset, visible])
 
   async function submit(values: DevoirFormValues) {
-    await onSubmit({
+    const payload: DevoirPayload = {
       title: values.title.trim(),
       description: values.description.trim(),
       limit_date: values.limit_date.toISOString(),
       cible: values.cible,
-    })
+    }
+    if (file) payload.file = file
+    else if (fileCleared) payload.file_clear = true
+
+    await onSubmit(payload)
   }
 
   const footer = (
@@ -153,6 +204,96 @@ export function DevoirFormDialog({
             )}
           />
           <FieldError message={errors.description?.message} />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+            Document joint{' '}
+            <span className="font-normal text-slate-400">(facultatif)</span>
+          </label>
+
+          {currentName ? (
+            <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-lg text-fongo-700 shadow-sm">
+                <Icon className={fileKindIcon(currentName)} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-slate-800">
+                  {currentName}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {fileKindLabel(currentName)} · {formatFileSize(currentSize)}
+                </p>
+              </div>
+              <div className="flex shrink-0 gap-1">
+                <Button
+                  type="button"
+                  label="Remplacer"
+                  icon="pi pi-refresh"
+                  size="small"
+                  text
+                  severity="info"
+                  onClick={() => document.getElementById(inputId)?.click()}
+                />
+                <Button
+                  type="button"
+                  label="Retirer"
+                  icon="pi pi-trash"
+                  size="small"
+                  text
+                  severity="danger"
+                  onClick={removeFile}
+                />
+              </div>
+            </div>
+          ) : (
+            <label
+              htmlFor={inputId}
+              className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 px-4 py-3 transition hover:border-fongo-400 hover:bg-fongo-50/50"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-slate-500 shadow-sm">
+                <Icon className="pi pi-paperclip" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-slate-700">
+                  Joindre un fichier
+                </span>
+                <span className="block text-xs text-slate-500">
+                  PDF, Word (.doc / .docx) ou image (jpg, png, webp, gif) — 10 Mo
+                  maximum
+                </span>
+              </span>
+            </label>
+          )}
+
+          <input
+            id={inputId}
+            type="file"
+            accept={DEVOIR_FILE_ACCEPT}
+            className="sr-only"
+            onChange={(event) => {
+              selectFile(event.target.files?.[0] ?? null)
+              event.target.value = ''
+            }}
+          />
+          <FieldError message={fileError ?? undefined} />
+          {fileCleared ? (
+            <p className="mt-1.5 text-xs text-amber-600">
+              Le document actuel sera retiré à l'enregistrement.{' '}
+              <button
+                type="button"
+                className="font-semibold underline"
+                onClick={() => setFileCleared(false)}
+              >
+                Rétablir
+              </button>
+            </p>
+          ) : (
+            <p className="mt-1.5 text-xs text-slate-500">
+              Le document sera consultable et téléchargeable par les stagiaires
+              concernés par ce devoir.
+            </p>
+          )}
         </div>
 
         <div>

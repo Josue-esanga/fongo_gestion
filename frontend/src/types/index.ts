@@ -90,6 +90,12 @@ export interface Devoir {
   id: number
   title: string
   description: string
+  /** Document joint au devoir (PDF, Word ou image), le cas échéant. */
+  file?: string | null
+  /** Nom d'origine du fichier joint (le stockage ajoute un suffixe). */
+  file_name?: string | null
+  /** Poids du fichier joint en octets. */
+  file_size?: number | null
   limit_date: string
   cible: DevoirCible
   /** Libellé lisible du public visé, renvoyé par l'API. */
