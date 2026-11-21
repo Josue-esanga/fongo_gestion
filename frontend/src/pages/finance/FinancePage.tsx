@@ -9,6 +9,7 @@ import { FinanceSkeleton } from '@/components/Skeletons'
 import { PageHeader } from '@/components/PageHeader'
 import { FinanceAccessDenied } from './components/FinanceAccessDenied'
 import { FinanceProgress } from './components/FinanceProgress'
+import { PaymentsHistorySection } from './components/PaymentsHistorySection'
 import { FinanceReport } from './components/FinanceReport'
 import { FinanceStats } from './components/FinanceStats'
 import { FinanceTabs } from './components/FinanceTabs'
@@ -138,6 +139,13 @@ export function FinancePage() {
           totals={totaux}
           paymentCount={paiementsValides.length}
           studentCount={students.length}
+        />
+      )}
+
+      {canManageFinance && (
+        <PaymentsHistorySection
+          payments={payments}
+          onShowAll={() => changeTab('payments')}
         />
       )}
 

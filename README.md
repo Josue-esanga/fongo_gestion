@@ -83,7 +83,9 @@ Installation complète : [`backend/README.md`](backend/README.md) et
   rôles supplémentaires d'admin (`formateur`, `caissier`).
 - Tableau de bord et statistiques.
 - Gestion des membres (CRUD, filtres, recherche, photo).
-- Gestion financière : paiements, stagiaires, rapport cumulatif.
+- Gestion financière : paiements, historique, **graphique d'évolution des
+  recettes** (barres mensuelles, montant + nombre de versements), stagiaires,
+  rapport cumulatif.
 - Devoirs (consignes **et pièce jointe** : PDF, Word ou image), planning,
   annonces, formateurs et modules (avec les logos des langages : HTML5, CSS3,
   JavaScript, Python, Django…).

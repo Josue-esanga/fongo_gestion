@@ -380,7 +380,7 @@ export function HomePage() {
                     Application mobile
                   </span>
                   <h2 className="mt-2 text-2xl font-extrabold tracking-tight">
-                    FongoGestion
+                    FongoLab
                   </h2>
                 </div>
               </article>
@@ -712,7 +712,7 @@ export function HomePage() {
                     Tout le club, dans un seul espace
                   </h2>
                   <p className="mt-4 max-w-lg text-base leading-7 text-fongo-100/80">
-                    FongoGestion réunit la vie du club : les personnes, les
+                    FongoLab réunit la vie du club : les personnes, les
                     paiements, les devoirs, le planning et les annonces. Une seule
                     connexion, une vision claire.
                   </p>
@@ -942,7 +942,7 @@ export function HomePage() {
 
           <div className="mt-12 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-fongo-300/80 sm:flex-row sm:items-center sm:justify-between">
             <p>
-              © {new Date().getFullYear()} FongoLab — FongoGestion. Tous droits
+              © {new Date().getFullYear()} FongoLab. Tous droits
               réservés.
             </p>
             <p>Conçu pour la communauté tech du Burundi.</p>
