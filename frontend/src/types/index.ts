@@ -132,6 +132,15 @@ export interface StagiaireFinance extends UserLite {
   dernier_paiement: string | null
 }
 
+/**
+ * Vue restreinte de la finance pour un admin non caissier : identité du
+ * stagiaire + pourcentage réglé. **Aucun montant** n'est exposé.
+ */
+export interface StagiaireProgress extends UserLite {
+  /** Part de la formation réglée, arrondie et plafonnée à 100. */
+  pourcentage: number
+}
+
 export interface EventItem {
   id: number
   title: string

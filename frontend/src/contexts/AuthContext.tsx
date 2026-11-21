@@ -184,10 +184,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         case 'modules':
         case 'presences':
           return !isStagiaire
-        // Finance : caissiers, super admin et les propres versements du
+        // Finance : caissiers, super admin, tous les admins (vue restreinte
+        // : nom + pourcentage, sans montants) et les propres versements du
         // stagiaire.
         case 'finance':
-          return isStagiaire || can('finance')
+          return isStagiaire || isAdmin || can('finance')
         // Lecture ouverte à tous les utilisateurs connectés.
         case 'devoirs':
         case 'annonces':

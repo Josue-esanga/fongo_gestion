@@ -8,6 +8,7 @@ import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
 import { FinanceSkeleton } from '@/components/Skeletons'
 import { PageHeader } from '@/components/PageHeader'
 import { FinanceAccessDenied } from './components/FinanceAccessDenied'
+import { FinanceProgress } from './components/FinanceProgress'
 import { FinanceReport } from './components/FinanceReport'
 import { FinanceStats } from './components/FinanceStats'
 import { FinanceTabs } from './components/FinanceTabs'
@@ -39,6 +40,7 @@ export function FinancePage() {
     isFetching,
     accessRefuse,
     canManageFinance,
+    isRestrictedAdmin,
     isStagiaire,
     isAuthenticated,
     tab,
@@ -54,6 +56,9 @@ export function FinancePage() {
     openEdit,
     statutMutation,
   } = useFinance()
+
+  // Admin non caissier : lecture restreinte (noms + pourcentage, sans montant).
+  if (isRestrictedAdmin) return <FinanceProgress />
 
   if (isLoading) return <FinanceSkeleton />
 

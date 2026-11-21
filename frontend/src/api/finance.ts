@@ -7,6 +7,7 @@ import type {
   Paginated,
   Paiement,
   StagiaireFinance,
+  StagiaireProgress,
   StatutPaiement,
 } from '@/types'
 
@@ -99,5 +100,19 @@ export const financeApi = {
       api.get<FinanceOverview>('finance/overview/'),
     )
     return data
+  },
+
+  /**
+   * Avancement des versements pour un admin non caissier : nom des
+   * stagiaires et pourcentage seulement, jamais de montant.
+   */
+  async progress(): Promise<StagiaireProgress[]> {
+    const key = getKey('finance/progress/')
+    const { data } = await apiDedup(key, () =>
+      api.get<StagiaireProgress[] | Paginated<StagiaireProgress>>(
+        'finance/progress/',
+      ),
+    )
+    return unwrap(data)
   },
 }

@@ -20,9 +20,13 @@ import type { Paiement, StatutPaiement } from '@/types'
  * - Le chargement lazy du LumicashPayCard
  */
 export function useFinance() {
-  const { user, can, isStagiaire, isAuthenticated } = useAuth()
+  const { user, can, isAdmin, isStagiaire, isAuthenticated } = useAuth()
   const canManageFinance = can('finance')
-  const accessRefuse = !canManageFinance && !isStagiaire
+  // Admin sans rôle caissier : accès en lecture restreinte (nom + %), aucun
+  // montant. Il ne voit ni les paiements, ni les totaux, ni les statistiques.
+  const isRestrictedAdmin = isAdmin && !canManageFinance && !isStagiaire
+  const accessRefuse =
+    !canManageFinance && !isStagiaire && !isAdmin
   const { showToast } = useToast()
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -38,9 +42,12 @@ export function useFinance() {
     canManageFinance ? initialTab : 'payments',
   )
 
+  // Un admin restreint ne doit recevoir aucun versement : la requête reste
+  // désactivée (la vue « progression » a son propre appel, sans montants).
   const paymentsQuery = useQuery({
     queryKey: ['payments'],
     queryFn: () => financeApi.payments(),
+    enabled: canManageFinance || isStagiaire,
   })
 
   const studentsQuery = useQuery({
@@ -197,6 +204,7 @@ export function useFinance() {
     isFetching,
     accessRefuse,
     canManageFinance,
+    isRestrictedAdmin,
     isStagiaire,
     isAuthenticated,
     // UI
