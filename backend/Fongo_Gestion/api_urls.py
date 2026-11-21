@@ -13,7 +13,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from Planning.api_views import EventViewSet
-from annonce.api_views import AnnonceViewSet
+from annonce.api_views import AnnonceViewSet, PublicAnnonceListView
 from audit.api_views import AuditLogViewSet, AuditSummaryView
 from devoir.api_views import DevoirViewSet
 from finance.api_views import (
@@ -89,6 +89,12 @@ urlpatterns = [
         "redoc/",
         SpectacularRedocView.as_view(url_name="schema"),
         name="redoc",
+    ),
+    # --- Annonces publiques : affichées sur la page d'accueil sans connexion ---
+    path(
+        "annonces/public/",
+        PublicAnnonceListView.as_view(),
+        name="annonces_public",
     ),
     # --- Routes générées par le routeur ---
     path("", include(router.urls)),

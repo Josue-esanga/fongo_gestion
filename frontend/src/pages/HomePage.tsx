@@ -5,6 +5,7 @@ import { useSEO } from '@/hooks/useSEO'
 import { Icon } from '@/components/Icon'
 import { Reveal } from '@/components/Reveal'
 import { CountUp } from '@/components/CountUp'
+import { PublicAnnonces } from '@/components/PublicAnnonces'
 import { OptimizedImage } from '@/components/OptimizedImage'
 import html5Logo from '@/assets/modules/html5-original.svg'
 import css3Logo from '@/assets/modules/css3-original.svg'
@@ -811,6 +812,11 @@ export function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* Annonces (visibles même sans connexion)                          */}
+        {/* ---------------------------------------------------------------- */}
+        <PublicAnnonces />
 
         {/* ---------------------------------------------------------------- */}
         {/* Appel à l'action                                                 */}

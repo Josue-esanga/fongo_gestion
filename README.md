@@ -89,6 +89,14 @@ Installation complète : [`backend/README.md`](backend/README.md) et
 - Devoirs (consignes **et pièce jointe** : PDF, Word ou image), planning,
   annonces, formateurs et modules (avec les logos des langages : HTML5, CSS3,
   JavaScript, Python, Django…).
+- Annonces affichées **sur la page d'accueil sans connexion** (endpoint public
+  `GET /api/annonces/public/`, les annonces réservées aux administrateurs en
+  sont exclues) et **partage en image** : depuis la page des annonces comme
+  depuis la page d'accueil, chacun peut envoyer l'annonce sur **WhatsApp**
+  (statut ou contacts) ou **Facebook**. L'annonce est rendue en PNG
+  (1080 × 1080, titre + contenu + date) puis transmis via l'API Web Share —
+  jamais en texte ni en code ; sans partage natif, le PNG est téléchargé et la
+  plateforme ouverte d'un clic.
 - Présences / absences des stagiaires par QR code (appel côté admin, scan
   côté stagiaire).
 - Paramètres du compte : profil et mot de passe.

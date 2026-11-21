@@ -47,6 +47,16 @@ export const annoncesApi = {
     return unwrap(data)
   },
 
+  /**
+   * Annonces affichées sur la page racine, **sans connexion** : les visiteurs
+   * non authentifiés peuvent les voir (les annonces réservées aux admins sont
+   * exclues côté API).
+   */
+  async listPublic(): Promise<Annonce[]> {
+    const { data } = await api.get<Annonce[]>('annonces/public/')
+    return unwrap(data)
+  },
+
   async create(payload: AnnoncePayload): Promise<Annonce> {
     const { data } = await api.post<Annonce>('annonces/', toFormData(payload), {
       // Laisser le navigateur définir multipart/form-data avec boundary

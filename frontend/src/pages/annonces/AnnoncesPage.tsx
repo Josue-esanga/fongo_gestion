@@ -12,6 +12,7 @@ import { AnnoncesSkeleton } from '@/components/Skeletons'
 import { EmptyState, ErrorState } from '@/components/Feedback'
 import { LazyDialogBoundary } from '@/components/common/LazyDialogBoundary'
 import { useAnnonces } from '@/hooks/useAnnonces'
+import { AnnonceShareButton } from './components/AnnonceShareButton'
 import { useAuth } from '@/contexts/AuthContext'
 import { getErrorMessage } from '@/lib/errors'
 import type { Annonce } from '@/types'
@@ -191,29 +192,33 @@ export function AnnoncesPage() {
                 </p>
               )}
 
-              {canManage && (
-                <div className="mt-5 flex flex-wrap justify-end gap-2">
-                  <Button
-                    label="Modifier"
-                    icon="pi pi-pencil"
-                    size="small"
-                    outlined
-                    severity="info"
-                    onClick={() => {
-                      setEditing(annonce)
-                      setDialogVisible(true)
-                    }}
-                  />
-                  <Button
-                    label="Supprimer"
-                    icon="pi pi-trash"
-                    size="small"
-                    outlined
-                    severity="danger"
-                    onClick={() => confirmDelete(annonce)}
-                  />
-                </div>
-              )}
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
+                {/* Partage WhatsApp / Facebook en image : ouvert à tous. */}
+                <AnnonceShareButton annonce={annonce} />
+                {canManage && (
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Button
+                      label="Modifier"
+                      icon="pi pi-pencil"
+                      size="small"
+                      outlined
+                      severity="info"
+                      onClick={() => {
+                        setEditing(annonce)
+                        setDialogVisible(true)
+                      }}
+                    />
+                    <Button
+                      label="Supprimer"
+                      icon="pi pi-trash"
+                      size="small"
+                      outlined
+                      severity="danger"
+                      onClick={() => confirmDelete(annonce)}
+                    />
+                  </div>
+                )}
+              </div>
             </article>
           ))}
         </div>
