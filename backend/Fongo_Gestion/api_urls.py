@@ -14,6 +14,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from Planning.api_views import EventViewSet
 from annonce.api_views import AnnonceViewSet
+from audit.api_views import AuditLogViewSet, AuditSummaryView
 from devoir.api_views import DevoirViewSet
 from finance.api_views import FinanceStatsView, PaiementViewSet
 from formation.api_views import FormateurViewSet, ModuleViewSet
@@ -41,6 +42,8 @@ router.register("formation/formateurs", FormateurViewSet, basename="formateur")
 router.register("formation/modules", ModuleViewSet, basename="module")
 router.register("parametre/configuration", ConfigurationViewSet, basename="configuration")
 router.register("presence/seances", SeancePresenceViewSet, basename="seance-presence")
+# Journal d'audit : lecture seule, super administrateur uniquement.
+router.register("audit/logs", AuditLogViewSet, basename="auditlog")
 
 urlpatterns = [
     # --- Authentification JWT ---
@@ -62,6 +65,7 @@ urlpatterns = [
     ),
     # --- Endpoints transverses ---
     path("dashboard/", DashboardView.as_view(), name="dashboard"),
+    path("audit/summary/", AuditSummaryView.as_view(), name="audit_summary"),
     path("finance/overview/", FinanceStatsView.as_view(), name="finance_overview"),
     path(
         "finance/students/",

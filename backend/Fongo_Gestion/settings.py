@@ -102,6 +102,7 @@ INSTALLED_APPS = [
     'devoir',
     'parametre',
     'presence',
+    "audit",
 ]
 
 MIDDLEWARE = [
@@ -117,6 +118,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Journal d'audit : expose la requête courante (auteur, IP, agent) aux
+    # signaux de modèles — à placer après l'authentification.
+    "audit.middleware.AuditContextMiddleware",
 ]
 
 ROOT_URLCONF = 'Fongo_Gestion.urls'

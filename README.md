@@ -126,6 +126,15 @@ Côté interface :
   gestion des présences qui reste opérationnelle pour tous) ;
 - le menu **Finance** n'apparaît que pour les caissiers, les stagiaires et le
   super admin ;
+- le menu **Audit** (journal d'activité) n'apparaît que pour le **super
+  admin** : il trace automatiquement qui a fait quoi dans toute l'application
+  (créations, modifications, suppressions, connexions, changements de mot de
+  passe) avec la date, l'auteur, les champs modifiés (avant → après), l'adresse
+  IP et l'appareil. L'API `GET /api/audit/logs/` (filtres `action`,
+  `model_label`, `search`) et `GET /api/audit/summary/` (totaux, activité des
+  14 derniers jours, comptes les plus actifs) sont protégées par la même
+  règle côté serveur ; le journal est conservé sans purge et reste consultable
+  en lecture seule dans l'admin Django ;
 - l'écran **Modules** présente la grille pédagogique avec les logos précis des
   langages (Premier module : HTML5 et CSS3 ; Deuxième module : JavaScript ;
   Troisième module : Python, bases de données, programmation orientée objet et

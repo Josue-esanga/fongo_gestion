@@ -379,3 +379,28 @@ export function DefaultPageSkeleton() {
     </SkeletonPage>
   )
 }
+
+export function AuditSkeleton() {
+  return (
+    <SkeletonPage label="Chargement du journal d'audit…">
+      <SkeletonHeader withAction={false} />
+      <SkeletonStatCards count={4} />
+      <div className="grid gap-5 lg:grid-cols-3">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
+          <Skeleton className="h-5 w-56" />
+          <div className="mt-6 flex h-40 items-end gap-1.5">
+            {Array.from({ length: 14 }).map((_, index) => (
+              <Skeleton
+                key={index}
+                className={`flex-1 rounded-t-md ${index % 3 === 0 ? 'h-3/4' : 'h-1/2'}`}
+              />
+            ))}
+          </div>
+        </div>
+        <SkeletonPanel lines={4} />
+      </div>
+      <SkeletonToolbar />
+      <SkeletonTable rows={8} columns={5} />
+    </SkeletonPage>
+  )
+}

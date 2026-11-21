@@ -290,3 +290,67 @@ export interface Configuration {
   logo: string | null
   frais_formation: number
 }
+
+/* --------------------------------------------------------------------------
+   Journal d'audit (super administrateur uniquement)
+   -------------------------------------------------------------------------- */
+
+/** Type d'action tracée par le journal d'audit. */
+export type AuditAction = 'create' | 'update' | 'delete' | 'login' | 'password'
+
+/** Avant / après d'un champ modifié. */
+export interface AuditChange {
+  old: unknown
+  new: unknown
+}
+
+/** Entrée du journal d'activité (« qui a fait quoi »). */
+export interface AuditLog {
+  id: number
+  /** Compte à l'origine de l'action (peut être supprimé entre-temps). */
+  user: UserLite | null
+  /** Nom d'utilisateur copié au moment de l'action. */
+  username: string
+  action: AuditAction
+  /** Libellé français de l'action, fourni par l'API. */
+  action_display: string
+  /** Modèle touché, ex. `annonce.annonce` (vide pour les connexions). */
+  model_label: string
+  object_id: string
+  object_repr: string
+  /** Modifications détaillées : { champ: { old, new } }. */
+  changes: Record<string, AuditChange>
+  ip_address: string | null
+  user_agent: string
+  created_at: string
+}
+
+/** Filtres envoyés à `GET /api/audit/logs/`. */
+export interface AuditLogFilters {
+  action?: AuditAction
+  model_label?: string
+  search?: string
+  page_size?: number
+}
+
+/** Modèle suivi automatiquement par l'audit. */
+export interface TrackedModel {
+  label: string
+  name: string
+}
+
+/** Statistiques renvoyées par `GET /api/audit/summary/`. */
+export interface AuditSummary {
+  totals: {
+    events: number
+    today: number
+    week: number
+    users: number
+  }
+  by_action: Array<{ action: AuditAction; label: string; count: number }>
+  by_model: Array<{ model_label: string; count: number }>
+  top_users: Array<{ user: number; username: string; count: number }>
+  /** Activité jour par jour sur les 14 derniers jours (jours vides inclus). */
+  daily: Array<{ date: string; count: number }>
+  tracked_models: TrackedModel[]
+}

@@ -104,6 +104,52 @@ export function annonceCibleLabel(cible?: string | null): string {
   }
 }
 
+/** Libellé d'une action du journal d'audit. */
+export function auditActionLabel(action?: string): string {
+  switch (action) {
+    case 'create':
+      return 'Création'
+    case 'update':
+      return 'Modification'
+    case 'delete':
+      return 'Suppression'
+    case 'login':
+      return 'Connexion'
+    case 'password':
+      return 'Mot de passe'
+    default:
+      return action ? String(action) : '—'
+  }
+}
+
+/** Couleur du badge d'une action du journal d'audit. */
+export function auditActionSeverity(
+  action?: string,
+): 'success' | 'info' | 'danger' | 'warning' | 'secondary' {
+  switch (action) {
+    case 'create':
+      return 'success'
+    case 'update':
+      return 'info'
+    case 'delete':
+      return 'danger'
+    case 'password':
+      return 'warning'
+    default:
+      return 'secondary'
+  }
+}
+
+/**
+ * Nom d'affichage d'une ressource audité : `annonce.annonce` → « Annonce »,
+ * `fongo_user.user` → « User ».
+ */
+export function auditModelLabel(label?: string | null): string {
+  if (!label) return '—'
+  const name = label.split('.').pop() ?? label
+  return name.charAt(0).toUpperCase() + name.slice(1).replace(/_/g, ' ')
+}
+
 /** Couleur du badge de public visé. */
 export function annonceCibleSeverity(
   cible?: string | null,

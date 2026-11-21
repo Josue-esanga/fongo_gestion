@@ -20,11 +20,12 @@ import type { User } from '@/types'
  *   pour les sections couvertes par ses rôles supplémentaires (formateur →
  *   devoirs, caissier → finance, communication → annonces ; la gestion des
  *   présences est ouverte à tous les utilisateurs hors stagiaires, seule sa
- *   suppression reste réservée au super admin) ;
+ *   suppression reste réservée au super admin) ; l'audit est réservé au
+ *   super admin ;
  * - `canSee(section)` → visibilité de l'entrée de menu : tout sauf les
  *   stagiaires pour l'annuaire, le planning, les formateurs, les modules et
  *   les présences ; la finance reste réservée aux caissiers, aux stagiaires et
- *   au super admin.
+ *   au super admin ; l'audit n'apparaît que pour le super admin.
  */
 export type Capability =
   | 'membres'
@@ -36,6 +37,7 @@ export type Capability =
   | 'parametres'
   | 'devoirs'
   | 'finance'
+  | 'audit'
 
 interface AuthContextValue {
   user: User | null
@@ -153,6 +155,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     function can(capability: Capability): boolean {
       if (!user) return false
+      // Journal d'audit : strictement réservé au super administrateur.
+      if (capability === 'audit') return isSuperAdmin
       if (isSuperAdmin) return true
       // Un simple stagiaire ne gère aucune section.
       if (user.role !== 'admin') return false
@@ -189,6 +193,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         case 'annonces':
         case 'parametres':
           return true
+        // Journal d'audit : menu et page visibles du seul super admin.
+        case 'audit':
+          return isSuperAdmin
         default:
           return false
       }

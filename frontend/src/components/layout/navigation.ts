@@ -71,5 +71,12 @@ export const NAV_ITEMS: NavItem[] = [
     icon: 'pi pi-qrcode',
     visible: ({ canSee }) => canSee('presences'),
   },
+  {
+    // Journal d'activité du projet : visible du seul super administrateur.
+    label: 'Audit',
+    to: '/audit',
+    icon: 'pi pi-history',
+    visible: ({ canSee }) => canSee('audit'),
+  },
   { label: 'Paramètres', to: '/parametres', icon: 'pi pi-cog' },
 ]

@@ -8,6 +8,9 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from botocore.exceptions import ClientError
 
+from audit.models import AuditLog
+from audit.services import log_event
+
 from .activity import session_is_active
 
 User = get_user_model()
@@ -257,6 +260,13 @@ class ChangePasswordSerializer(serializers.Serializer):
         user = self.context["request"].user
         user.set_password(self.validated_data["new_password"])
         user.save(update_fields=["password"])
+        # Traçabilité : changement de mot de passe inscrit au journal d'audit
+        # (la valeur elle-même n'est jamais conservée).
+        log_event(
+            AuditLog.ACTION_PASSWORD,
+            user=user,
+            object_repr=f"Mot de passe de {user.username} modifié",
+        )
         return user
 
 
@@ -273,5 +283,11 @@ class FongoTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     def validate(self, attrs):
         data = super().validate(attrs)
+        # Journal d'audit : la connexion est le premier « qui a fait quoi ».
+        log_event(
+            AuditLog.ACTION_LOGIN,
+            user=self.user,
+            object_repr=f"Connexion de {self.user.username}",
+        )
         data["user"] = ProfileSerializer(self.user, context=self.context).data
         return data

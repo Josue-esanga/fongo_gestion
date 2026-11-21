@@ -63,6 +63,10 @@ const loadParametresPage = () => import('@/pages/parametres/ParametresPage')
 const ParametresPage = lazyNamed(loadParametresPage, 'ParametresPage')
 registerPrefetch('/parametres', loadParametresPage)
 
+const loadAuditPage = () => import('@/pages/audit/AuditPage')
+const AuditPage = lazyNamed(loadAuditPage, 'AuditPage')
+registerPrefetch('/audit', loadAuditPage)
+
 export function AppRoutes() {
   return (
     <Routes>
@@ -126,6 +130,14 @@ export function AppRoutes() {
             <RequireRole roles={['stagiaire']}>
               <MesPresencesPage />
             </RequireRole>
+          }
+        />
+        <Route
+          path="/audit"
+          element={
+            <RequireSection section="audit">
+              <AuditPage />
+            </RequireSection>
           }
         />
         <Route path="/parametres" element={<ParametresPage />} />
