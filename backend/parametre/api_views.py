@@ -13,6 +13,7 @@ from Fongo_Gestion.permissions import IsAdminOrSuperAdmin
 from Planning.models import Event
 from annonce.models import Annonce
 from devoir.models import devoirs_visibles
+from finance.api_views import is_finance_manager
 from finance.models import Ajout_Argent
 from fongo_user.models import User
 
@@ -43,7 +44,10 @@ class DashboardView(APIView):
         is_admin = user.is_superuser or user.role in ("admin", "super_admin")
 
         paiements = Ajout_Argent.objects.all()
-        if not is_admin:
+        if not is_finance_manager(user):
+            # Seuls les caissiers et le super admin voient la trésorerie. Un
+            # admin non caissier ne reçoit que ses propres versements (aucun :
+            # les paiements sont limités aux stagiaires) → zéro montant.
             paiements = paiements.filter(id_stagiaire=user)
 
         total = paiements.aggregate(total=Coalesce(Sum("montant"), 0))["total"]

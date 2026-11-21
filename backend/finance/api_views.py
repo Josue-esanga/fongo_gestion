@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from Fongo_Gestion.permissions import (
+    IsAdminOrSuperAdmin,
     IsCaissierOrSuperAdmin,
     IsStagiaire,
 )
@@ -22,6 +23,7 @@ from .serializers import (
     ModulePaiementSerializer,
     PaiementSerializer,
     StagiaireFinanceSerializer,
+    StagiaireProgressSerializer,
 )
 
 
@@ -179,3 +181,44 @@ class FinanceStatsView(APIView):
                 "nombre_stagiaires": User.objects.filter(role="stagiaire").count(),
             }
         )
+
+
+class FinanceProgressView(APIView):
+    """GET /api/finance/progress/ — avancement des versements, sans montants.
+
+    Réservé aux administrateurs (caissiers ou non) : chaque ligne ne contient
+    que l'identité du stagiaire et le pourcentage de la formation réglé.
+    Aucun montant n'est renvoyé — ni total, ni individuel.
+    """
+
+    permission_classes = [IsAdminOrSuperAdmin]
+
+    @extend_schema(responses=StagiaireProgressSerializer(many=True))
+    def get(self, request):
+        from parametre.models import Configuration
+
+        configuration, _ = Configuration.objects.get_or_create(pk=1)
+        # Cible = frais de formation configurés (sert uniquement au calcul du
+        # pourcentage : la valeur elle-même n'est jamais renvoyée).
+        cible = configuration.frais_formation or 0
+
+        stagiaires = (
+            User.objects.filter(role="stagiaire")
+            .annotate(
+                total_valide=Coalesce(
+                    Sum(
+                        "ajout_argent_stagiaire__montant",
+                        filter=Q(ajout_argent_stagiaire__statut="valide"),
+                    ),
+                    0,
+                )
+            )
+            .order_by("last_name", "first_name", "username")
+        )
+
+        serializer = StagiaireProgressSerializer(
+            stagiaires,
+            many=True,
+            context={"request": request, "cible": cible},
+        )
+        return Response(serializer.data)

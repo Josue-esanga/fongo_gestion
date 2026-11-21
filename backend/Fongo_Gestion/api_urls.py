@@ -16,7 +16,11 @@ from Planning.api_views import EventViewSet
 from annonce.api_views import AnnonceViewSet
 from audit.api_views import AuditLogViewSet, AuditSummaryView
 from devoir.api_views import DevoirViewSet
-from finance.api_views import FinanceStatsView, PaiementViewSet
+from finance.api_views import (
+    FinanceProgressView,
+    FinanceStatsView,
+    PaiementViewSet,
+)
 from formation.api_views import FormateurViewSet, ModuleViewSet
 from fongo_user.api_views import (
     ChangePasswordView,
@@ -67,6 +71,8 @@ urlpatterns = [
     path("dashboard/", DashboardView.as_view(), name="dashboard"),
     path("audit/summary/", AuditSummaryView.as_view(), name="audit_summary"),
     path("finance/overview/", FinanceStatsView.as_view(), name="finance_overview"),
+    # Avancement des versements pour les admins non caissiers (sans montants).
+    path("finance/progress/", FinanceProgressView.as_view(), name="finance_progress"),
     path(
         "finance/students/",
         PaiementViewSet.as_view({"get": "students"}),

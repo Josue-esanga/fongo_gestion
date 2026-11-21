@@ -131,3 +131,25 @@ class StagiaireFinanceSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, obj):
         return obj.get_full_name() or obj.username
+
+
+class StagiaireProgressSerializer(UserCompactSerializer):
+    """Profil + pourcentage versé, **sans aucun montant**.
+
+    Réservé aux administrateurs non caissiers : ils voient qui a réglé quoi,
+    en pourcentage, mais jamais les sommes en jeu.
+    """
+
+    pourcentage = serializers.SerializerMethodField()
+
+    class Meta(UserCompactSerializer.Meta):
+        fields = UserCompactSerializer.Meta.fields + ("pourcentage",)
+        read_only_fields = fields
+
+    def get_pourcentage(self, obj) -> int:
+        cible = self.context.get("cible") or 0
+        if cible <= 0:
+            # Cible inconnue ou nulle : aucun pourcentage calculable.
+            return 0
+        total = getattr(obj, "total_valide", 0) or 0
+        return min(100, round(total / cible * 100))
