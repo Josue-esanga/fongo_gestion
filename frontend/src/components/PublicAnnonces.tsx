@@ -47,7 +47,10 @@ function AnnonceCard({ annonce, index }: { annonce: Annonce; index: number }) {
         {truncateText(annonce.contenu, 160)}
       </p>
 
-      <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+      <div
+        data-annonce-no-capture
+        className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-4"
+      >
         {/* Partage WhatsApp / Facebook : image du rendu + lien, ouvert à tous. */}
         <AnnonceShareButton annonce={annonce} />
         <Link
@@ -108,9 +111,8 @@ export function PublicAnnonces() {
               Les annonces du club
             </h2>
             <p className="mt-4 text-base leading-7 text-slate-500">
-              Sessions, événements et rendez-vous publiés par l’équipe
-              FongoLab : visibles ici même sans connexion, et partageables en
-              un clic sur WhatsApp ou Facebook.
+              Lisez les annonces sans connexion et partagez-les en un clic sur
+              WhatsApp ou Facebook.
             </p>
           </Reveal>
 

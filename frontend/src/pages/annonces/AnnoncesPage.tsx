@@ -193,7 +193,10 @@ export function AnnoncesPage() {
                 </p>
               )}
 
-              <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
+              <div
+                data-annonce-no-capture
+                className="mt-5 flex flex-wrap items-center justify-between gap-2"
+              >
                 {/* Partage WhatsApp / Facebook en image : ouvert à tous. */}
                 <AnnonceShareButton annonce={annonce} />
                 {canManage && (

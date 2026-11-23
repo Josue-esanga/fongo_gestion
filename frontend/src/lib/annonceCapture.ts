@@ -29,6 +29,21 @@ export async function waitForAnnonceCard(
   }
 }
 
+/** Hauteur occupée par les blocs exclus (barres de boutons), marges comprises. */
+function hauteurBlocsExclus(node: HTMLElement): number {
+  let total = 0
+  for (const bloc of node.querySelectorAll<HTMLElement>(
+    '[data-annonce-no-capture]',
+  )) {
+    const style = window.getComputedStyle(bloc)
+    total +=
+      bloc.offsetHeight +
+      (parseFloat(style.marginTop) || 0) +
+      (parseFloat(style.marginBottom) || 0)
+  }
+  return total
+}
+
 /**
  * Photographie la carte affichée → PNG. Renvoie `null` si la carte n'est pas
  * affichée ou si la capture échoue (images non autorisées, navigateur
@@ -38,12 +53,22 @@ export async function captureAnnonceCard(id: number): Promise<Blob | null> {
   const node = document.querySelector<HTMLElement>(annonceCardSelector(id))
   if (!node) return null
 
+  // Hauteur **sans** la barre de boutons : html-to-image mesure la carte
+  // complète, il faut donc indiquer la hauteur voulue pour éviter un blanc
+  // en bas de l'image.
+  const hauteur = Math.max(80, node.offsetHeight - hauteurBlocsExclus(node))
+
   try {
     const dataUrl = await toPng(node, {
       // Résolution nette (WhatsApp / Facebook réduisent l'image).
       pixelRatio: 2,
+      height: hauteur,
       backgroundColor: '#ffffff',
       cacheBust: true,
+      // Exclut les barres d'action (bouton Partager, Modifier, Supprimer…) :
+      // l'image partagée ne montre que le contenu publié de l'annonce.
+      // `dataset` peut manquer sur certains nœuds : garde-fou `?.`.
+      filter: (cible) => cible.dataset?.annonceNoCapture === undefined,
     })
     const response = await fetch(dataUrl)
     return await response.blob()
