@@ -111,7 +111,7 @@ export function PublicAnnonces() {
               Les annonces du club
             </h2>
             <p className="mt-4 text-base leading-7 text-slate-500">
-              Lisez les annonces sans connexion et partagez-les en un clic sur
+              Retrouvez les annonces du club et partagez-les en un clic sur
               WhatsApp ou Facebook.
             </p>
           </Reveal>

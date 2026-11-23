@@ -69,7 +69,7 @@ export function LoginPage() {
                 FG
               </span>
               <span className="flex flex-col leading-tight">
-                <span className="text-xl font-bold">FongoGestion</span>
+                <span className="text-xl font-bold">FongoLab</span>
                 <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-fongo-200">
                   Plateforme de gestion
                 </span>
@@ -106,7 +106,7 @@ export function LoginPage() {
                   FG
                 </span>
                 <span className="flex flex-col leading-tight">
-                  <span className="text-lg font-bold text-white">FongoGestion</span>
+                  <span className="text-lg font-bold text-white">FongoLab</span>
                   <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-fongo-200">
                     Plateforme de gestion
                   </span>

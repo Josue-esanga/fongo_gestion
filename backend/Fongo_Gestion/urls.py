@@ -19,7 +19,7 @@ def api_root(request):
     """Point d'entrée JSON : indique où se trouve l'API."""
     return JsonResponse(
         {
-            'name': 'FongoGestion API',
+            'name': 'FongoLab API',
             'version': '1.0.0',
             'status': 'ok',
             'api': request.build_absolute_uri('/api/'),

@@ -1,5 +1,5 @@
 /**
- * Icône accessible pour FongoGestion.
+ * Icône accessible pour FongoLab.
  *
  * Les icônes PrimeIcons (`<i className="pi pi-...">`) sont purement décoratives.
  * Elles doivent être masquées aux lecteurs d'écran via `aria-hidden="true"` pour

@@ -90,7 +90,7 @@ export function DashboardPage() {
             <h1 className="text-balance break-words text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl">
               Bonjour{' '}
               <span className="text-fongo-700">{data.utilisateur.full_name}</span>,
-              bienvenue sur FongoGestion
+              bienvenue sur FongoLab
             </h1>
             <p className="max-w-2xl break-words text-sm leading-7 text-slate-600 sm:text-base">
               {isSuperAdmin

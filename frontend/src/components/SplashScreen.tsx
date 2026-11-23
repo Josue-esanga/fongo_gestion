@@ -44,7 +44,7 @@ export function SplashScreen({
       }`}
       role="status"
       aria-live="polite"
-      aria-label="Chargement de FongoGestion"
+      aria-label="Chargement de FongoLab"
     >
       {/* Halos décoratifs très discrets, alignés sur la palette du projet. */}
       <div
@@ -74,7 +74,7 @@ export function SplashScreen({
         </div>
 
         <p className="mt-7 text-2xl font-extrabold tracking-tight text-white">
-          FongoGestion
+          FongoLab
         </p>
         <p className="mt-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-fongo-300">
           Plateforme du club FongoLab

@@ -237,7 +237,7 @@ export function HomePage() {
             to="/"
             className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-3xl font-black tracking-[-0.045em] text-fongo-950 sm:text-4xl"
           >
-            <span className="text-cyan-500">Fongo</span>Gestion
+            <span className="text-cyan-500">Fongo</span>Lab
           </Link>
 
           <nav className="ml-auto hidden items-center gap-5 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600 xl:flex xl:gap-3 2xl:gap-7">
@@ -879,7 +879,7 @@ export function HomePage() {
                 to="/"
                 className="flex w-fit items-center text-3xl font-black tracking-[-0.045em] text-white"
               >
-                <span className="text-cyan-400">Fongo</span>Gestion
+                <span className="text-cyan-400">Fongo</span>Lab
               </Link>
               <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-cyan-300">
                 Plateforme du club FongoLab

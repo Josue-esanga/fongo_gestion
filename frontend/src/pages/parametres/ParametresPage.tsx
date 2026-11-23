@@ -26,7 +26,7 @@ export function ParametresPage() {
         subtitle={
           isStagiaire
             ? 'Consultez vos informations personnelles et changez votre photo de profil.'
-            : 'Gérez vos informations personnelles et la sécurité de votre compte FongoGestion.'
+            : 'Gérez vos informations personnelles et la sécurité de votre compte FongoLab.'
         }
       />
 

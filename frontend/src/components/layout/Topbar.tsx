@@ -34,7 +34,7 @@ export function Topbar({
     const item = NAV_ITEMS.find((entry) =>
       location.pathname.startsWith(entry.to),
     )
-    return item?.label ?? 'FongoGestion'
+    return item?.label ?? 'FongoLab'
   }, [location.pathname])
 
   useEffect(() => {

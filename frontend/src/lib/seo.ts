@@ -1,5 +1,5 @@
 /**
- * Utilitaire SEO pour FongoGestion.
+ * Utilitaire SEO pour FongoLab.
  *
  * Met à jour dynamiquement <title>, <meta description> et les balises
  * Open Graph / Twitter Cards selon la route courante.
@@ -11,7 +11,7 @@
  */
 
 interface SEOProps {
-  /** Titre de la page (suffixe " - FongoGestion" ajouté automatiquement). */
+  /** Titre de la page (suffixe " - FongoLab" ajouté automatiquement). */
   title: string
   /** Méta description de la page. */
   description: string
@@ -21,7 +21,7 @@ interface SEOProps {
   image?: string
 }
 
-const SITE_NAME = 'FongoGestion'
+const SITE_NAME = 'FongoLab'
 const SITE_URL = 'https://fongolab.com'
 const DEFAULT_IMAGE = '/images/logo.svg'
 const DEFAULT_DESCRIPTION =
@@ -105,11 +105,11 @@ export const ROUTE_SEO: Record<string, { title: string; description: string }> =
   '/': {
     title: 'Accueil',
     description:
-      'FongoLab, la communauté tech du Burundi : apprenez HTML, CSS, JavaScript, Python, SQL et Django, et pilotez la vie du club avec FongoGestion.',
+      'FongoLab, la communauté tech du Burundi : apprenez HTML, CSS, JavaScript, Python, SQL et Django, et pilotez la vie du club avec FongoLab.',
   },
   '/login': {
     title: 'Connexion',
-    description: 'Connectez-vous à votre espace FongoGestion pour gérer votre profil et vos activités.',
+    description: 'Connectez-vous à votre espace FongoLab pour gérer votre profil et vos activités.',
   },
   '/dashboard': {
     title: 'Tableau de bord',
@@ -149,7 +149,7 @@ export const ROUTE_SEO: Record<string, { title: string; description: string }> =
   },
   '/parametres': {
     title: 'Paramètres',
-    description: 'Configurez votre profil et les paramètres de votre compte FongoGestion.',
+    description: 'Configurez votre profil et les paramètres de votre compte FongoLab.',
   },
 }
 

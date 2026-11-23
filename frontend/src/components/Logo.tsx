@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 
 /**
- * Marque FongoGestion affichée dans l'application connectée.
+ * Marque FongoLab affichée dans l'application connectée.
  *
  * Le logo est le même que celui de la page publique, pour une identité
  * cohérente entre la vitrine et l'espace membre.
@@ -18,7 +18,7 @@ export function Logo({ compact = false }: { compact?: boolean }) {
       />
       {!compact && (
         <span className="flex flex-col leading-tight">
-          <span className="text-lg font-bold text-white">FongoGestion</span>
+          <span className="text-lg font-bold text-white">FongoLab</span>
           <span className="whitespace-nowrap text-[10px] font-medium uppercase tracking-[0.12em] text-fongo-200 sm:text-[11px] sm:tracking-[0.18em]">
             Plateforme de gestion
           </span>

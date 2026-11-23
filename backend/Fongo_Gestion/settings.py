@@ -380,7 +380,7 @@ SIMPLE_JWT = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'FongoGestion API',
+    'TITLE': 'FongoLab API',
     'DESCRIPTION': (
         'API REST du système de gestion du club FongoLab : '
         'membres, finances, annonces, devoirs, planning et formateurs.'
