@@ -13,7 +13,11 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from Planning.api_views import EventViewSet
-from annonce.api_views import AnnonceViewSet, PublicAnnonceListView
+from annonce.api_views import (
+    AnnoncePosterView,
+    AnnonceViewSet,
+    PublicAnnonceListView,
+)
 from audit.api_views import AuditLogViewSet, AuditSummaryView
 from devoir.api_views import DevoirViewSet
 from finance.api_views import (
@@ -95,6 +99,12 @@ urlpatterns = [
         "annonces/public/",
         PublicAnnonceListView.as_view(),
         name="annonces_public",
+    ),
+    # Capture de partage d'une annonce (PNG du rendu affiché).
+    path(
+        "annonces/<int:pk>/poster/",
+        AnnoncePosterView.as_view(),
+        name="annonce-poster",
     ),
     # --- Routes générées par le routeur ---
     path("", include(router.urls)),

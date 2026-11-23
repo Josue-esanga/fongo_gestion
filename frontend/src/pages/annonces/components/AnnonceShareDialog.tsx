@@ -6,25 +6,24 @@ import { useToast } from '@/contexts/ToastContext'
 import { getErrorMessage } from '@/lib/errors'
 import { truncateText } from '@/lib/format'
 import {
+  annoncePublicUrl,
+  copyAnnonceLink,
   downloadAnnonceImage,
-  openSharePlatform,
-  shareAnnonceImage,
+  shareAnnonce,
   shareTargetLabel,
-  type ShareResult,
+  type ShareOutcome,
   type ShareTarget,
 } from '@/lib/annonceShare'
 import type { Annonce } from '@/types'
 
 /**
- * Dialogue de partage d'une annonce **en image** (PNG généré côté navigateur).
+ * Dialogue de partage d'une annonce : **image + lien**.
  *
- * - WhatsApp / Facebook : la plateforme reçoit le PNG (API Web Share), jamais
- *   du texte ni du code d'annonce ;
- * - sans partage natif : le PNG est téléchargé et l'utilisateur ouvre la
- *   plateforme d'un clic (aucune popup bloquée).
- *
- * L'aperçu est produit par le bouton avant l'ouverture : le PNG affiché est
- * exactement celui qui sera partagé.
+ * - L'image est la capture du rendu affiché (aucun design ajouté ni retiré) ;
+ * - le lien ouvre la page publique de l'annonce, dont WhatsApp / Facebook
+ *   affichent l'aperçu (image + titre) grâce aux balises Open Graph ;
+ * - sur mobile, l'image et le lien partent ensemble via le partage natif,
+ *   sans téléchargement manuel.
  */
 export function AnnonceShareDialog({
   visible,
@@ -36,7 +35,7 @@ export function AnnonceShareDialog({
 }: {
   visible: boolean
   annonce: Annonce
-  /** PNG déjà généré (aperçu), ou `null` si la génération a échoué. */
+  /** PNG du rendu affiché, déjà capturé à l'ouverture. */
   previewUrl: string | null
   previewBlob: Blob | null
   previewError: string | null
@@ -44,31 +43,31 @@ export function AnnonceShareDialog({
 }) {
   const { showToast } = useToast()
   const [working, setWorking] = useState<ShareTarget | null>(null)
-  const [downloading, setDownloading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
   const [result, setResult] = useState<{
-    kind: ShareResult
+    outcome: ShareOutcome
     target: ShareTarget
   } | null>(null)
+
+  const url = annoncePublicUrl(annonce.id)
+  const busy = working !== null
 
   async function handleShare(target: ShareTarget) {
     setWorking(target)
     setError(null)
     setResult(null)
+    setCopied(false)
     try {
-      // Le PNG de l'aperçu est réutilisé : l'image partagée est celle vue.
-      const { result: kind } = await shareAnnonceImage(
-        annonce,
-        previewBlob ?? undefined,
-      )
-      setResult({ kind, target })
-      if (kind === 'shared') {
+      const outcome = await shareAnnonce(annonce, previewBlob, target)
+      setResult({ outcome, target })
+      if (outcome === 'shared') {
         showToast('success', `Partagé sur ${shareTargetLabel(target)}`)
-      } else if (kind === 'downloaded') {
+      } else if (outcome === 'link') {
         showToast(
           'info',
-          'Image téléchargée',
-          `Ouvrez ${shareTargetLabel(target)} pour la publier.`,
+          `${shareTargetLabel(target)} ouvert`,
+          "Le lien de l'annonce est prêt à être publié.",
         )
       }
     } catch (cause) {
@@ -78,21 +77,21 @@ export function AnnonceShareDialog({
     }
   }
 
-  async function handleDownload() {
-    setDownloading(true)
-    setError(null)
-    try {
-      await downloadAnnonceImage(annonce, previewBlob ?? undefined)
-      showToast('success', 'Image téléchargée', 'Le PNG est prêt à être partagé.')
-    } catch (cause) {
-      setError(getErrorMessage(cause))
-    } finally {
-      setDownloading(false)
-    }
+  function handleDownload() {
+    if (!previewBlob) return
+    downloadAnnonceImage(previewBlob, annonce)
+    showToast('success', 'Image téléchargée', 'Le PNG correspond au rendu affiché.')
   }
 
-  const busy = working !== null || downloading
-  const downloaded = result?.kind === 'downloaded'
+  async function handleCopy() {
+    const ok = await copyAnnonceLink(annonce)
+    setCopied(ok)
+    showToast(
+      ok ? 'success' : 'error',
+      ok ? 'Lien copié' : 'Copie impossible',
+      ok ? url : 'Copiez-le manuellement depuis le champ.',
+    )
+  }
 
   const header = (
     <div className="flex items-center gap-3">
@@ -102,7 +101,7 @@ export function AnnonceShareDialog({
       <div>
         <p className="text-base font-bold text-slate-900">Partager l'annonce</p>
         <p className="text-xs text-slate-500">
-          L'annonce part sous forme d'image, jamais en texte.
+          L'image du rendu et le lien de l'annonce partent ensemble.
         </p>
       </div>
     </div>
@@ -130,29 +129,29 @@ export function AnnonceShareDialog({
       footer={footer}
       modal
       draggable={false}
-      style={{ width: 'min(96vw, 760px)' }}
+      style={{ width: 'min(96vw, 780px)' }}
     >
       <div className="grid gap-5 pt-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        {/* Aperçu de l'image qui sera partagée */}
+        {/* Image : capture du rendu affiché, sans modification */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
           {previewUrl ? (
             <img
               src={previewUrl}
-              alt={`Aperçu de l'image : ${truncateText(annonce.object, 60)}`}
-              className="aspect-square w-full object-cover"
+              alt={`Image de l'annonce : ${truncateText(annonce.object, 60)}`}
+              className="max-h-[420px] w-full object-contain"
             />
           ) : (
             <div
-              className="flex aspect-square w-full items-center justify-center px-4 text-center text-sm text-slate-500"
+              className="flex aspect-square w-full items-center justify-center gap-2 px-4 text-center text-sm text-slate-500"
               role="status"
               aria-live="polite"
             >
-              <Icon className="pi pi-exclamation-circle" />
-              Aperçu indisponible
+              <Icon className="pi pi-info-circle" />
+              Image indisponible : le partage se fera avec le seul lien.
             </div>
           )}
           <span className="absolute bottom-2 left-2 rounded-full bg-slate-950/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
-            PNG · 1080 × 1080
+            Rendu publié
           </span>
         </div>
 
@@ -161,10 +160,37 @@ export function AnnonceShareDialog({
           <p className="text-sm font-semibold text-slate-700">
             {truncateText(annonce.object, 70)}
           </p>
-          <p className="text-xs leading-5 text-slate-500">
-            Choisissez où publier l'image : votre statut WhatsApp, un contact
-            ou Facebook.
-          </p>
+
+          {/* Lien public de l'annonce (retour au dashboard) */}
+          <div>
+            <label
+              htmlFor="lien-annonce"
+              className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-400"
+            >
+              Lien de l'annonce
+            </label>
+            <div className="flex gap-2">
+              <input
+                id="lien-annonce"
+                value={url}
+                readOnly
+                onFocus={(event) => event.currentTarget.select()}
+                className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600"
+              />
+              <Button
+                type="button"
+                icon={copied ? 'pi pi-check' : 'pi pi-copy'}
+                label={copied ? 'Copié' : 'Copier'}
+                size="small"
+                outlined
+                severity={copied ? 'success' : 'secondary'}
+                onClick={handleCopy}
+              />
+            </div>
+            <p className="mt-1 text-[11px] leading-4 text-slate-400">
+              Ce lien ouvre l'annonce puis renvoie vers le dashboard.
+            </p>
+          </div>
 
           <Button
             type="button"
@@ -193,31 +219,20 @@ export function AnnonceShareDialog({
             outlined
             severity="secondary"
             className="w-full justify-start"
-            loading={downloading}
-            disabled={busy}
+            disabled={busy || !previewBlob}
             onClick={handleDownload}
           />
 
-          {downloaded && result && (
+          {result?.outcome === 'link' && (
             <div className="rounded-2xl border border-sky-200 bg-sky-50 p-3 text-xs leading-5 text-sky-900">
               <p className="flex items-start gap-2">
                 <Icon className="pi pi-info-circle mt-0.5" />
                 <span>
-                  L'image a été téléchargée. Ouvrez{' '}
-                  {shareTargetLabel(result.target)} puis joignez-la à votre
-                  statut ou à votre publication.
+                  {shareTargetLabel(result.target)} s'ouvre avec le lien de
+                  l'annonce : l'image et le titre s'y affichent automatiquement,
+                  sur le statut comme dans une conversation.
                 </span>
               </p>
-              <Button
-                type="button"
-                label={`Ouvrir ${shareTargetLabel(result.target)}`}
-                icon="pi pi-external-link"
-                size="small"
-                severity="info"
-                text
-                className="mt-1 px-0"
-                onClick={() => openSharePlatform(result.target)}
-              />
             </div>
           )}
 

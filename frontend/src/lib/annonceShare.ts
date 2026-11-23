@@ -1,246 +1,52 @@
 import type { Annonce } from '@/types'
-import { formatDate } from '@/lib/format'
 
 /**
- * Partage d'annonce **sous forme d'image** (WhatsApp, Facebook).
+ * Partage d'une annonce : **image + lien**.
  *
- * L'annonce est rendue dans un canvas (1080 × 1080) puis envoyée en PNG via
- * l'API Web Share quand elle est disponible (mobile) : rien n'est jamais
- * partagé « en code » ni en texte brut. À défaut, l'image est téléchargée et
- * la plateforme ouverte, avec une consigne de partage manuel.
+ * - Le lien pointe vers la page publique de l'annonce (`/a/<id>/`, servie par
+ *   le backend) qui porte les balises Open Graph : WhatsApp et Facebook y
+ *   affichent automatiquement l'image et le titre de l'annonce.
+ * - Sur mobile, l'API Web Share envoie **l'image et le lien ensemble** (l'image
+ *   en légende du lien) : rien n'est téléchargé à la main.
+ * - Sans partage natif (ordinateur), la plateforme s'ouvre directement avec le
+ *   lien — l'aperçu image s'affiche tout seul.
+ *
+ * L'image partagée est la **capture du rendu affiché** (`annonceCapture`),
+ * sans design ajouté ni retiré.
  */
 
 export type ShareTarget = 'whatsapp' | 'facebook'
-export type ShareResult = 'shared' | 'downloaded' | 'cancelled'
+/** `shared` : partage natif · `link` : plateforme ouverte avec le lien. */
+export type ShareOutcome = 'shared' | 'link' | 'cancelled'
 
-const WIDTH = 1080
-const HEIGHT = 1080
-const PADDING = 72
-const FONT = 'system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
-
-const SHARE_URLS: Record<ShareTarget, string> = {
-  whatsapp:
-    typeof navigator !== 'undefined' &&
-    /android|iphone|ipad|ipod/i.test(navigator.userAgent)
-      ? 'whatsapp://'
-      : 'https://web.whatsapp.com/',
-  facebook: 'https://www.facebook.com/',
+/** Base du backend (page publique `/a/<id>/`). */
+function backendBase(): string {
+  const api = import.meta.env.VITE_API_URL?.trim()
+  if (api) return api.replace(/\/api\/?$/, '')
+  return (import.meta.env.VITE_BACKEND_URL?.trim() || '').replace(/\/+$/, '')
 }
 
-/** Charge une image sans « tinter » le canvas (sinon `toBlob` échoue). */
-function loadImage(url: string): Promise<HTMLImageElement | null> {
-  return new Promise((resolve) => {
-    const image = new Image()
-    image.crossOrigin = 'anonymous'
-    image.onload = () => resolve(image)
-    image.onerror = () => resolve(null)
-    image.src = url
-  })
+/** URL publique de l'annonce : ce que l'on partage. */
+export function annoncePublicUrl(id: number): string {
+  return `${backendBase()}/a/${id}/`
 }
 
-function roundRect(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-) {
-  const r = Math.min(radius, width / 2, height / 2)
-  ctx.beginPath()
-  ctx.moveTo(x + r, y)
-  ctx.arcTo(x + width, y, x + width, y + height, r)
-  ctx.arcTo(x + width, y + height, x, y + height, r)
-  ctx.arcTo(x, y + height, x, y, r)
-  ctx.arcTo(x, y, x + width, y, r)
-  ctx.closePath()
+/** Lien de partage direct de la plateforme (aperçu géré par la plateforme). */
+export function shareLink(target: ShareTarget, url: string): string {
+  return target === 'whatsapp'
+    ? `https://wa.me/?text=${encodeURIComponent(url)}`
+    : `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`
 }
 
-/** Découpe un texte en lignes tenant dans `maxWidth` (max `maxLines`). */
-function wrapLines(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  maxWidth: number,
-  maxLines: number,
-): string[] {
-  const words = text.replace(/\s+/g, ' ').trim().split(' ')
-  const lines: string[] = []
-  let line = ''
-  let truncated = false
-
-  for (const word of words) {
-    const candidate = line ? `${line} ${word}` : word
-    if (ctx.measureText(candidate).width > maxWidth && line) {
-      lines.push(line)
-      line = word
-      if (lines.length >= maxLines) {
-        truncated = true
-        break
-      }
-    } else {
-      line = candidate
-    }
-  }
-  if (!truncated && line) {
-    if (lines.length < maxLines) {
-      lines.push(line)
-    } else {
-      // Il reste du texte après la dernière ligne : on le signale.
-      truncated = true
-    }
-  }
-  if (truncated && lines.length > 0) {
-    lines[lines.length - 1] = `${lines[lines.length - 1].replace(/[,.;:…]+$/, '')}…`
-  }
-  return lines
+export function shareTargetLabel(target: ShareTarget): string {
+  return target === 'whatsapp' ? 'WhatsApp' : 'Facebook'
 }
 
-/**
- * Dessine l'annonce dans un canvas et renvoie le PNG.
- * Une image d'annonce indisponible (CORS,404) ne fait pas échouer le rendu :
- * seule la partie texte est alors dessinée.
- */
-export async function renderAnnonceImage(annonce: Annonce): Promise<Blob> {
-  const canvas = document.createElement('canvas')
-  canvas.width = WIDTH
-  canvas.height = HEIGHT
-  const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error("Le navigateur ne permet pas de générer l'image.")
-
-  // --- Fond bleu nuit + halo cyan (palette FongoLab) ---------------------
-  const background = ctx.createLinearGradient(0, 0, 0, HEIGHT)
-  background.addColorStop(0, '#0b1a63')
-  background.addColorStop(1, '#020344')
-  ctx.fillStyle = background
-  ctx.fillRect(0, 0, WIDTH, HEIGHT)
-
-  ctx.save()
-  const halo = ctx.createRadialGradient(
-    WIDTH - 140,
-    120,
-    20,
-    WIDTH - 140,
-    120,
-    520,
-  )
-  halo.addColorStop(0, 'rgba(34, 211, 238, 0.35)')
-  halo.addColorStop(1, 'rgba(34, 211, 238, 0)')
-  ctx.fillStyle = halo
-  ctx.fillRect(0, 0, WIDTH, HEIGHT)
-  ctx.restore()
-
-  // --- Bandeau « FongoLab » ---------------------------------------------
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.12)'
-  roundRect(ctx, PADDING, PADDING, 268, 76, 38)
-  ctx.fill()
-  ctx.textBaseline = 'middle'
-  ctx.textAlign = 'left'
-  ctx.fillStyle = '#67e8f9'
-  ctx.font = `800 34px ${FONT}`
-  ctx.fillText('FongoLab', PADDING + 32, PADDING + 40)
-
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
-  ctx.font = `700 24px ${FONT}`
-  ctx.textAlign = 'right'
-  ctx.fillText('ANNONCE DU CLUB', WIDTH - PADDING, PADDING + 40)
-  ctx.textAlign = 'left'
-
-  // --- Image de l'annonce (facultative) ----------------------------------
-  let y = PADDING + 128
-  const image = annonce.image1 ? await loadImage(annonce.image1) : null
-
-  if (image && image.width > 0 && image.height > 0) {
-    const boxWidth = WIDTH - PADDING * 2
-    const boxHeight = 420
-    const scale = Math.max(boxWidth / image.width, boxHeight / image.height)
-    const drawWidth = image.width * scale
-    const drawHeight = image.height * scale
-
-    ctx.save()
-    roundRect(ctx, PADDING, y, boxWidth, boxHeight, 36)
-    ctx.clip()
-    ctx.drawImage(
-      image,
-      PADDING + (boxWidth - drawWidth) / 2,
-      y + (boxHeight - drawHeight) / 2,
-      drawWidth,
-      drawHeight,
-    )
-    ctx.restore()
-    y += boxHeight + 44
-  }
-
-  // --- Titre --------------------------------------------------------------
-  ctx.fillStyle = '#ffffff'
-  ctx.font = `800 56px ${FONT}`
-  ctx.textBaseline = 'top'
-  const titleLines = wrapLines(ctx, annonce.object, WIDTH - PADDING * 2, 2)
-  for (const line of titleLines) {
-    ctx.fillText(line, PADDING, y)
-    y += 68
-  }
-  y += 20
-
-  // --- Contenu ------------------------------------------------------------
-  const footerY = HEIGHT - PADDING - 56
-  const available = footerY - 40 - y
-  const maxContentLines = Math.max(3, Math.floor(available / 48))
-  // La police doit être posée AVANT le mesure des lignes (wrapLines).
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.86)'
-  ctx.font = `500 34px ${FONT}`
-  const contentLines = wrapLines(
-    ctx,
-    annonce.contenu,
-    WIDTH - PADDING * 2,
-    maxContentLines,
-  )
-  for (const line of contentLines) {
-    ctx.fillText(line, PADDING, y)
-    y += 48
-  }
-
-  // --- Pied de page -------------------------------------------------------
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)'
-  ctx.lineWidth = 2
-  ctx.beginPath()
-  ctx.moveTo(PADDING, footerY - 34)
-  ctx.lineTo(WIDTH - PADDING, footerY - 34)
-  ctx.stroke()
-
-  ctx.textBaseline = 'middle'
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.75)'
-  ctx.font = `600 26px ${FONT}`
-  ctx.fillText(`Prévue le ${formatDate(annonce.date_prevue)}`, PADDING, footerY)
-
-  ctx.textAlign = 'right'
-  ctx.fillStyle = '#67e8f9'
-  ctx.fillText('FongoLab · Burundi', WIDTH - PADDING, footerY)
-  ctx.textAlign = 'left'
-
-  return await new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob(
-      (blob) =>
-        blob
-          ? resolve(blob)
-          : reject(new Error("Impossible de générer l'image de l'annonce.")),
-      'image/png',
-      0.95,
-    )
-  })
+function isAbort(error: unknown): boolean {
+  return error instanceof DOMException && error.name === 'AbortError'
 }
 
-function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  window.setTimeout(() => URL.revokeObjectURL(url), 2000)
-}
-
-function annonceFilename(annonce: Annonce): string {
+function annonceImageFilename(annonce: Annonce): string {
   const slug = annonce.object
     .toLowerCase()
     .normalize('NFD')
@@ -251,70 +57,70 @@ function annonceFilename(annonce: Annonce): string {
   return `fongolab-${slug || 'annonce'}-${annonce.id}.png`
 }
 
-/**
- * Partage l'annonce en image sur WhatsApp ou Facebook.
- *
- * @param blob PNG déjà généré (aperçu) : si fourni, c'est lui qui part, ce
- *   qui garantit que l'image partagée est exactement celle affichée.
- *
- * - `shared` : le système a partagé le PNG (Web Share API) ;
- * - `downloaded` : pas de partage natif → le PNG est téléchargé, la
- *   plateforme reste à ouvrir par l'utilisateur (clic, jamais de popup) ;
- * - `cancelled` : l'utilisateur a annulé le partage natif.
- */
-export async function shareAnnonceImage(
-  annonce: Annonce,
-  blob?: Blob,
-): Promise<{ result: ShareResult; blob: Blob }> {
-  const image = blob ?? (await renderAnnonceImage(annonce))
-  const filename = annonceFilename(annonce)
-  const file =
-    typeof File !== 'undefined'
-      ? new File([image], filename, { type: 'image/png' })
-      : null
-
+function canShareFiles(file: File, url: string): boolean {
   const nav = navigator as Navigator & {
     canShare?: (data?: ShareData) => boolean
   }
-  const canShareFiles = Boolean(
-    file &&
-      typeof nav.share === 'function' &&
-      nav.canShare?.({ files: [file] }),
+  return Boolean(
+    typeof nav.share === 'function' && nav.canShare?.({ files: [file], text: url }),
   )
+}
 
-  if (canShareFiles && file) {
+/**
+ * Partage l'annonce sur WhatsApp ou Facebook.
+ *
+ * @param image capture PNG du rendu affiché, si disponible.
+ */
+export async function shareAnnonce(
+  annonce: Annonce,
+  image: Blob | null,
+  target: ShareTarget,
+): Promise<ShareOutcome> {
+  const url = annoncePublicUrl(annonce.id)
+  const file = image
+    ? new File([image], annonceImageFilename(annonce), { type: 'image/png' })
+    : null
+
+  // 1) Partage natif avec l'image + le lien (mobile) : WhatsApp reçoit
+  //    l'image, le lien part en légende — aucun téléchargement manuel.
+  if (file && canShareFiles(file, url)) {
     try {
-      // Uniquement le PNG : jamais de texte ni de « code » d'annonce.
-      await nav.share({ files: [file], title: annonce.object })
-      return { result: 'shared', blob: image }
+      await navigator.share({
+        files: [file],
+        text: url,
+        title: annonce.object,
+      })
+      return 'shared'
     } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        return { result: 'cancelled', blob: image }
-      }
-      // Autre refus (plateforme non prise en charge) → repli téléchargement.
+      if (isAbort(error)) return 'cancelled'
+      // Sinon : on ouvre la plateforme avec le lien (aperçu image compris).
     }
   }
 
-  downloadBlob(image, filename)
-  return { result: 'downloaded', blob: image }
+  // 2) Repli : ouverture de la plateforme avec le lien. Appel fait dans le
+  //    geste utilisateur (aucun `await` avant) → jamais bloqué en pop-up.
+  window.open(shareLink(target, url), '_blank', 'noopener,noreferrer')
+  return 'link'
 }
 
-/** Télécharge simplement le PNG de l'annonce (bouton dédié). */
-export async function downloadAnnonceImage(
-  annonce: Annonce,
-  blob?: Blob,
-): Promise<Blob> {
-  const image = blob ?? (await renderAnnonceImage(annonce))
-  downloadBlob(image, annonceFilename(annonce))
-  return image
+/** Télécharge la capture du rendu affiché (PNG, rien d'ajouté). */
+export function downloadAnnonceImage(image: Blob, annonce: Annonce): void {
+  const url = URL.createObjectURL(image)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = annonceImageFilename(annonce)
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 2000)
 }
 
-/** Ouvre WhatsApp ou Facebook (appelé depuis un clic → jamais bloqué). */
-export function openSharePlatform(target: ShareTarget) {
-  window.open(SHARE_URLS[target], '_blank', 'noopener,noreferrer')
-}
-
-/** Nom de la plateforme pour les messages. */
-export function shareTargetLabel(target: ShareTarget): string {
-  return target === 'whatsapp' ? 'WhatsApp' : 'Facebook'
+/** Copie le lien public de l'annonce dans le presse-papiers. */
+export async function copyAnnonceLink(annonce: Annonce): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(annoncePublicUrl(annonce.id))
+    return true
+  } catch {
+    return false
+  }
 }

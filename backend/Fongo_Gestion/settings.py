@@ -400,6 +400,18 @@ CORS_ALLOWED_ORIGINS = _env_list(
 )
 CORS_ALLOW_CREDENTIALS = True
 
+# URL publique du frontend : lien « Ouvrir le dashboard » de la page
+# publique d'annonce (/a/<id>/) et destination des partages WhatsApp /
+# Facebook. `FRONTEND_URL` prime ; à défaut, la première origine CORS.
+FRONTEND_BASE_URL = (
+    os.environ.get('FRONTEND_URL', '').strip().rstrip('/')
+    or (
+        CORS_ALLOWED_ORIGINS[0].rstrip('/')
+        if CORS_ALLOWED_ORIGINS
+        else 'http://localhost:5173'
+    )
+)
+
 CSRF_TRUSTED_ORIGINS = _env_list(
     'CSRF_TRUSTED_ORIGINS',
     'http://localhost:5173,http://127.0.0.1:5173',

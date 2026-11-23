@@ -128,6 +128,7 @@ export function AnnoncesPage() {
           {annonces.map((annonce) => (
             <article
               key={annonce.id}
+              data-annonce-card={annonce.id}
               className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">

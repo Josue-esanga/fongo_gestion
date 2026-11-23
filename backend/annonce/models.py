@@ -35,6 +35,15 @@ class Annonce(models.Model):
     # Images des deux cartes de l'affiche FongoExpo (facultatives).
     image1 = models.ImageField(upload_to='annonces/', null=True, blank=True)
     image2 = models.ImageField(upload_to='annonces/', null=True, blank=True)
+    # Capture exacte de la carte d'annonce telle qu'affichée (PNG). Sert de
+    # fichier téléchargé, d'image du partage et d'aperçu (og:image) de la page
+    # publique `/a/<id>/`. Générée côté frontend après l'enregistrement.
+    poster = models.ImageField(
+        upload_to='annonces/posters/',
+        null=True,
+        blank=True,
+        help_text="Capture PNG de l'annonce, utilisée pour le partage.",
+    )
     poster_a = models.DateTimeField(auto_now_add=True)
     auteur = models.ForeignKey(
         User,

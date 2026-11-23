@@ -21,6 +21,8 @@ class AnnonceSerializer(serializers.ModelSerializer):
     # Champs d'écriture uniquement : retirer une image existante en édition.
     image1_clear = serializers.BooleanField(write_only=True, required=False)
     image2_clear = serializers.BooleanField(write_only=True, required=False)
+    # Capture de partage : déposée par l'endpoint dédié /annonces/<id>/poster/.
+    poster = serializers.ImageField(read_only=True)
 
     class Meta:
         model = Annonce
@@ -37,6 +39,7 @@ class AnnonceSerializer(serializers.ModelSerializer):
             "image2",
             "image1_clear",
             "image2_clear",
+            "poster",
             "poster_a",
             "auteur",
             "auteur_id",

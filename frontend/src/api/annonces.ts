@@ -76,4 +76,22 @@ export const annoncesApi = {
   async remove(id: number): Promise<void> {
     await api.delete(`annonces/${id}/`)
   },
+
+  /**
+   * Dépose la capture PNG du rendu affiché : c'est cette image qui sert de
+   * fichier téléchargé, d'image du partage et d'aperçu du lien partagé.
+   */
+  async uploadPoster(id: number, image: Blob): Promise<Annonce> {
+    const formData = new FormData()
+    formData.append('poster', image, `annonce-${id}.png`)
+    const { data } = await api.post<Annonce>(
+      `annonces/${id}/poster/`,
+      formData,
+      {
+        // Laisser le navigateur définir multipart/form-data avec boundary
+        headers: { 'Content-Type': undefined },
+      },
+    )
+    return data
+  },
 }

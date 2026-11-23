@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { annoncesApi, type AnnoncePayload } from '@/api/annonces'
+import { captureAndUploadPoster } from '@/lib/annonceCapture'
 import { useToast } from '@/contexts/ToastContext'
 import { getErrorMessage } from '@/lib/errors'
 import { formatDateTime, annonceCibleLabel, annonceCibleSeverity, truncateText } from '@/lib/format'
@@ -51,18 +52,38 @@ export function useAnnonces() {
       showToast('error', 'Suppression impossible', getErrorMessage(error)),
   })
 
-  async function handleSubmit(payload: AnnoncePayload) {
+  /** Repasse le `poster` à jour dans tous les caches d'annonces (page et
+   * accueil), pour éviter un second téléversement inutile au partage. */
+  function patchPoster(updated: Annonce) {
+    queryClient.setQueriesData<Annonce[]>({ queryKey: ['annonces'] }, (old) =>
+      Array.isArray(old)
+        ? old.map((annonce) =>
+            annonce.id === updated.id ? updated : annonce,
+          )
+        : old,
+    )
+  }
+
+  async function handleSubmit(payload: AnnoncePayload): Promise<Annonce | null> {
     try {
+      let saved: Annonce
       if (editing) {
-        await updateMutation.mutateAsync({ id: editing.id, payload })
+        saved = await updateMutation.mutateAsync({ id: editing.id, payload })
         showToast('success', 'Annonce modifiée', "L'annonce a été mise à jour.")
       } else {
-        await createMutation.mutateAsync(payload)
+        saved = await createMutation.mutateAsync(payload)
         showToast('success', 'Annonce publiée', "L'annonce est maintenant visible.")
       }
       await queryClient.invalidateQueries({ queryKey: ['annonces'] })
       await queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       setEditing(null)
+
+      // Capture du rendu affiché → poster de partage : c'est cette image qui
+      // sera téléchargée et envoyée avec le lien. Non bloquant : sans capture,
+      // le partage reste possible avec le seul lien (aperçu Open Graph).
+      const avecPoster = await captureAndUploadPoster(saved.id)
+      if (avecPoster) patchPoster(avecPoster)
+      return avecPoster ?? saved
     } catch (error) {
       showToast('error', 'Enregistrement impossible', getErrorMessage(error))
       throw error

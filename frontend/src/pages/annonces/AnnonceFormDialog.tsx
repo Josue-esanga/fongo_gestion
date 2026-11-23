@@ -23,7 +23,7 @@ export function AnnonceFormDialog({
   annonce: Annonce | null
   saving: boolean
   onHide: () => void
-  onSubmit: (payload: AnnoncePayload) => Promise<void>
+  onSubmit: (payload: AnnoncePayload) => Promise<unknown>
 }) {
   // Images de l'affiche : fichiers choisis + retrait des images en base.
   const [image1File, setImage1File] = useState<File | null>(null)

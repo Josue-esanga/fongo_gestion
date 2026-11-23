@@ -82,6 +82,11 @@ export interface Annonce {
   image1?: string | null
   /** Image de la carte arrière de l'affiche FongoExpo (URL). */
   image2?: string | null
+  /**
+   * Capture exacte du rendu affiché (PNG), déposée après l'enregistrement.
+   * Sert de fichier téléchargé et d'aperçu (`og:image`) de la page publique.
+   */
+  poster?: string | null
   poster_a: string
   auteur: UserLite
 }

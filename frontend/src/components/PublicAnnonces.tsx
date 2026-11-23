@@ -13,10 +13,13 @@ const MAX_ANNONCES = 6
 
 function AnnonceCard({ annonce, index }: { annonce: Annonce; index: number }) {
   return (
-    <Reveal
-      delay={index * 70}
-      className="flex flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white p-5 transition hover:-translate-y-1 hover:border-fongo-200 hover:shadow-lg hover:shadow-fongo-900/5"
-    >
+    // Enveloppe portant l'attribut de capture : le PNG partagé est bien ce
+    // bloc, tel qu'affiché sur la page.
+    <div data-annonce-card={annonce.id} className="h-full">
+      <Reveal
+        delay={index * 70}
+        className="flex h-full flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white p-5 transition hover:-translate-y-1 hover:border-fongo-200 hover:shadow-lg hover:shadow-fongo-900/5"
+      >
       {annonce.image1 && (
         <img
           src={annonce.image1}
@@ -45,7 +48,7 @@ function AnnonceCard({ annonce, index }: { annonce: Annonce; index: number }) {
       </p>
 
       <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
-        {/* Partage WhatsApp / Facebook en image, ouvert à tout visiteur. */}
+        {/* Partage WhatsApp / Facebook : image du rendu + lien, ouvert à tous. */}
         <AnnonceShareButton annonce={annonce} />
         <Link
           to="/annonces"
@@ -55,7 +58,8 @@ function AnnonceCard({ annonce, index }: { annonce: Annonce; index: number }) {
           <Icon className="pi pi-arrow-right text-[10px]" />
         </Link>
       </div>
-    </Reveal>
+      </Reveal>
+    </div>
   )
 }
 

@@ -91,12 +91,20 @@ Installation complète : [`backend/README.md`](backend/README.md) et
   JavaScript, Python, Django…).
 - Annonces affichées **sur la page d'accueil sans connexion** (endpoint public
   `GET /api/annonces/public/`, les annonces réservées aux administrateurs en
-  sont exclues) et **partage en image** : depuis la page des annonces comme
+  sont exclues) et **partage image + lien** : depuis la page des annonces comme
   depuis la page d'accueil, chacun peut envoyer l'annonce sur **WhatsApp**
-  (statut ou contacts) ou **Facebook**. L'annonce est rendue en PNG
-  (1080 × 1080, titre + contenu + date) puis transmis via l'API Web Share —
-  jamais en texte ni en code ; sans partage natif, le PNG est téléchargé et la
-  plateforme ouverte d'un clic.
+  (statut ou contacts) ou **Facebook**.
+  - **L'image est une capture du rendu publié** (`html-to-image` sur la carte
+    affichée, déposée en `POST /api/annonces/<id>/poster/`) : elle est donc
+    strictement identique au rendu posté, ni retouchée ni recadrée. Elle sert
+    de fichier téléchargé (« Télécharger l'image »), d'image du partage et
+    d'aperçu du lien.
+  - **Le lien pointe vers la page publique `/a/<id>/`** (template Django avec
+    balises Open Graph : WhatsApp et Facebook y affichent image + titre) et
+    comporte un bouton « Ouvrir le dashboard ».
+  - Sur mobile, l'API Web Share envoie **l'image et le lien ensemble** ; sans
+    partage natif, la plateforme s'ouvre directement avec le lien — aucun
+    téléchargement manuel n'est demandé.
 - Présences / absences des stagiaires par QR code (appel côté admin, scan
   côté stagiaire).
 - Paramètres du compte : profil et mot de passe.
