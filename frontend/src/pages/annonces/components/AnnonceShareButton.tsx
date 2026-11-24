@@ -13,9 +13,9 @@ import type { Annonce } from '@/types'
  * pour WhatsApp et Facebook. Visible par tous les utilisateurs, sur la page
  * des annonces comme sur la page d'accueil.
  *
- * La capture de la carte est prise au clic (aperçu fidèle) ; si l'annonce n'a
- * pas encore de « poster », il est déposé en même temps pour que le lien
- * partagé ait bien son aperçu image.
+ * La capture de la carte est prise au clic (aperçu fidèle) puis déposée comme
+ * « poster » : le lien partagé a toujours la même image que celle téléchargée,
+ * même si une ancienne image (avec les boutons) avait été publiée.
  */
 export function AnnonceShareButton({
   annonce,
@@ -54,22 +54,28 @@ export function AnnonceShareButton({
         previewRef.current = { url, blob }
         setPreview({ url, blob, error: null })
 
-        // Lien partagé sans aperçu : on dépose la capture (non bloquant), puis
-        // on met les caches à jour pour ne pas la redéposer au prochain partage.
-        if (!annonce.poster) {
-          void annoncesApi
-            .uploadPoster(annonce.id, blob)
-            .then((maj) => {
-              queryClient.setQueriesData<Annonce[]>(
-                { queryKey: ['annonces'] },
-                (old) =>
-                  Array.isArray(old)
-                    ? old.map((a) => (a.id === maj.id ? maj : a))
-                    : old,
-              )
-            })
-            .catch(() => undefined)
-        }
+        // La capture devient le « poster » de l'annonce : elle remplace
+        // l'ancienne image (y compris une image publiée avant la correction
+        // des boutons) et sert d'aperçu au lien partagé. On attend ce dépôt
+        // (borné pour ne jamais bloquer l'ouverture du lien) afin que la page
+        // publique affiche déjà la bonne image quand WhatsApp ou Facebook la
+        // lit.
+        const depot = annoncesApi
+          .uploadPoster(annonce.id, blob)
+          .then((maj) => {
+            queryClient.setQueriesData<Annonce[]>(
+              { queryKey: ['annonces'] },
+              (old) =>
+                Array.isArray(old)
+                  ? old.map((a) => (a.id === maj.id ? maj : a))
+                  : old,
+            )
+          })
+          .catch(() => undefined)
+        await Promise.race([
+          depot,
+          new Promise((resolve) => setTimeout(resolve, 2500)),
+        ])
       } else {
         setPreview({
           url: '',

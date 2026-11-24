@@ -98,10 +98,15 @@ Installation complète : [`backend/README.md`](backend/README.md) et
     affichée, déposée en `POST /api/annonces/<id>/poster/`) : elle est donc
     strictement identique au rendu posté, ni retouchée ni recadrée. Elle sert
     de fichier téléchargé (« Télécharger l'image »), d'image du partage et
-    d'aperçu du lien.
+    d'aperçu du lien — et elle est **re-déposée à chaque partage**, ce qui
+    répare automatiquement les images publiées avant la correction de la barre
+    de boutons.
   - **Le lien pointe vers la page publique `/a/<id>/`** (template Django avec
-    balises Open Graph : WhatsApp et Facebook y affichent image + titre) et
-    comporte un bouton « Ouvrir le dashboard ».
+    balises Open Graph : WhatsApp et Facebook y affichent image + titre). Les
+    visiteurs y voient **l'affiche de l'annonce** (recto/verso du modèle
+    FongoExpo, image des annonces visuelles), la capture du rendu lui servant
+    de visuel et d'aperçu à défaut ; la page comporte un bouton « Ouvrir le
+    dashboard ».
   - Sur mobile, l'API Web Share envoie **l'image et le lien ensemble** ; sans
     partage natif, la plateforme s'ouvre directement avec le lien — aucun
     téléchargement manuel n'est demandé.

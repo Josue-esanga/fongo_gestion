@@ -133,10 +133,17 @@
         letter-spacing: -0.02em;
         overflow-wrap: anywhere;
       }
+      .visuels {
+        margin-top: 18px;
+      }
+      .galerie {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 14px;
+      }
       .visuel {
         display: block;
         width: 100%;
-        margin-top: 18px;
         border-radius: 16px;
         border: 1px solid #e2e8f0;
         background: #f8fafc;
@@ -218,13 +225,29 @@
 
         <h1>{{ annonce.object }}</h1>
 
-        {% if image_url %}
-          <img
-            class="visuel"
-            src="{{ image_url }}"
-            alt="{{ annonce.object }}"
-            loading="lazy"
-          />
+        {% if affiches or poster_url %}
+          <div class="visuels">
+            {% if affiches %}
+              {# Affiche de l'annonce (recto / verso) : visible par les visiteurs #}
+              <div class="galerie">
+                {% for src in affiches %}
+                  <img
+                    class="visuel"
+                    src="{{ src }}"
+                    alt="Affiche de l'annonce : {{ annonce.object }}"
+                    loading="lazy"
+                  />
+                {% endfor %}
+              </div>
+            {% else %}
+              <img
+                class="visuel"
+                src="{{ poster_url }}"
+                alt="{{ annonce.object }}"
+                loading="lazy"
+              />
+            {% endif %}
+          </div>
         {% endif %}
 
         <div class="contenu">{{ annonce.contenu|linebreaksbr }}</div>

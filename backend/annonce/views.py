@@ -17,8 +17,10 @@ def annonce_public(request, annonce_id):
     """GET ``/a/<id>/`` — affiche une annonce **sans connexion**.
 
     - les annonces réservées aux administrateurs renvoient 404 ;
-    - l'image d'aperçu est la capture de partage (``poster``), à défaut
-      l'image de l'annonce (``image1``) ;
+    - les visuels de l'annonce (affiche recto/verso des modèles FongoExpo et
+      visuel des annonces visuelles) sont montrés aux visiteurs ; à défaut,
+      la capture du rendu publié (``poster``) ;
+    - l'image d'aperçu (``og:image``) est le premier visuel affiché ;
     - le bouton « Ouvrir le dashboard » renvoie vers le frontend.
     """
     annonce = get_object_or_404(
@@ -26,14 +28,27 @@ def annonce_public(request, annonce_id):
         pk=annonce_id,
     )
 
-    image = annonce.poster or annonce.image1
-    image_url = request.build_absolute_uri(image.url) if image else None
+    # Visuels : l'affiche de l'annonce si elle existe, sinon la capture du
+    # rendu publié. L'aperçu partagé reprend le premier visuel affiché.
+    affiches = [
+        request.build_absolute_uri(fichier.url)
+        for fichier in (annonce.image1, annonce.image2)
+        if fichier
+    ]
+    poster_url = (
+        request.build_absolute_uri(annonce.poster.url)
+        if annonce.poster
+        else None
+    )
+    image_url = affiches[0] if affiches else poster_url
 
     return render(
         request,
         "annonce/public.html",
         {
             "annonce": annonce,
+            "affiches": affiches,
+            "poster_url": poster_url,
             "image_url": image_url,
             "og_url": request.build_absolute_uri(request.path),
             "frontend_url": settings.FRONTEND_BASE_URL,

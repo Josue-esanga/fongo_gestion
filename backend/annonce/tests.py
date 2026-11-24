@@ -267,15 +267,35 @@ class PublicAnnoncePageTests(APITestCase):
         )
         self.assertContains(response, 'name="twitter:card"')
 
-    def test_aper_utilise_la_capture_de_partage(self):
+    def test_aper_affiche_les_visuels_de_lannonce(self):
+        # Les annonces FongoExpo (recto/verso) montrent leur affiche aux
+        # visiteurs de la page publique.
         Annonce.objects.filter(pk=self.annonce.pk).update(
             poster="annonces/posters/capture.png",
             image1="annonces/affiche.jpg",
+            image2="annonces/affiche-verso.jpg",
         )
         annonce = Annonce.objects.get(pk=self.annonce.pk)
         response = self.client.get(f"/a/{annonce.pk}/")
-        # Le stockage renvoie déjà une URL absolue : build_absolute_uri
-        # la restitue telle quelle (Supabase en production, /media/ en local).
+        self.assertContains(response, f'src="{annonce.image1.url}"')
+        self.assertContains(response, f'src="{annonce.image2.url}"')
+        # L'aperçu partagé reprend l'affiche, pas la capture de l'interface.
+        self.assertContains(
+            response,
+            f'property="og:image" content="{annonce.image1.url}"',
+        )
+        # La capture n'est pas affichée en double à côté de l'affiche.
+        self.assertNotContains(response, f'src="{annonce.poster.url}"')
+
+    def test_aper_utilise_la_capture_sans_affiche(self):
+        # Sans image propre, c'est la capture du rendu publié qui sert de
+        # visuel et d'aperçu du lien partagé.
+        Annonce.objects.filter(pk=self.annonce.pk).update(
+            poster="annonces/posters/capture.png"
+        )
+        annonce = Annonce.objects.get(pk=self.annonce.pk)
+        response = self.client.get(f"/a/{annonce.pk}/")
+        self.assertContains(response, f'src="{annonce.poster.url}"')
         self.assertContains(
             response,
             f'property="og:image" content="{annonce.poster.url}"',
